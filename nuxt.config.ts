@@ -27,6 +27,11 @@ export default defineNuxtConfig({
         storageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'headline-central.firebasestorage.app',
         messagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
         appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID || ''
+      },
+      analytics: {
+        gtmId: process.env.NUXT_PUBLIC_GTM_ID || '',
+        ga4Id: process.env.NUXT_PUBLIC_GA4_ID || '',
+        metaPixelId: process.env.NUXT_PUBLIC_META_PIXEL_ID || ''
       }
     }
   },

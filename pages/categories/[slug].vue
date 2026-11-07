@@ -180,9 +180,15 @@ const filteredCategoryArticles = computed(() => {
 
 if (categoryMeta.value) {
   useHead({
-    title: `${categoryMeta.value.name} — Headline Central`,
+    title: () => categoryMeta.value?.seoTitle || `${categoryMeta.value?.name} — Headline Central`,
     meta: [
-      { name: 'description', content: categoryMeta.value.description }
+      { name: 'description', content: () => categoryMeta.value?.metaDescription || categoryMeta.value?.description || '' },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:site_name', content: 'Headline Central' },
+      { property: 'og:title', content: () => categoryMeta.value?.seoTitle || `${categoryMeta.value?.name} — Headline Central` },
+      { property: 'og:description', content: () => categoryMeta.value?.metaDescription || categoryMeta.value?.description || '' },
+      { property: 'og:image', content: () => categoryMeta.value?.image || '' },
+      { name: 'twitter:card', content: 'summary_large_image' }
     ]
   })
 }

@@ -127,6 +127,26 @@
             </svg>
             <span v-if="!isSidebarCollapsed">Categories</span>
           </button>
+
+          <!-- SEO & Analytics (GTM / GA4 / Meta Pixel) -->
+          <button
+            v-if="hasPermission('canManageSettings') || hasPermission('canManageBlogs')"
+            @click="activeTab = 'seo'"
+            type="button"
+            :class="[
+              activeTab === 'seo'
+                ? 'bg-[#EE5102] text-white'
+                : 'text-gray-900 hover:bg-gray-100',
+              isSidebarCollapsed ? 'justify-center px-2' : 'px-4'
+            ]"
+            class="w-full flex items-center gap-3 py-2.5 rounded-full text-[13px] font-normal transition-colors"
+          >
+            <svg class="w-[18px] h-[18px] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18" />
+              <path d="m19 9-5 5-4-4-3 3" />
+            </svg>
+            <span v-if="!isSidebarCollapsed">SEO &amp; Tracking</span>
+          </button>
         </nav>
       </div>
 
@@ -178,8 +198,8 @@
 
         <!-- User Profile Footer & Sign Out -->
         <div
-          :class="isSidebarCollapsed ? 'justify-center' : 'px-2'"
-          class="flex items-center justify-between gap-2 pt-2"
+          :class="isSidebarCollapsed ? 'flex-col items-center gap-2' : 'px-2 justify-between gap-2'"
+          class="flex items-center pt-2 border-t border-gray-100"
         >
           <div class="flex items-center gap-3 min-w-0">
             <img
@@ -197,13 +217,17 @@
             </div>
           </div>
           <button
-            v-if="!isSidebarCollapsed"
             @click="handleLogout"
             type="button"
             title="Sign Out"
-            class="text-[11px] text-gray-400 hover:text-[#EE5102] px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+            class="inline-flex items-center gap-1.5 text-[11px] font-medium text-gray-600 hover:text-white bg-gray-100 hover:bg-[#EE5102] px-3 py-1.5 rounded-full transition-colors flex-shrink-0"
           >
-            Sign out
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span v-if="!isSidebarCollapsed">Sign Out</span>
           </button>
         </div>
       </div>
@@ -227,7 +251,7 @@
           </p>
         </div>
 
-        <div class="flex items-center gap-8 sm:gap-12">
+        <div class="flex flex-wrap items-center gap-4 sm:gap-6">
           <!-- Current Live Visitors Indicator -->
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-[#8CE563] inline-block"></span>
@@ -235,19 +259,35 @@
             <span class="text-xs sm:text-[13px] font-normal text-gray-400">{{ liveVisitors }}</span>
           </div>
 
-          <!-- Create New Blog CTA Button -->
-          <button
-            v-if="hasPermission('canManageBlogs')"
-            @click="startNewBlog"
-            type="button"
-            class="inline-flex items-center gap-2 bg-[#EE5102] hover:bg-[#d84802] text-white text-xs sm:text-[13px] font-normal px-5 py-2.5 rounded-full transition-colors shadow-sm"
-          >
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            <span>Create new blog</span>
-          </button>
+          <div class="flex items-center gap-2.5">
+            <!-- Create New Blog CTA Button -->
+            <button
+              v-if="hasPermission('canManageBlogs')"
+              @click="startNewBlog"
+              type="button"
+              class="inline-flex items-center gap-2 bg-[#EE5102] hover:bg-[#d84802] text-white text-xs sm:text-[13px] font-normal px-5 py-2.5 rounded-full transition-colors shadow-sm"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span>Create new blog</span>
+            </button>
+
+            <!-- Top Header Sign Out Button -->
+            <button
+              @click="handleLogout"
+              type="button"
+              class="inline-flex items-center gap-2 bg-white hover:bg-red-50 text-gray-700 hover:text-red-600 border border-gray-200 hover:border-red-200 text-xs sm:text-[13px] font-medium px-4 py-2.5 rounded-full transition-colors shadow-sm"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span>Sign Out</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -934,18 +974,53 @@
             </div>
 
             <!-- ======================================================================= -->
-            <!-- 5. ARTICLE TAGS & PUBLISH FOOTER                                        -->
+            <!-- 5. ARTICLE SEO, META DESCRIPTION, TAGS & PUBLISH FOOTER                 -->
             <!-- ======================================================================= -->
             <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-gray-50/40 space-y-4">
+              <div class="flex items-center justify-between border-b border-gray-200/80 pb-3">
+                <div>
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Step 5</span>
+                  <h3 class="text-base font-semibold text-gray-900">SEO Page Title, Meta Description &amp; Article Tags</h3>
+                </div>
+                <span class="text-xs text-gray-400">Search Engine &amp; Social Graph Optimization</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-xs font-medium text-gray-700">SEO Page Title (Optional Override)</label>
+                    <span class="text-[11px] text-gray-400">{{ (editorForm.seoTitle || editorForm.title).length }}/60 chars</span>
+                  </div>
+                  <input
+                    v-model="editorForm.seoTitle"
+                    type="text"
+                    :placeholder="editorForm.title ? `${editorForm.title} — Headline Central` : 'Custom SEO Title tag...'"
+                    class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1.5">Article Tags &amp; SEO Keywords</label>
+                  <input
+                    v-model="editorForm.tagsInput"
+                    type="text"
+                    placeholder="NVIDIA, GeForce 8800, Retro Tech, Hardware, PC Gaming History"
+                    class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+              </div>
+
               <div>
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Step 5</span>
-                <h3 class="text-base font-semibold text-gray-900 mb-2">Article Tags</h3>
-                <input
-                  v-model="editorForm.tagsInput"
-                  type="text"
-                  placeholder="NVIDIA, GeForce 8800, Retro Tech, Hardware, PC Gaming History"
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="text-xs font-medium text-gray-700">SEO Meta Description (Optional Override)</label>
+                  <span class="text-[11px] text-gray-400">{{ (editorForm.metaDescription || editorForm.excerpt).length }}/160 chars</span>
+                </div>
+                <textarea
+                  v-model="editorForm.metaDescription"
+                  rows="2"
+                  :placeholder="editorForm.excerpt || 'Write a concise 150-160 character meta description for search engines...'"
                   class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
-                />
+                ></textarea>
               </div>
 
               <div class="pt-3 flex items-center justify-end gap-3 border-t border-gray-200/80">
@@ -1101,6 +1176,27 @@
                   v-model="categoryForm.image"
                   type="text"
                   placeholder="/images/tech-hero.jpg"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">SEO Page Title (Optional)</label>
+                <input
+                  v-model="categoryForm.seoTitle"
+                  type="text"
+                  :placeholder="categoryForm.name ? `${categoryForm.name} — Headline Central` : 'Custom SEO Page Title'"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">SEO Meta Description (Optional)</label>
+                <input
+                  v-model="categoryForm.metaDescription"
+                  type="text"
+                  :placeholder="categoryForm.description || 'Custom SEO meta description for search engines...'"
                   class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
                 />
               </div>
@@ -1301,7 +1397,7 @@
               </button>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1.5">Full Name *</label>
                 <input
@@ -1313,23 +1409,12 @@
                 />
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1.5">Email Address *</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">Email Address (Google SSO / Login) *</label>
                 <input
                   v-model="newUserForm.email"
                   type="email"
                   required
                   placeholder="sarah@headlinecentral.co.za"
-                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1.5">Login Password *</label>
-                <input
-                  v-model="newUserForm.password"
-                  type="password"
-                  required
-                  minlength="6"
-                  placeholder="Min. 6 characters"
                   class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
                 />
               </div>
@@ -1345,6 +1430,43 @@
                   <option value="author">Contributor / Author (Create &amp; Edit Blogs)</option>
                   <option value="viewer">Read-Only Viewer</option>
                 </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">Sign-In Method *</label>
+                <select
+                  v-model="newUserForm.provider"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                >
+                  <option value="both">Google Single Sign-On (SSO) + Password</option>
+                  <option value="google">Google Single Sign-On (SSO) Only</option>
+                  <option value="email">Email &amp; Password Only</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">Environment Target *</label>
+                <select
+                  v-model="newUserForm.environment"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                >
+                  <option value="live">Live &amp; Local Environment (Cloud Synced)</option>
+                  <option value="local">Local Environment Only</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                  {{ newUserForm.provider === 'google' ? 'Login Password (Optional for Google SSO)' : 'Login Password *' }}
+                </label>
+                <input
+                  v-model="newUserForm.password"
+                  type="password"
+                  :required="newUserForm.provider !== 'google'"
+                  minlength="6"
+                  :placeholder="newUserForm.provider === 'google' ? 'Optional backup password' : 'Min. 6 characters'"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                />
               </div>
             </div>
 
@@ -1445,6 +1567,18 @@
                         :class="u.roleKey === 'admin' ? 'bg-[#feeee6] text-[#EE5102]' : 'bg-gray-100 text-gray-700'"
                       >
                         {{ u.role }}
+                      </span>
+                      <span
+                        class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                        :class="u.environment !== 'local' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'"
+                      >
+                        {{ u.environment !== 'local' ? 'Live & Local' : 'Local Only' }}
+                      </span>
+                      <span
+                        v-if="u.provider === 'google' || u.provider === 'both' || u.isMaster"
+                        class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200/60"
+                      >
+                        Google SSO Enabled
                       </span>
                       <span
                         class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
@@ -1591,12 +1725,188 @@
           </div>
         </div>
 
+        <!-- TAB 5.5: SEO, GOOGLE TAG MANAGER (GA4) & META PIXEL -->
+        <div v-else-if="activeTab === 'seo'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">SEO, Google Tag Manager (GA4) &amp; Meta Pixel</h2>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Configure Google Tag Manager, GA4 Measurement ID, Meta Pixel tracking, and page-level SEO titles &amp; meta descriptions.
+              </p>
+            </div>
+            <span
+              v-if="seoSavedMessage"
+              class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"
+            >
+              {{ seoSavedMessage }}
+            </span>
+          </div>
+
+          <!-- 1. GOOGLE TAG MANAGER, GA4 & META PIXEL TRACKING CONFIGURATION -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-gray-50/40 space-y-5 max-w-5xl">
+            <div class="flex items-center justify-between border-b border-gray-200/80 pb-3">
+              <div>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Analytics &amp; Conversion Pixels</span>
+                <h3 class="text-base font-semibold text-gray-900">Google Tag Manager, GA4 &amp; Meta Pixel</h3>
+              </div>
+              <button
+                @click="handleSaveTrackingConfig"
+                type="button"
+                class="px-4 py-2 rounded-full text-xs font-medium bg-[#EE5102] hover:bg-[#d84802] text-white transition-colors shadow-sm"
+              >
+                Save Tracking Settings
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <!-- Google Tag Manager (GTM) -->
+              <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="text-xs font-semibold text-gray-900 block">Google Tag Manager</span>
+                    <span class="text-[11px] text-gray-400">Container ID (GTM-XXXXXXX)</span>
+                  </div>
+                  <label class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 cursor-pointer">
+                    <input v-model="trackingConfig.enableGtm" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                    <span>Active</span>
+                  </label>
+                </div>
+                <input
+                  v-model="trackingConfig.gtmId"
+                  type="text"
+                  placeholder="GTM-XXXXXXX"
+                  class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono uppercase focus:outline-none focus:border-[#EE5102]"
+                />
+                <p class="text-[11px] text-gray-400">
+                  Injects GTM head script &amp; noscript container and pushes virtual <code class="text-gray-600">page_view</code> events on route navigation.
+                </p>
+              </div>
+
+              <!-- Google Analytics 4 (GA4) -->
+              <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="text-xs font-semibold text-gray-900 block">Google Analytics 4 (GA4)</span>
+                    <span class="text-[11px] text-gray-400">Measurement ID (G-XXXXXXXXXX)</span>
+                  </div>
+                  <label class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 cursor-pointer">
+                    <input v-model="trackingConfig.enableGa4" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                    <span>Active</span>
+                  </label>
+                </div>
+                <input
+                  v-model="trackingConfig.ga4Id"
+                  type="text"
+                  placeholder="G-XXXXXXXXXX"
+                  class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono uppercase focus:outline-none focus:border-[#EE5102]"
+                />
+                <p class="text-[11px] text-gray-400">
+                  Loads <code class="text-gray-600">gtag.js</code> and tracks real-time pageviews &amp; reader engagement across all public pages.
+                </p>
+              </div>
+
+              <!-- Meta Pixel (Facebook Pixel) -->
+              <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="text-xs font-semibold text-gray-900 block">Meta Pixel</span>
+                    <span class="text-[11px] text-gray-400">Dataset / Pixel ID (Numeric)</span>
+                  </div>
+                  <label class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 cursor-pointer">
+                    <input v-model="trackingConfig.enableMetaPixel" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                    <span>Active</span>
+                  </label>
+                </div>
+                <input
+                  v-model="trackingConfig.metaPixelId"
+                  type="text"
+                  placeholder="123456789012345"
+                  class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#EE5102]"
+                />
+                <p class="text-[11px] text-gray-400">
+                  Initializes <code class="text-gray-600">fbevents.js</code> and fires <code class="text-gray-600">fbq('track', 'PageView')</code> on every page visit.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. PAGE-LEVEL SEO (PAGE TITLES, META DESCRIPTIONS & KEYWORDS) -->
+          <div class="space-y-4 max-w-5xl">
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Search Engine Optimization</span>
+              <h3 class="text-base font-semibold text-gray-900">Website Page Titles &amp; Meta Descriptions</h3>
+              <p class="text-xs text-gray-400">
+                Customize the title tag, meta description, keywords, and social share image for every core page on Headline Central.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+              <div
+                v-for="pageEntry in Object.values(pagesSeo)"
+                :key="pageEntry.key"
+                class="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm space-y-4"
+              >
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-100">
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-sm font-semibold text-gray-900">{{ pageEntry.label }}</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-gray-100 text-gray-600">
+                      {{ pageEntry.path }}
+                    </span>
+                  </div>
+                  <button
+                    @click="handleSavePageSeo(pageEntry.key)"
+                    type="button"
+                    class="px-4 py-1.5 rounded-full text-xs font-medium bg-[#feeee6] hover:bg-[#EE5102] text-[#EE5102] hover:text-white transition-colors"
+                  >
+                    Save Page SEO
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-xs font-medium text-gray-700">Page Title Tag *</label>
+                      <span class="text-[11px] text-gray-400">{{ pageEntry.title.length }}/60 chars</span>
+                    </div>
+                    <input
+                      v-model="pageEntry.title"
+                      type="text"
+                      class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Meta Keywords</label>
+                    <input
+                      v-model="pageEntry.keywords"
+                      type="text"
+                      class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="text-xs font-medium text-gray-700">Meta Description *</label>
+                    <span class="text-[11px] text-gray-400">{{ pageEntry.description.length }}/160 chars</span>
+                  </div>
+                  <textarea
+                    v-model="pageEntry.description"
+                    rows="2"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- TAB 6: SETTINGS -->
-        <div v-else-if="activeTab === 'settings'" class="flex-1 p-6 sm:p-8 overflow-y-auto">
+        <div v-else-if="activeTab === 'settings'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
           <div class="mb-6 pb-4 border-b border-gray-100">
             <h2 class="text-xl font-semibold text-gray-900">CMS Profile &amp; Settings</h2>
             <p class="text-xs text-gray-400 mt-0.5">
-              Customize your displayed username and editorial role.
+              Customize your displayed username, editorial role, and manage your active session.
             </p>
           </div>
           <div class="max-w-md space-y-4">
@@ -1625,6 +1935,30 @@
                 class="w-full rounded-xl border border-gray-200 bg-gray-50 text-gray-500 px-3.5 py-2 text-sm focus:outline-none"
               />
             </div>
+
+            <!-- Active Session & Sign Out Card -->
+            <div class="pt-6 border-t border-gray-100">
+              <div class="p-4 rounded-2xl border border-gray-200 bg-gray-50/60 flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs font-semibold text-gray-900">Active Session</p>
+                  <p class="text-[11px] text-gray-500 mt-0.5">
+                    Signed in as {{ currentUser?.email }}
+                  </p>
+                </div>
+                <button
+                  @click="handleLogout"
+                  type="button"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium transition-colors shadow-sm"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -1636,6 +1970,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useArticles, type Article, type ArticleSection, type GalleryItem, type CategoryMeta } from '~/composables/useArticles'
+import { useSiteSeo } from '~/composables/useSiteSeo'
 import {
   useFirebase,
   getDefaultPermissionsForRole,
@@ -1700,8 +2035,47 @@ const {
   listStorageMedia
 } = useFirebase()
 
+const {
+  pagesSeo,
+  trackingConfig,
+  updatePageSeo,
+  updateTrackingConfig
+} = useSiteSeo()
+
+const seoSavedMessage = ref('')
+
+const handleSaveTrackingConfig = () => {
+  updateTrackingConfig({
+    gtmId: trackingConfig.gtmId.trim(),
+    enableGtm: trackingConfig.enableGtm,
+    ga4Id: trackingConfig.ga4Id.trim(),
+    enableGa4: trackingConfig.enableGa4,
+    metaPixelId: trackingConfig.metaPixelId.trim(),
+    enableMetaPixel: trackingConfig.enableMetaPixel
+  })
+  seoSavedMessage.value = 'Tracking & Pixel IDs saved!'
+  setTimeout(() => {
+    seoSavedMessage.value = ''
+  }, 2500)
+}
+
+const handleSavePageSeo = (key: string) => {
+  const entry = pagesSeo[key]
+  if (!entry) return
+  updatePageSeo(key, {
+    title: entry.title,
+    description: entry.description,
+    keywords: entry.keywords,
+    ogImage: entry.ogImage
+  })
+  seoSavedMessage.value = `SEO saved for ${entry.label}!`
+  setTimeout(() => {
+    seoSavedMessage.value = ''
+  }, 2500)
+}
+
 const isSidebarCollapsed = ref(false)
-const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'users' | 'settings'>('dashboard')
+const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'seo' | 'users' | 'settings'>('dashboard')
 const cmsSearch = ref('')
 const liveVisitors = ref(12)
 const isPreviewMode = ref(false)
@@ -1732,6 +2106,8 @@ const categoryForm = reactive({
   name: '',
   slug: '',
   description: '',
+  seoTitle: '',
+  metaDescription: '',
   image: '/images/tech-hero.jpg',
   showInNavbar: true
 })
@@ -1741,6 +2117,8 @@ const resetCategoryForm = () => {
   categoryForm.name = ''
   categoryForm.slug = ''
   categoryForm.description = ''
+  categoryForm.seoTitle = ''
+  categoryForm.metaDescription = ''
   categoryForm.image = '/images/tech-hero.jpg'
   categoryForm.showInNavbar = true
   showNewCategoryForm.value = false
@@ -1751,6 +2129,8 @@ const startEditCategory = (cat: CategoryMeta) => {
   categoryForm.name = cat.name
   categoryForm.slug = cat.slug
   categoryForm.description = cat.description
+  categoryForm.seoTitle = cat.seoTitle || ''
+  categoryForm.metaDescription = cat.metaDescription || ''
   categoryForm.image = cat.image
   categoryForm.showInNavbar = cat.showInNavbar !== false
   showNewCategoryForm.value = true
@@ -1763,6 +2143,8 @@ const handleSaveCategory = () => {
     updateCategory(editingCategorySlug.value, {
       name: categoryForm.name.trim(),
       description: categoryForm.description.trim(),
+      seoTitle: categoryForm.seoTitle.trim() || undefined,
+      metaDescription: categoryForm.metaDescription.trim() || undefined,
       image: categoryForm.image.trim() || '/images/tech-hero.jpg',
       showInNavbar: categoryForm.showInNavbar
     })
@@ -1771,6 +2153,8 @@ const handleSaveCategory = () => {
       name: categoryForm.name.trim(),
       slug: cleanSlug,
       description: categoryForm.description.trim(),
+      seoTitle: categoryForm.seoTitle.trim() || undefined,
+      metaDescription: categoryForm.metaDescription.trim() || undefined,
       image: categoryForm.image.trim() || '/images/tech-hero.jpg',
       showInNavbar: categoryForm.showInNavbar,
       subCategories: []
@@ -1799,6 +2183,8 @@ const newUserForm = reactive({
   email: '',
   password: '',
   roleKey: 'editor' as CmsRoleKey,
+  provider: 'both' as 'both' | 'google' | 'email',
+  environment: 'live' as 'live' | 'local',
   permissions: getDefaultPermissionsForRole('editor')
 })
 
@@ -1824,16 +2210,21 @@ const handleCreateNewUser = async () => {
     email: newUserForm.email,
     password: newUserForm.password,
     roleKey: newUserForm.roleKey,
+    provider: newUserForm.provider,
+    environment: newUserForm.environment,
     permissions: { ...newUserForm.permissions }
   })
 
   if (result.ok) {
     userFeedbackType.value = 'success'
-    userFeedbackMessage.value = `User "${newUserForm.displayName}" (${newUserForm.email}) created with ${newUserForm.roleKey.toUpperCase()} role.`
+    const envLabel = newUserForm.environment === 'live' ? 'Live & Local Environment' : 'Local Environment'
+    userFeedbackMessage.value = `User "${newUserForm.displayName}" (${newUserForm.email}) provisioned for ${envLabel} with ${newUserForm.roleKey.toUpperCase()} role.`
     newUserForm.displayName = ''
     newUserForm.email = ''
     newUserForm.password = ''
     newUserForm.roleKey = 'editor'
+    newUserForm.provider = 'both'
+    newUserForm.environment = 'live'
     newUserForm.permissions = getDefaultPermissionsForRole('editor')
     showAddUserForm.value = false
   } else {
@@ -1925,6 +2316,8 @@ const handleLogout = async () => {
 const editorForm = reactive({
   title: '',
   titleHighlight: '',
+  seoTitle: '',
+  metaDescription: '',
   category: 'Technology',
   subCategory: '',
   publishedAt: '2026 November 7',
@@ -2129,6 +2522,8 @@ const previewArticleObject = computed<Article>(() => {
     title: editorForm.title || 'Untitled Blog Post',
     titleHighlight: editorForm.titleHighlight || undefined,
     excerpt: editorForm.excerpt || '',
+    seoTitle: editorForm.seoTitle.trim() || undefined,
+    metaDescription: editorForm.metaDescription.trim() || undefined,
     category: catName,
     categorySlug: catSlug,
     subCategory: subName,
@@ -2160,6 +2555,8 @@ const startNewBlog = () => {
   isPreviewMode.value = false
   editorForm.title = ''
   editorForm.titleHighlight = ''
+  editorForm.seoTitle = ''
+  editorForm.metaDescription = ''
   editorForm.category = categories[0]?.name || 'Technology'
   editorForm.subCategory = ''
   editorForm.publishedAt = '2026 November 7'
@@ -2194,6 +2591,8 @@ const editBlog = (article: Article) => {
   isPreviewMode.value = false
   editorForm.title = article.title
   editorForm.titleHighlight = article.titleHighlight || ''
+  editorForm.seoTitle = article.seoTitle || ''
+  editorForm.metaDescription = article.metaDescription || ''
   editorForm.category = article.category
   editorForm.subCategory = article.subCategory || ''
   editorForm.publishedAt = article.publishedAt
@@ -2268,6 +2667,8 @@ const saveBlogPost = () => {
       title: built.title,
       titleHighlight: built.titleHighlight,
       excerpt: built.excerpt,
+      seoTitle: built.seoTitle,
+      metaDescription: built.metaDescription,
       category: built.category,
       categorySlug: built.categorySlug,
       subCategory: built.subCategory,

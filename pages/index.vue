@@ -19,6 +19,7 @@
 
 <script setup lang="ts">
 import { useArticles } from '~/composables/useArticles'
+import { useSiteSeo } from '~/composables/useSiteSeo'
 
 const {
   getFeaturedArticle,
@@ -27,15 +28,12 @@ const {
   categories
 } = useArticles()
 
+const { applyPageSeo } = useSiteSeo()
+
 const featuredArticle = getFeaturedArticle()
 const popularArticles = getPopularArticles()
 const latestArticles = getLatestArticles(6)
 
-useHead({
-  title: 'Headline Central — Essential Stories Across Technology & Digital Culture',
-  meta: [
-    { name: 'description', content: 'Headline Central brings you essential headlines, investigative technical analysis, hardware retrospectives, and digital architecture coverage.' }
-  ]
-})
+applyPageSeo('home')
 </script>
 

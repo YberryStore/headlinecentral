@@ -22,14 +22,26 @@ const { getArticleBySlug } = useArticles()
 const article = getArticleBySlug(route.params.slug as string)
 
 if (article) {
+  const resolvedTitle = article.seoTitle || `${article.title} — Headline Central`
+  const resolvedDescription = article.metaDescription || article.excerpt
+  const resolvedKeywords = article.seoKeywords || (article.tags ? article.tags.join(', ') : '')
+  const resolvedOgImage = article.bannerImage || article.featuredImage
+
   useHead({
-    title: `${article.title} — Headline Central`,
+    title: resolvedTitle,
     meta: [
-      { name: 'description', content: article.excerpt },
-      { property: 'og:title', content: article.title },
-      { property: 'og:description', content: article.excerpt },
-      { property: 'og:image', content: article.bannerImage || article.featuredImage },
-      { name: 'author', content: article.author?.name || 'Headline Central' }
+      { name: 'description', content: resolvedDescription },
+      { name: 'keywords', content: resolvedKeywords },
+      { name: 'author', content: article.author?.name || 'Headline Central' },
+      { property: 'og:type', content: 'article' },
+      { property: 'og:site_name', content: 'Headline Central' },
+      { property: 'og:title', content: resolvedTitle },
+      { property: 'og:description', content: resolvedDescription },
+      { property: 'og:image', content: resolvedOgImage },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: resolvedTitle },
+      { name: 'twitter:description', content: resolvedDescription },
+      { name: 'twitter:image', content: resolvedOgImage }
     ]
   })
 }

@@ -91,11 +91,9 @@
 </template>
 
 <script setup lang="ts">
-useHead({
-  title: 'About Us — Headline Central Editorial & Standards',
-  meta: [
-    { name: 'description', content: 'Learn about Headline Central’s journalistic standards, editorial independence, and senior contributor team.' }
-  ]
-})
+import { useSiteSeo } from '~/composables/useSiteSeo'
+
+const { applyPageSeo } = useSiteSeo()
+applyPageSeo('about')
 </script>
 

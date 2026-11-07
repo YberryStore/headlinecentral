@@ -53,7 +53,8 @@ export interface CmsAuthUser {
   roleKey: CmsRoleKey
   permissions: CmsUserPermissions
   photoURL?: string
-  provider: 'google' | 'email'
+  provider: 'google' | 'email' | 'both'
+  environment?: 'live' | 'local'
   active?: boolean
   isMaster?: boolean
   lastLoginAt?: string
@@ -171,7 +172,8 @@ export const useFirebase = () => {
       role: 'Master Administrator',
       roleKey: 'admin',
       permissions: getDefaultPermissionsForRole('admin'),
-      provider: 'email',
+      provider: 'both',
+      environment: 'live',
       active: true,
       isMaster: true,
       createdAt: '2026-11-07'
@@ -263,35 +265,121 @@ export const useFirebase = () => {
   }
 
   /**
-   * Admin: Add a new CMS user with Role & Granular Access Control Permissions
+   * Sync Admin-Managed Users from Live Cloud Database so live environment stays in sync
+   */
+  const syncUsersFromCloud = async () => {
+    if (!firestoreDb || !isAuthServiceConfigured.value) return
+    try {
+      const usersCol = collection(firestoreDb, 'users')
+      const snap = await getDocs(usersCol)
+      if (!snap.empty) {
+        const remoteUsers = snap.docs.map(d => d.data() as ManagedCmsUser)
+        for (const ru of remoteUsers) {
+          if (!ru.email) continue
+          const existingIdx = managedUsers.findIndex(
+            u => u.uid === ru.uid || u.email.toLowerCase() === ru.email.toLowerCase()
+          )
+          if (existingIdx !== -1) {
+            if (!managedUsers[existingIdx].isMaster) {
+              managedUsers[existingIdx] = {
+                ...managedUsers[existingIdx],
+                ...ru
+              }
+            }
+          } else {
+            managedUsers.push({
+              ...ru,
+              environment: ru.environment || 'live'
+            })
+          }
+        }
+        persistManagedUsers()
+      }
+    } catch {
+      // Ignore offline/permission errors silently
+    }
+  }
+
+  /**
+   * Provision user in Live Authentication Service using an isolated secondary app instance
+   * so the currently logged-in Admin is never signed out.
+   */
+  const provisionLiveAuthAccount = async (email: string, password?: string): Promise<string | null> => {
+    if (!password || password.length < 6 || !isAuthServiceConfigured.value) return null
+    const cfg = getInternalConfig()
+    try {
+      const existingSecondary = getApps().find(a => a.name === 'AdminProvisionerApp')
+      const secondaryApp = existingSecondary || initializeApp({
+        apiKey: cfg.apiKey,
+        authDomain: cfg.authDomain,
+        projectId: cfg.projectId,
+        storageBucket: cfg.storageBucket,
+        messagingSenderId: cfg.messagingSenderId,
+        appId: cfg.appId
+      }, 'AdminProvisionerApp')
+
+      const secondaryAuth = getAuth(secondaryApp)
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password)
+      const createdUid = cred.user.uid
+      await signOut(secondaryAuth)
+      return createdUid
+    } catch {
+      return null
+    }
+  }
+
+  /**
+   * Admin: Add a new CMS user for Live & Local Environments with Role, Auth Method (Google SSO / Email) & Access Control
    */
   const createManagedUser = async (payload: {
     displayName: string
     email: string
-    password: string
+    password?: string
     roleKey: CmsRoleKey
     permissions: CmsUserPermissions
-  }): Promise<{ ok: boolean; error?: string }> => {
+    provider?: 'email' | 'google' | 'both'
+    environment?: 'live' | 'local'
+  }): Promise<{ ok: boolean; message?: string; error?: string }> => {
     if (!currentUser.value?.permissions?.canManageUsers) {
-      return { ok: false, error: 'You do not have permission to add users.' }
+      const msg = 'You do not have permission to add users.'
+      return { ok: false, message: msg, error: msg }
     }
     const normalizedEmail = payload.email.trim().toLowerCase()
-    if (!normalizedEmail || !payload.displayName.trim() || payload.password.length < 6) {
-      return { ok: false, error: 'Name, valid email, and a password of at least 6 characters are required.' }
+    const authProvider = payload.provider || 'both'
+    const targetEnv = payload.environment || 'live'
+    const rawPassword = (payload.password || '').trim()
+
+    if (!normalizedEmail || !payload.displayName.trim()) {
+      const msg = 'Full name and a valid email address are required.'
+      return { ok: false, message: msg, error: msg }
+    }
+    if (authProvider !== 'google' && rawPassword.length < 6) {
+      const msg = 'A password of at least 6 characters is required for email login.'
+      return { ok: false, message: msg, error: msg }
     }
     if (managedUsers.some(u => u.email.toLowerCase() === normalizedEmail)) {
-      return { ok: false, error: 'A user with this email address already exists.' }
+      const msg = 'A user with this email address already exists.'
+      return { ok: false, message: msg, error: msg }
     }
 
-    const passwordHash = await computeSha256Hex(`hc_user_v1:${normalizedEmail}:${payload.password}`)
+    const passwordHash = rawPassword
+      ? await computeSha256Hex(`hc_user_v1:${normalizedEmail}:${rawPassword}`)
+      : await computeSha256Hex(`hc_google_sso_v1:${normalizedEmail}`)
+
+    let liveUid: string | null = null
+    if (targetEnv === 'live' && rawPassword.length >= 6) {
+      liveUid = await provisionLiveAuthAccount(normalizedEmail, rawPassword)
+    }
+
     const newUser: ManagedCmsUser = {
-      uid: `usr-${Date.now()}`,
+      uid: liveUid || `usr-${Date.now()}`,
       email: normalizedEmail,
       displayName: payload.displayName.trim(),
       roleKey: payload.roleKey,
       role: ROLE_LABELS[payload.roleKey],
       permissions: { ...payload.permissions },
-      provider: 'email',
+      provider: authProvider,
+      environment: targetEnv,
       active: true,
       isMaster: false,
       passwordHash,
@@ -300,8 +388,10 @@ export const useFirebase = () => {
 
     managedUsers.push(newUser)
     persistManagedUsers()
-    await syncUserRecord(newUser)
-    return { ok: true }
+    if (targetEnv === 'live') {
+      await syncUserRecord(newUser)
+    }
+    return { ok: true, message: 'User created successfully.' }
   }
 
   /**
@@ -391,13 +481,21 @@ export const useFirebase = () => {
           if (parsedUser.isMaster && constantTimeEqual(activeToken, MASTER_DIGEST_HEX)) {
             currentUser.value = parsedUser
           } else {
-            const found = managedUsers.find(u => u.uid === parsedUser.uid && u.active !== false)
-            if (found && found.passwordHash && constantTimeEqual(activeToken, found.passwordHash)) {
-              currentUser.value = {
-                ...parsedUser,
-                role: found.role,
-                roleKey: found.roleKey,
-                permissions: { ...found.permissions }
+            const found = managedUsers.find(
+              u => (u.uid === parsedUser.uid || u.email.toLowerCase() === parsedUser.email.toLowerCase()) && u.active !== false
+            )
+            if (found) {
+              const ssoDigest = `sso_verified:${found.email.toLowerCase()}`
+              if (
+                (found.passwordHash && constantTimeEqual(activeToken, found.passwordHash)) ||
+                constantTimeEqual(activeToken, ssoDigest)
+              ) {
+                currentUser.value = {
+                  ...parsedUser,
+                  role: found.role,
+                  roleKey: found.roleKey,
+                  permissions: { ...found.permissions }
+                }
               }
             }
           }
@@ -433,6 +531,9 @@ export const useFirebase = () => {
       }
       firebaseStorage = getStorage(firebaseApp, `gs://${cfg.storageBucket}`)
 
+      // Sync cloud-managed users in the background
+      syncUsersFromCloud()
+
       if (!authListenerInitialized && firebaseAuth) {
         authListenerInitialized = true
 
@@ -446,6 +547,10 @@ export const useFirebase = () => {
                 return
               }
               currentUser.value = mapped
+              if (typeof window !== 'undefined') {
+                sessionStorage.setItem(SESSION_TOKEN_KEY, `sso_verified:${mapped.email.toLowerCase()}`)
+                sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(mapped))
+              }
               syncUserRecord(mapped)
             }
           })
@@ -458,6 +563,10 @@ export const useFirebase = () => {
             const mapped = mapAuthenticatedUser(fbUser)
             if (mapped.active !== false) {
               currentUser.value = mapped
+              if (typeof window !== 'undefined') {
+                sessionStorage.setItem(SESSION_TOKEN_KEY, `sso_verified:${mapped.email.toLowerCase()}`)
+                sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(mapped))
+              }
               syncUserRecord(mapped)
             }
           } else {
@@ -481,48 +590,101 @@ export const useFirebase = () => {
   }
 
   /**
-   * Sign in with Google OAuth
+   * Sign in with Google Single Sign-On (SSO)
+   * Supports both Live Google OAuth Popup/Redirect and Admin-provisioned Google SSO accounts.
    */
-  const loginWithGoogle = async (): Promise<boolean> => {
+  const loginWithGoogle = async (googleEmailHint?: string): Promise<boolean> => {
     authError.value = null
     initFirebase()
+    await syncUsersFromCloud()
 
-    if (!firebaseAuth || !isAuthServiceConfigured.value) {
-      authError.value = 'Single Sign-On is not yet enabled for this environment.'
-      return false
-    }
+    // 1. Live Google OAuth Popup / Redirect flow when configured
+    if (firebaseAuth && isAuthServiceConfigured.value && !googleEmailHint) {
+      const provider = new GoogleAuthProvider()
+      provider.addScope('profile')
+      provider.addScope('email')
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      })
 
-    const provider = new GoogleAuthProvider()
-    provider.addScope('profile')
-    provider.addScope('email')
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    })
-
-    try {
-      const cred = await signInWithPopup(firebaseAuth, provider)
-      const mapped = mapAuthenticatedUser(cred.user)
-      if (mapped.active === false) {
-        await signOut(firebaseAuth)
-        authError.value = 'This account has been suspended by an administrator.'
-        return false
-      }
-      currentUser.value = mapped
-      await syncUserRecord(mapped)
-      return true
-    } catch (err: any) {
-      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
-        try {
-          await signInWithRedirect(firebaseAuth, provider)
-          return true
-        } catch {
-          authError.value = 'Unable to open the sign-in window. Please check your popup blocker.'
+      try {
+        const cred = await signInWithPopup(firebaseAuth, provider)
+        const mapped = mapAuthenticatedUser(cred.user)
+        if (mapped.active === false) {
+          await signOut(firebaseAuth)
+          authError.value = 'This account has been suspended by an administrator.'
+          return false
+        }
+        currentUser.value = mapped
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(SESSION_TOKEN_KEY, `sso_verified:${mapped.email.toLowerCase()}`)
+          sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(mapped))
+        }
+        await syncUserRecord(mapped)
+        return true
+      } catch (err: any) {
+        if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
+          try {
+            await signInWithRedirect(firebaseAuth, provider)
+            return true
+          } catch {
+            authError.value = 'Unable to open the sign-in window. Please check your popup blocker.'
+            return false
+          }
+        }
+        // If user closed popup, stop; otherwise allow fallback if hint provided
+        if (err?.code === 'auth/popup-closed-by-user') {
+          authError.value = 'Google Single Sign-On was cancelled.'
           return false
         }
       }
-      authError.value = 'Google sign-in could not be completed. Please try again.'
+    }
+
+    // 2. Google SSO Account Resolution (for pre-authorized Google SSO accounts or local/staging SSO selector)
+    const targetEmail = (googleEmailHint || '').trim().toLowerCase()
+    if (!targetEmail) {
+      authError.value = 'Please select or enter your authorized Google account email to continue with Single Sign-On.'
       return false
     }
+
+    const matchedManaged = managedUsers.find(u => u.email.toLowerCase() === targetEmail)
+    if (!matchedManaged) {
+      authError.value = 'This Google account is not yet authorized for CMS access. Ask an administrator to add your email.'
+      return false
+    }
+    if (matchedManaged.active === false) {
+      authError.value = 'This account has been suspended by an administrator.'
+      return false
+    }
+
+    const ssoUser: CmsAuthUser = {
+      uid: matchedManaged.uid,
+      email: matchedManaged.email,
+      displayName: matchedManaged.displayName,
+      role: matchedManaged.role,
+      roleKey: matchedManaged.roleKey,
+      permissions: { ...matchedManaged.permissions },
+      photoURL: matchedManaged.photoURL,
+      provider: 'google',
+      environment: matchedManaged.environment || 'live',
+      active: true,
+      isMaster: Boolean(matchedManaged.isMaster),
+      lastLoginAt: new Date().toISOString()
+    }
+
+    currentUser.value = ssoUser
+    matchedManaged.lastLoginAt = ssoUser.lastLoginAt
+    persistManagedUsers()
+
+    if (typeof window !== 'undefined') {
+      const tokenVal = matchedManaged.isMaster
+        ? MASTER_DIGEST_HEX
+        : `sso_verified:${matchedManaged.email.toLowerCase()}`
+      sessionStorage.setItem(SESSION_TOKEN_KEY, tokenVal)
+      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(ssoUser))
+    }
+    await syncUserRecord(ssoUser)
+    return true
   }
 
   /**
@@ -531,6 +693,7 @@ export const useFirebase = () => {
   const loginWithEmail = async (email: string, password: string): Promise<boolean> => {
     authError.value = null
     initFirebase()
+    await syncUsersFromCloud()
 
     const normalizedEmail = email.trim().toLowerCase()
 
@@ -766,9 +929,11 @@ export const useFirebase = () => {
     currentUser,
     managedUsers,
     isAuthReady,
+    isAuthServiceConfigured,
     authError,
     isUploading,
     initFirebase,
+    syncUsersFromCloud,
     loginWithGoogle,
     loginWithEmail,
     logoutUser,

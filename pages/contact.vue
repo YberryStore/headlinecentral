@@ -149,6 +149,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useSiteSeo } from '~/composables/useSiteSeo'
+
+const { applyPageSeo } = useSiteSeo()
 
 const form = ref({
   name: '',
@@ -171,11 +174,6 @@ const handleSubmit = () => {
   }, 750)
 }
 
-useHead({
-  title: 'Contact Us — Headline Central',
-  meta: [
-    { name: 'description', content: 'Contact Headline Central for editorial pitches, press inquiries, corrections, or sponsorship.' }
-  ]
-})
+applyPageSeo('contact')
 </script>
 

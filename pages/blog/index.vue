@@ -138,8 +138,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useArticles } from '~/composables/useArticles'
+import { useSiteSeo } from '~/composables/useSiteSeo'
 
 const { articles, categories } = useArticles()
+const { applyPageSeo } = useSiteSeo()
 
 const selectedCategory = ref('all')
 const query = ref('')
@@ -164,11 +166,6 @@ const filteredList = computed(() => {
   })
 })
 
-useHead({
-  title: 'All Published Stories — Headline Central',
-  meta: [
-    { name: 'description', content: 'Explore the complete archive of Headline Central articles across Technology, Home & DIY, Food, and Parenting.' }
-  ]
-})
+applyPageSeo('blog')
 </script>
 

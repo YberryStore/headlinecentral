@@ -84,14 +84,11 @@
 
 <script setup lang="ts">
 import { useArticles } from '~/composables/useArticles'
+import { useSiteSeo } from '~/composables/useSiteSeo'
 
 const { categories, getArticlesByCategory } = useArticles()
+const { applyPageSeo } = useSiteSeo()
 
-useHead({
-  title: 'Categories — Headline Central',
-  meta: [
-    { name: 'description', content: 'Explore articles organised by subject: Technology, Home & DIY, Food, and Parenting.' }
-  ]
-})
+applyPageSeo('categories')
 </script>
 

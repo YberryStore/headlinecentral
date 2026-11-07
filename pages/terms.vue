@@ -70,11 +70,9 @@
 </template>
 
 <script setup lang="ts">
-useHead({
-  title: 'Terms & Conditions — Headline Central',
-  meta: [
-    { name: 'description', content: 'Terms and conditions governing the usage and syndication of Headline Central content.' }
-  ]
-})
+import { useSiteSeo } from '~/composables/useSiteSeo'
+
+const { applyPageSeo } = useSiteSeo()
+applyPageSeo('terms')
 </script>
 

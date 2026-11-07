@@ -51,6 +51,8 @@ export interface CategoryMeta {
   name: string
   slug: string
   description: string
+  seoTitle?: string
+  metaDescription?: string
   color: string
   badgeBg: string
   icon: string
@@ -65,6 +67,9 @@ export interface Article {
   title: string
   titleHighlight?: string
   excerpt: string
+  seoTitle?: string
+  metaDescription?: string
+  seoKeywords?: string
   category: string
   categorySlug: string
   subCategory?: string

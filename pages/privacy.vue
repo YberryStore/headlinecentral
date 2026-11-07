@@ -74,11 +74,9 @@
 </template>
 
 <script setup lang="ts">
-useHead({
-  title: 'Privacy Policy & Advertising Disclosure — Headline Central',
-  meta: [
-    { name: 'description', content: 'Headline Central Privacy Policy explaining data collection practices, advertising transparency, and cookie policy.' }
-  ]
-})
+import { useSiteSeo } from '~/composables/useSiteSeo'
+
+const { applyPageSeo } = useSiteSeo()
+applyPageSeo('privacy')
 </script>
 
