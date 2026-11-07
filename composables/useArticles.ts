@@ -252,6 +252,7 @@ export const useArticles = () => {
       tags: ['NVIDIA', 'Neural Computing', 'Path Tracing'],
       sections: []
     }
+  ]
 
   const getArticleBySlug = (slug: string) => {
     if (slug === 'autonomous-systems-agentic-workflows-2026' || slug === 'unboxing-2006-full-path-tracing-geforce-8800-gtx') {
