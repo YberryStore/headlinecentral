@@ -6,7 +6,7 @@
         <div class="lg:col-span-2 space-y-4">
           <NuxtLink to="/" class="inline-flex items-center">
             <img
-              src="/images/headline-central-logo.svg"
+              :src="useAsset('/images/headline-central-logo.svg')"
               alt="HeadlineCentral."
               class="h-6 sm:h-[26px] w-auto"
             />

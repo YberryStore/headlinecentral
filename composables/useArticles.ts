@@ -63,13 +63,15 @@ export interface CategoryMeta {
 }
 
 export const useArticles = () => {
+  const asset = (path: string) => useAsset(path)
+
   const authors: Record<string, Author> = {
     marcus: {
       id: 'marcus-vance',
       name: 'Dr. Marcus Vance',
       role: 'Principal Technology Analyst & Senior Editor',
       bio: 'Dr. Marcus Vance holds a doctorate in Distributed Systems from Carnegie Mellon. He has covered machine intelligence, autonomous systems, and modern computing architectures for over 15 years.',
-      avatar: '/images/author-marcus.jpg',
+      avatar: asset('/images/author-marcus.jpg'),
       twitter: 'https://twitter.com',
       linkedin: 'https://linkedin.com'
     }
@@ -83,7 +85,7 @@ export const useArticles = () => {
       color: '#ee5102',
       badgeBg: 'bg-yberry-100 text-yberry-1000 border border-yberry-300',
       icon: 'Cpu',
-      image: '/images/tech-hero.jpg'
+      image: asset('/images/tech-hero.jpg')
     },
     {
       name: 'Home and DIY',
@@ -92,7 +94,7 @@ export const useArticles = () => {
       color: '#f17435',
       badgeBg: 'bg-amber-50 text-amber-900 border border-amber-200',
       icon: 'Home',
-      image: '/images/diy-hero.jpg'
+      image: asset('/images/diy-hero.jpg')
     },
     {
       name: 'Food',
@@ -101,7 +103,7 @@ export const useArticles = () => {
       color: '#f0631c',
       badgeBg: 'bg-orange-50 text-orange-900 border border-orange-200',
       icon: 'Utensils',
-      image: '/images/food-hero.jpg'
+      image: asset('/images/food-hero.jpg')
     },
     {
       name: 'Parenting',
@@ -110,7 +112,7 @@ export const useArticles = () => {
       color: '#e88b6b',
       badgeBg: 'bg-rose-50 text-rose-900 border border-rose-200',
       icon: 'HeartHandshake',
-      image: '/images/parenting-hero.jpg'
+      image: asset('/images/parenting-hero.jpg')
     }
   ]
 
@@ -124,8 +126,8 @@ export const useArticles = () => {
       category: 'Technology',
       categorySlug: 'technology',
       categoryColor: '#ee5102',
-      featuredImage: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp',
-      bannerImage: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp',
+      featuredImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp'),
+      bannerImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp'),
       imageCaption: 'A modern research workstation evaluating proactive agent coordination in real-time.',
       publishedAt: 'November 7, 2026',
       readTime: '5 min read',
@@ -145,7 +147,7 @@ export const useArticles = () => {
           title: 'Rebuilding the Dream: The 20-Year Steam Tech Demo',
           content: `To commemorate twenty years of G80, enthusiasts and graphics engineers reconstructed the iconic 2006 demo scene using fully path-traced rendering pipelines, pushing modern hardware while honoring the visual language of the original release.\n\nRevisiting the original 2006 demo on contemporary silicon reveals how ahead of its time the architectural concept really was. By routing every pipeline through unified compute blocks, the modern recreation demonstrates dynamic bounce lighting, volumetric vapor dispersion, and photorealistic silicon reflections that the original engineers envisioned twenty years ago.`,
           image: {
-            src: '/images/geforce-8800-gtx-gpu-celebration-20-year-steam-tech-demo.webp',
+            src: asset('/images/geforce-8800-gtx-gpu-celebration-20-year-steam-tech-demo.webp'),
             alt: 'GeForce 8800 GTX 20 Years of a Legend',
             caption: '20 Years of a Legend: Reconstructing the vintage GeForce 8800 GTX tech demo with modern real-time lighting.'
           }
@@ -170,18 +172,18 @@ export const useArticles = () => {
           title: 'The Enduring Legacy of the G80',
           content: `Looking back, the GeForce 8800 GTX did something far more profound than win a single hardware cycle. It unlocked CUDA, paved the road for general-purpose GPU computing, and proved that programmable parallel pipelines could tackle challenges far beyond polygon rasterization.\n\nWhether in autonomous AI clusters or the latest generation of real-time photorealistic path tracing, every single frame rendered today owes a debt to the ambitious silicon gamble taken two decades ago. Explore the high-resolution hardware archive below:`,
           gallery: [
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-2.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-3.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-4.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-5.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-6.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-7.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-8.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-9.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-10.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-11.webp',
-            '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-12.webp'
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-2.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-3.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-4.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-5.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-6.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-7.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-8.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-9.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-10.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-11.webp'),
+            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-12.webp')
           ],
           galleryCaption: 'A high-resolution visual archive celebrating 20 years of GeForce 8800 GTX hardware craft and industrial design.'
         }

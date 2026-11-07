@@ -7,7 +7,7 @@
         <div class="flex items-center flex-shrink-0">
           <NuxtLink to="/" class="flex items-center group">
             <img
-              src="/images/headline-central-logo.svg"
+              :src="useAsset('/images/headline-central-logo.svg')"
               alt="HeadlineCentral."
               class="h-6 sm:h-[26px] w-auto"
             />
