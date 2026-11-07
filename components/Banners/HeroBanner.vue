@@ -8,7 +8,13 @@
             <!-- Heading -->
             <h1 class="text-3xl sm:text-4xl lg:text-[40px] xl:text-[42px] font-medium leading-[1.25] text-gray-950 font-sans tracking-tight hover:text-[#EE5102] transition-colors">
               <NuxtLink :to="`/blog/${article.slug}`">
-                {{ article.title }}
+                <template v-if="article.titleHighlight">
+                  <span class="text-[#EE5102]">{{ article.titleHighlight }}</span>
+                  {{ article.title.replace(article.titleHighlight, '') }}
+                </template>
+                <template v-else>
+                  {{ article.title }}
+                </template>
               </NuxtLink>
             </h1>
 
