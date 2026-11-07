@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    color: #1a1a1a;
+    background-color: #faf9f6;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-size: 16px;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+    color: #111827;
+  }
+}
+
+@layer components {
+  /* Image 3 Typography Classes */
+  .heading-desktop {
+    font-family: 'Poppins', sans-serif;
+    font-size: 40px;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  .heading-mobile {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    line-height: 1.25;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+
+  .subheading-text {
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    line-height: 1.3;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  .body-text {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  /* Image 3 Button Styles */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-full font-medium text-sm transition-all duration-200 cursor-pointer select-none text-white bg-yberry-1000 shadow-sm;
+  }
+  .btn-primary:hover {
+    @apply bg-yberry-300 text-gray-900 shadow;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-full font-medium text-sm transition-all duration-200 cursor-pointer select-none bg-white text-gray-900 border border-gray-900;
+  }
+  .btn-secondary:hover {
+    @apply bg-yberry-200 border-yberry-1000 text-gray-900;
+  }
+
+  .btn-sm-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-full font-medium text-xs transition-all duration-200 cursor-pointer text-white bg-yberry-1000;
+  }
+  .btn-sm-primary:hover {
+    @apply bg-yberry-300 text-gray-900;
+  }
+
+  .badge-category {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium tracking-wide uppercase;
+  }
+}
+
+/* Custom scrollbar and subtle transitions */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #f8b99a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ee5102;
+}
+
