@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#F2F2F2] p-3 sm:p-4 flex flex-col lg:flex-row gap-4 sm:gap-5 font-sans text-gray-900">
+  <div v-if="currentUser" class="min-h-screen bg-[#F2F2F2] p-3 sm:p-4 flex flex-col lg:flex-row gap-4 sm:gap-5 font-sans text-gray-900">
     <!-- Left Sidebar Card -->
     <aside
       :class="isSidebarCollapsed ? 'lg:w-[84px]' : 'lg:w-[260px]'"
@@ -70,6 +70,7 @@
 
           <!-- Media files -->
           <button
+            v-if="hasPermission('canManageMedia')"
             @click="activeTab = 'media'"
             type="button"
             :class="[
@@ -106,6 +107,26 @@
             </svg>
             <span v-if="!isSidebarCollapsed">Blogs</span>
           </button>
+
+          <!-- Categories & Sub-Categories -->
+          <button
+            v-if="hasPermission('canManageCategories')"
+            @click="activeTab = 'categories'"
+            type="button"
+            :class="[
+              activeTab === 'categories'
+                ? 'bg-[#EE5102] text-white'
+                : 'text-gray-900 hover:bg-gray-100',
+              isSidebarCollapsed ? 'justify-center px-2' : 'px-4'
+            ]"
+            class="w-full flex items-center gap-3 py-2.5 rounded-full text-[13px] font-normal transition-colors"
+          >
+            <svg class="w-[18px] h-[18px] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 6h16M4 12h10M4 18h7" />
+              <circle cx="18" cy="15" r="3" />
+            </svg>
+            <span v-if="!isSidebarCollapsed">Categories</span>
+          </button>
         </nav>
       </div>
 
@@ -114,6 +135,7 @@
         <nav class="space-y-1 mb-3">
           <!-- User Management -->
           <button
+            v-if="hasPermission('canManageUsers')"
             @click="activeTab = 'users'"
             type="button"
             :class="[
@@ -135,6 +157,7 @@
 
           <!-- Settings -->
           <button
+            v-if="hasPermission('canManageSettings')"
             @click="activeTab = 'settings'"
             type="button"
             :class="[
@@ -153,24 +176,35 @@
           </button>
         </nav>
 
-        <!-- User Profile Footer -->
+        <!-- User Profile Footer & Sign Out -->
         <div
           :class="isSidebarCollapsed ? 'justify-center' : 'px-2'"
-          class="flex items-center gap-3 pt-2"
+          class="flex items-center justify-between gap-2 pt-2"
         >
-          <img
-            :src="useAsset('/images/author-marcus.jpg')"
-            alt="User Avatar"
-            class="w-9 h-9 rounded-full object-cover flex-shrink-0"
-          />
-          <div v-if="!isSidebarCollapsed" class="min-w-0">
-            <p class="text-[13px] font-normal text-gray-800 leading-tight truncate">
-              {{ userProfile.sidebarName }}
-            </p>
-            <p class="text-[11px] font-normal text-gray-400 leading-tight mt-0.5 truncate">
-              {{ userProfile.role }}
-            </p>
+          <div class="flex items-center gap-3 min-w-0">
+            <img
+              :src="currentUser?.photoURL || useAsset('/images/author-marcus.jpg')"
+              alt="User Avatar"
+              class="w-9 h-9 rounded-full object-cover flex-shrink-0"
+            />
+            <div v-if="!isSidebarCollapsed" class="min-w-0">
+              <p class="text-[13px] font-normal text-gray-800 leading-tight truncate">
+                {{ userProfile.sidebarName }}
+              </p>
+              <p class="text-[11px] font-normal text-gray-400 leading-tight mt-0.5 truncate">
+                {{ userProfile.role }}
+              </p>
+            </div>
           </div>
+          <button
+            v-if="!isSidebarCollapsed"
+            @click="handleLogout"
+            type="button"
+            title="Sign Out"
+            class="text-[11px] text-gray-400 hover:text-[#EE5102] px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+          >
+            Sign out
+          </button>
         </div>
       </div>
     </aside>
@@ -180,9 +214,14 @@
       <!-- Top Header Bar -->
       <header class="flex flex-wrap items-center justify-between gap-4 px-1 pt-0.5 pb-4">
         <div>
-          <h1 class="text-2xl sm:text-[28px] font-semibold text-gray-950 tracking-tight leading-snug">
-            Welcome back <span class="text-[#EE5102]">“{{ userProfile.welcomeName }}”</span>
-          </h1>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <h1 class="text-2xl sm:text-[28px] font-semibold text-gray-950 tracking-tight leading-snug">
+              Welcome back <span class="text-[#EE5102]">“{{ userProfile.welcomeName }}”</span>
+            </h1>
+            <span class="px-3 py-1 rounded-full text-[11px] font-semibold bg-[#feeee6] text-[#EE5102] border border-orange-200/60">
+              {{ userProfile.role }}
+            </span>
+          </div>
           <p class="text-xs sm:text-[13px] text-gray-400 font-normal mt-0.5">
             Here's your overview of your blog stats.
           </p>
@@ -198,6 +237,7 @@
 
           <!-- Create New Blog CTA Button -->
           <button
+            v-if="hasPermission('canManageBlogs')"
             @click="startNewBlog"
             type="button"
             class="inline-flex items-center gap-2 bg-[#EE5102] hover:bg-[#d84802] text-white text-xs sm:text-[13px] font-normal px-5 py-2.5 rounded-full transition-colors shadow-sm"
@@ -228,6 +268,7 @@
               </p>
             </div>
             <button
+              v-if="hasPermission('canManageBlogs')"
               @click="startNewBlog"
               type="button"
               class="inline-flex items-center gap-2 bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-medium px-4 py-2 rounded-full transition-colors"
@@ -252,6 +293,9 @@
                   <div class="flex flex-wrap items-center gap-2 text-[11px] text-gray-400 mb-1">
                     <span class="px-2.5 py-0.5 rounded-full bg-[#feeee6] text-[#EE5102] font-medium">
                       {{ item.category === 'Technology' ? 'Tech' : item.category }}
+                    </span>
+                    <span v-if="item.subCategory" class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
+                      {{ item.subCategory }}
                     </span>
                     <span>•</span>
                     <span>{{ item.publishedAt }}</span>
@@ -278,6 +322,7 @@
                   View Live
                 </NuxtLink>
                 <button
+                  v-if="hasPermission('canManageBlogs')"
                   @click="editBlog(item)"
                   type="button"
                   class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-[#feeee6] hover:bg-[#fcdccc] text-[#EE5102] transition-colors"
@@ -285,7 +330,7 @@
                   Edit
                 </button>
                 <button
-                  v-if="articles.length > 1"
+                  v-if="articles.length > 1 && hasPermission('canDeleteBlogs')"
                   @click="handleDeleteBlog(item.id)"
                   type="button"
                   class="px-3 py-1.5 rounded-full text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
@@ -355,17 +400,33 @@
                 <span class="text-xs text-gray-400">Top centered article header</span>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label class="block text-xs font-medium text-gray-700 mb-1.5">Category Badge *</label>
+                  <label class="block text-xs font-medium text-gray-700 mb-1.5">Page Category *</label>
                   <select
                     v-model="editorForm.category"
+                    @change="editorForm.subCategory = ''"
                     class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:border-[#EE5102]"
                   >
-                    <option value="Technology">Tech (Technology)</option>
-                    <option value="Home and DIY">Home &amp; DIY</option>
-                    <option value="Food">Food</option>
-                    <option value="Parenting">Parenting</option>
+                    <option v-for="cat in categories" :key="cat.slug" :value="cat.name">
+                      {{ cat.name }}
+                    </option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1.5">Sub-Category (Optional)</label>
+                  <select
+                    v-model="editorForm.subCategory"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:border-[#EE5102]"
+                  >
+                    <option value="">None (Main Category)</option>
+                    <option
+                      v-for="sub in availableSubCategoriesForEditor"
+                      :key="sub.id"
+                      :value="sub.name"
+                    >
+                      {{ sub.name }}
+                    </option>
                   </select>
                 </div>
                 <div>
@@ -744,7 +805,7 @@
                         <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 block mb-2">
                           Live HTML Preview:
                         </span>
-                        <div class="bg-white p-3 rounded-xl border border-gray-100" v-html="sec.htmlContent"></div>
+                        <div class="bg-white p-3 rounded-xl border border-gray-100" v-html="sanitizeHtml(sec.htmlContent)"></div>
                       </div>
                     </div>
                   </div>
@@ -908,20 +969,28 @@
 
         <!-- TAB 4: MEDIA FILES -->
         <div v-else-if="activeTab === 'media'" class="flex-1 p-6 sm:p-8 overflow-y-auto">
-          <div class="mb-6 pb-4 border-b border-gray-100">
-            <h2 class="text-xl font-semibold text-gray-900">Media Library ({{ mediaAssets.length }})</h2>
-            <p class="text-xs text-gray-400 mt-0.5">Click any asset to copy its path for your Hero Banner, Sections, or 12-Image Gallery.</p>
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-100">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">Media Library ({{ allMediaAssets.length }})</h2>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Click any asset to copy its path for your Hero Banner, Sections, or 12-Image Gallery.
+              </p>
+            </div>
+            <label class="cursor-pointer inline-flex items-center gap-2 bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-medium px-4 py-2 rounded-full transition-colors shadow-sm">
+              <span>{{ isUploading ? 'Uploading...' : '+ Upload Media' }}</span>
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="hidden" @change="handleMediaLibraryUpload" />
+            </label>
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             <div
-              v-for="media in mediaAssets"
+              v-for="media in allMediaAssets"
               :key="media.path"
               @click="copyMediaPath(media.path)"
               class="group cursor-pointer rounded-2xl border border-gray-100 overflow-hidden hover:border-[#EE5102] transition-all"
             >
               <div class="aspect-video bg-gray-100 overflow-hidden">
-                <img :src="useAsset(media.path)" :alt="media.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                <img :src="resolvePreviewUrl(media.path)" :alt="media.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
               </div>
               <div class="p-3">
                 <p class="text-xs font-medium text-gray-800 truncate">{{ media.name }}</p>
@@ -933,22 +1002,591 @@
           </div>
         </div>
 
-        <!-- TAB 5: USER MANAGEMENT -->
-        <div v-else-if="activeTab === 'users'" class="flex-1 p-6 sm:p-8 overflow-y-auto">
-          <div class="mb-6 pb-4 border-b border-gray-100">
-            <h2 class="text-xl font-semibold text-gray-900">User Management</h2>
-            <p class="text-xs text-gray-400 mt-0.5">Manage editorial team members and roles.</p>
+        <!-- TAB 4.5: CATEGORIES & SUB-CATEGORIES MANAGEMENT -->
+        <div v-else-if="activeTab === 'categories'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">Page Categories &amp; Sub-Categories ({{ categories.length }})</h2>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Manage main website categories, navbar visibility, and nested sub-categories for filtering articles.
+              </p>
+            </div>
+            <button
+              @click="showNewCategoryForm = !showNewCategoryForm"
+              type="button"
+              class="inline-flex items-center gap-2 bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-medium px-4 py-2.5 rounded-full transition-colors shadow-sm"
+            >
+              <span>{{ showNewCategoryForm ? 'Close Form' : '+ Add Page Category' }}</span>
+            </button>
           </div>
-          <div class="max-w-2xl space-y-3">
-            <div class="flex items-center justify-between p-4 rounded-2xl border border-gray-100">
-              <div class="flex items-center gap-3.5">
-                <img :src="useAsset('/images/author-marcus.jpg')" alt="Avatar" class="w-10 h-10 rounded-full object-cover" />
-                <div>
-                  <p class="text-sm font-medium text-gray-900">{{ userProfile.sidebarName }}</p>
-                  <p class="text-xs text-gray-400">{{ userProfile.role }}</p>
+
+          <!-- Add / Edit Page Category Form -->
+          <form
+            v-if="showNewCategoryForm"
+            @submit.prevent="handleSaveCategory"
+            class="p-5 sm:p-6 rounded-2xl border border-orange-200 bg-orange-50/30 space-y-4 max-w-4xl"
+          >
+            <div class="flex items-center justify-between border-b border-orange-200/60 pb-3">
+              <div>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Category Configuration</span>
+                <h3 class="text-base font-semibold text-gray-900">
+                  {{ editingCategorySlug ? `Edit Category: ${categoryForm.name}` : 'Create New Page Category' }}
+                </h3>
+              </div>
+              <button
+                @click="resetCategoryForm"
+                type="button"
+                class="text-xs text-gray-400 hover:text-gray-700"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">Category Name *</label>
+                <input
+                  v-model="categoryForm.name"
+                  @input="!editingCategorySlug && (categoryForm.slug = slugify(categoryForm.name))"
+                  type="text"
+                  required
+                  placeholder="e.g. Science & Space"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">URL Slug *</label>
+                <input
+                  v-model="categoryForm.slug"
+                  type="text"
+                  required
+                  :disabled="Boolean(editingCategorySlug)"
+                  placeholder="science-and-space"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102] disabled:bg-gray-100 disabled:text-gray-400"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">Navigation Bar</label>
+                <label class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white cursor-pointer">
+                  <input
+                    v-model="categoryForm.showInNavbar"
+                    type="checkbox"
+                    class="accent-[#EE5102] w-4 h-4 rounded"
+                  />
+                  <span class="text-xs font-medium text-gray-700">Display in Top Navbar</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">Category Page Description *</label>
+                <input
+                  v-model="categoryForm.description"
+                  type="text"
+                  required
+                  placeholder="Brief editorial summary shown on the category hero banner..."
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="block text-xs font-medium text-gray-700">Hero Banner Image Path</label>
+                  <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
+                    Upload Image
+                    <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => categoryForm.image = url)" />
+                  </label>
+                </div>
+                <input
+                  v-model="categoryForm.image"
+                  type="text"
+                  placeholder="/images/tech-hero.jpg"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                @click="resetCategoryForm"
+                type="button"
+                class="px-4 py-2 rounded-full text-xs font-medium border border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2 rounded-full text-xs font-medium bg-[#EE5102] hover:bg-[#d84802] text-white shadow-sm"
+              >
+                {{ editingCategorySlug ? 'Update Category' : 'Save Page Category' }}
+              </button>
+            </div>
+          </form>
+
+          <!-- Categories & Nested Sub-Categories Cards -->
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            <div
+              v-for="cat in categories"
+              :key="cat.slug"
+              class="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col justify-between space-y-4"
+            >
+              <!-- Category Header Info -->
+              <div>
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3.5">
+                    <img
+                      :src="resolvePreviewUrl(cat.image)"
+                      :alt="cat.name"
+                      class="w-14 h-14 rounded-xl object-cover bg-gray-100 flex-shrink-0 border border-gray-100"
+                    />
+                    <div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="text-base font-semibold text-gray-900">{{ cat.name }}</h3>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-mono bg-gray-100 text-gray-600">
+                          /categories/{{ cat.slug }}
+                        </span>
+                        <span
+                          class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                          :class="cat.showInNavbar !== false ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'"
+                        >
+                          {{ cat.showInNavbar !== false ? 'In Navbar' : 'Hidden from Navbar' }}
+                        </span>
+                      </div>
+                      <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ cat.description }}</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-1.5 flex-shrink-0">
+                    <NuxtLink
+                      :to="cat.slug === 'news' ? '/blog' : `/categories/${cat.slug}`"
+                      target="_blank"
+                      class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+                    >
+                      View Page
+                    </NuxtLink>
+                    <button
+                      @click="startEditCategory(cat)"
+                      type="button"
+                      class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#feeee6] hover:bg-[#fcdccc] text-[#EE5102] transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      v-if="categories.length > 1"
+                      @click="deleteCategory(cat.slug)"
+                      type="button"
+                      class="px-2.5 py-1 rounded-full text-[11px] font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Sub-Categories Management Area -->
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                  <div class="flex items-center justify-between mb-2.5">
+                    <span class="text-xs font-semibold text-gray-800">
+                      Sub-Categories ({{ cat.subCategories?.length || 0 }})
+                    </span>
+                    <span class="text-[11px] text-gray-400">Used to filter articles inside {{ cat.name }}</span>
+                  </div>
+
+                  <!-- Existing Sub-Category Pills -->
+                  <div v-if="cat.subCategories && cat.subCategories.length > 0" class="flex flex-wrap gap-2 mb-3">
+                    <span
+                      v-for="sub in cat.subCategories"
+                      :key="sub.id"
+                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200/70"
+                    >
+                      <span>{{ sub.name }}</span>
+                      <button
+                        @click="removeSubCategory(cat.slug, sub.id)"
+                        type="button"
+                        title="Remove sub-category"
+                        class="text-gray-400 hover:text-red-600 font-bold leading-none ml-0.5"
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  </div>
+                  <p v-else class="text-xs text-gray-400 italic mb-3">
+                    No sub-categories added yet.
+                  </p>
+
+                  <!-- Inline Add Sub-Category Input -->
+                  <div class="flex items-center gap-2">
+                    <input
+                      v-model="newSubCategoryInputs[cat.slug]"
+                      @keydown.enter.prevent="handleAddSubCategory(cat.slug)"
+                      type="text"
+                      :placeholder="`Add sub-category to ${cat.name} (e.g. Reviews, Guides)...`"
+                      class="flex-1 rounded-xl border border-gray-200 bg-gray-50/70 px-3 py-1.5 text-xs focus:outline-none focus:bg-white focus:border-[#EE5102]"
+                    />
+                    <button
+                      @click="handleAddSubCategory(cat.slug)"
+                      type="button"
+                      class="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#EE5102] hover:bg-[#d84802] text-white transition-colors flex-shrink-0"
+                    >
+                      + Add Sub-Category
+                    </button>
+                  </div>
                 </div>
               </div>
-              <span class="px-3 py-1 rounded-full text-xs font-medium bg-[#feeee6] text-[#EE5102]">Admin</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: USER MANAGEMENT & ACCESS CONTROL -->
+        <div v-else-if="activeTab === 'users'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">User Management &amp; Access Control ({{ managedUsers.length }})</h2>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Add team members, assign editorial roles, and configure granular user access permissions.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+              <button
+                @click="handleConnectGoogleAccount"
+                type="button"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 hover:border-[#EE5102] bg-white text-xs font-medium text-gray-800 transition-colors shadow-sm"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24">
+                  <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z" />
+                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.7z" />
+                  <path fill="#FBBC05" d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.9z" />
+                  <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5l-3.7 2.8C3.5 19.9 7.4 23 12 23z" />
+                </svg>
+                <span>{{ currentUser?.provider === 'google' ? 'Switch Google Account' : 'Sign in with Google' }}</span>
+              </button>
+
+              <button
+                v-if="hasPermission('canManageUsers')"
+                @click="showAddUserForm = !showAddUserForm"
+                type="button"
+                class="inline-flex items-center gap-2 bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-medium px-4 py-2 rounded-full transition-colors shadow-sm"
+              >
+                <span>{{ showAddUserForm ? 'Close Form' : '+ Add New User' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Status / Feedback Banner -->
+          <div
+            v-if="userFeedbackMessage"
+            class="px-4 py-3 rounded-2xl text-xs font-medium flex items-center justify-between"
+            :class="userFeedbackType === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'"
+          >
+            <span>{{ userFeedbackMessage }}</span>
+            <button @click="userFeedbackMessage = ''" type="button" class="text-current font-bold ml-4">&times;</button>
+          </div>
+
+          <!-- ADD NEW USER & ACCESS CONTROL FORM (Admin Only) -->
+          <form
+            v-if="showAddUserForm && hasPermission('canManageUsers')"
+            @submit.prevent="handleCreateNewUser"
+            class="p-5 sm:p-6 rounded-2xl border border-orange-200 bg-orange-50/30 space-y-5 max-w-4xl"
+          >
+            <div class="flex items-center justify-between border-b border-orange-200/60 pb-3">
+              <div>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Admin User Provisioning</span>
+                <h3 class="text-base font-semibold text-gray-900">Add New CMS User &amp; Configure Access Control</h3>
+              </div>
+              <button
+                @click="showAddUserForm = false"
+                type="button"
+                class="text-xs text-gray-400 hover:text-gray-700"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">Full Name *</label>
+                <input
+                  v-model="newUserForm.displayName"
+                  type="text"
+                  required
+                  placeholder="e.g. Sarah Jenkins"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">Email Address *</label>
+                <input
+                  v-model="newUserForm.email"
+                  type="email"
+                  required
+                  placeholder="sarah@headlinecentral.co.za"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">Login Password *</label>
+                <input
+                  v-model="newUserForm.password"
+                  type="password"
+                  required
+                  minlength="6"
+                  placeholder="Min. 6 characters"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">User Role *</label>
+                <select
+                  v-model="newUserForm.roleKey"
+                  @change="applyRolePresetToNewUser(newUserForm.roleKey)"
+                  class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                >
+                  <option value="admin">Master Admin (Full Access)</option>
+                  <option value="editor">Senior Editor (Blogs, Categories, Media)</option>
+                  <option value="author">Contributor / Author (Create &amp; Edit Blogs)</option>
+                  <option value="viewer">Read-Only Viewer</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Granular User Control Access Checkboxes -->
+            <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-gray-800">User Control Access Permissions</span>
+                <span class="text-[11px] text-gray-400">Customize what this user can view and modify in the CMS</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <label class="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
+                  <input v-model="newUserForm.permissions.canManageBlogs" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                  <div>
+                    <span class="block text-xs font-medium text-gray-800">Create &amp; Edit Blogs</span>
+                    <span class="block text-[11px] text-gray-400">Publish and edit blog articles</span>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
+                  <input v-model="newUserForm.permissions.canDeleteBlogs" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                  <div>
+                    <span class="block text-xs font-medium text-gray-800">Delete Blogs</span>
+                    <span class="block text-[11px] text-gray-400">Remove published blog posts</span>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
+                  <input v-model="newUserForm.permissions.canManageCategories" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                  <div>
+                    <span class="block text-xs font-medium text-gray-800">Manage Categories</span>
+                    <span class="block text-[11px] text-gray-400">Add/edit categories &amp; sub-categories</span>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
+                  <input v-model="newUserForm.permissions.canManageMedia" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                  <div>
+                    <span class="block text-xs font-medium text-gray-800">Media Library Access</span>
+                    <span class="block text-[11px] text-gray-400">Upload and browse media files</span>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
+                  <input v-model="newUserForm.permissions.canManageUsers" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                  <div>
+                    <span class="block text-xs font-medium text-gray-800">User Management (Admin)</span>
+                    <span class="block text-[11px] text-gray-400">Add users &amp; modify access control</span>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
+                  <input v-model="newUserForm.permissions.canManageSettings" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                  <div>
+                    <span class="block text-xs font-medium text-gray-800">CMS Settings</span>
+                    <span class="block text-[11px] text-gray-400">Customize profile &amp; display settings</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5">
+              <button
+                @click="showAddUserForm = false"
+                type="button"
+                class="px-4 py-2 rounded-full text-xs font-medium border border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2 rounded-full text-xs font-medium bg-[#EE5102] hover:bg-[#d84802] text-white shadow-sm"
+              >
+                Create User Account
+              </button>
+            </div>
+          </form>
+
+          <!-- Managed Users List & Access Control Cards -->
+          <div class="space-y-4 max-w-4xl">
+            <div
+              v-for="u in managedUsers"
+              :key="u.uid"
+              class="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm space-y-4"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                  <img
+                    :src="u.photoURL || useAsset('/images/author-marcus.jpg')"
+                    :alt="u.displayName"
+                    class="w-11 h-11 rounded-full object-cover border border-gray-100"
+                  />
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="text-sm font-semibold text-gray-900">{{ u.displayName }}</p>
+                      <span
+                        class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
+                        :class="u.roleKey === 'admin' ? 'bg-[#feeee6] text-[#EE5102]' : 'bg-gray-100 text-gray-700'"
+                      >
+                        {{ u.role }}
+                      </span>
+                      <span
+                        class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                        :class="u.active !== false ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'"
+                      >
+                        {{ u.active !== false ? 'Active' : 'Suspended' }}
+                      </span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ u.email }}</p>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div v-if="hasPermission('canManageUsers')" class="flex items-center gap-2">
+                  <button
+                    @click="toggleEditUserAccess(u)"
+                    type="button"
+                    class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-[#feeee6] hover:bg-[#fcdccc] text-[#EE5102] transition-colors"
+                  >
+                    {{ editingUserId === u.uid ? 'Close Access Panel' : 'Access Control & Role' }}
+                  </button>
+                  <button
+                    v-if="u.email.toLowerCase() !== 'admin@headlinecentral.co.za'"
+                    @click="handleToggleUserActive(u)"
+                    type="button"
+                    class="px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 hover:bg-gray-50 text-gray-700 transition-colors"
+                  >
+                    {{ u.active !== false ? 'Suspend' : 'Activate' }}
+                  </button>
+                  <button
+                    v-if="u.email.toLowerCase() !== 'admin@headlinecentral.co.za'"
+                    @click="handleRemoveUser(u)"
+                    type="button"
+                    class="px-3 py-1.5 rounded-full text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+
+              <!-- Permission Badges Summary -->
+              <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-gray-100">
+                <span class="text-[11px] text-gray-400 mr-1">Access:</span>
+                <span v-if="u.permissions?.canManageBlogs" class="px-2.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700">Create/Edit Blogs</span>
+                <span v-if="u.permissions?.canDeleteBlogs" class="px-2.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700">Delete Blogs</span>
+                <span v-if="u.permissions?.canManageCategories" class="px-2.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700">Categories &amp; Sub-Categories</span>
+                <span v-if="u.permissions?.canManageMedia" class="px-2.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700">Media Library</span>
+                <span v-if="u.permissions?.canManageUsers" class="px-2.5 py-0.5 rounded-full text-[11px] bg-orange-50 text-[#EE5102] font-medium">User Admin</span>
+                <span v-if="u.permissions?.canManageSettings" class="px-2.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700">Settings</span>
+              </div>
+
+              <!-- Inline Edit Role & User Control Access Drawer -->
+              <div
+                v-if="editingUserId === u.uid"
+                class="p-4 rounded-xl bg-gray-50 border border-gray-200/80 space-y-4 mt-3"
+              >
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Display Name</label>
+                    <input
+                      v-model="editUserForm.displayName"
+                      type="text"
+                      class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Assigned Role</label>
+                    <select
+                      v-model="editUserForm.roleKey"
+                      @change="applyRolePresetToEditUser(editUserForm.roleKey)"
+                      :disabled="u.email.toLowerCase() === 'admin@headlinecentral.co.za'"
+                      class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102] disabled:bg-gray-100"
+                    >
+                      <option value="admin">Master Admin</option>
+                      <option value="editor">Senior Editor</option>
+                      <option value="author">Contributor / Author</option>
+                      <option value="viewer">Read-Only Viewer</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Reset Password (Optional)</label>
+                    <input
+                      v-model="editUserForm.newPassword"
+                      type="password"
+                      placeholder="Leave blank to keep current"
+                      class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <span class="block text-xs font-semibold text-gray-800 mb-2">Granular Access Control</span>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    <label class="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded-lg border border-gray-200/80 cursor-pointer">
+                      <input v-model="editUserForm.permissions.canManageBlogs" type="checkbox" class="accent-[#EE5102]" />
+                      <span>Create &amp; Edit Blogs</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded-lg border border-gray-200/80 cursor-pointer">
+                      <input v-model="editUserForm.permissions.canDeleteBlogs" type="checkbox" class="accent-[#EE5102]" />
+                      <span>Delete Blogs</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded-lg border border-gray-200/80 cursor-pointer">
+                      <input v-model="editUserForm.permissions.canManageCategories" type="checkbox" class="accent-[#EE5102]" />
+                      <span>Manage Categories</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded-lg border border-gray-200/80 cursor-pointer">
+                      <input v-model="editUserForm.permissions.canManageMedia" type="checkbox" class="accent-[#EE5102]" />
+                      <span>Manage Media</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded-lg border border-gray-200/80 cursor-pointer">
+                      <input
+                        v-model="editUserForm.permissions.canManageUsers"
+                        :disabled="u.email.toLowerCase() === 'admin@headlinecentral.co.za'"
+                        type="checkbox"
+                        class="accent-[#EE5102]"
+                      />
+                      <span>Manage Users</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded-lg border border-gray-200/80 cursor-pointer">
+                      <input v-model="editUserForm.permissions.canManageSettings" type="checkbox" class="accent-[#EE5102]" />
+                      <span>Manage Settings</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    @click="editingUserId = null"
+                    type="button"
+                    class="px-3.5 py-1.5 rounded-full text-xs font-medium border border-gray-200 bg-white text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    @click="handleSaveEditedUser(u.uid)"
+                    type="button"
+                    class="px-4 py-1.5 rounded-full text-xs font-medium bg-[#EE5102] hover:bg-[#d84802] text-white"
+                  >
+                    Save Role &amp; Access
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -957,7 +1595,9 @@
         <div v-else-if="activeTab === 'settings'" class="flex-1 p-6 sm:p-8 overflow-y-auto">
           <div class="mb-6 pb-4 border-b border-gray-100">
             <h2 class="text-xl font-semibold text-gray-900">CMS Profile &amp; Settings</h2>
-            <p class="text-xs text-gray-400 mt-0.5">Customize your displayed username and editorial role.</p>
+            <p class="text-xs text-gray-400 mt-0.5">
+              Customize your displayed username and editorial role.
+            </p>
           </div>
           <div class="max-w-md space-y-4">
             <div>
@@ -981,7 +1621,8 @@
               <input
                 v-model="userProfile.role"
                 type="text"
-                class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm focus:outline-none focus:border-[#EE5102]"
+                disabled
+                class="w-full rounded-xl border border-gray-200 bg-gray-50 text-gray-500 px-3.5 py-2 text-sm focus:outline-none"
               />
             </div>
           </div>
@@ -992,15 +1633,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
-import { useArticles, type Article, type ArticleSection, type GalleryItem } from '~/composables/useArticles'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useArticles, type Article, type ArticleSection, type GalleryItem, type CategoryMeta } from '~/composables/useArticles'
+import {
+  useFirebase,
+  getDefaultPermissionsForRole,
+  type CmsRoleKey,
+  type CmsUserPermissions,
+  type ManagedCmsUser
+} from '~/composables/useFirebase'
+import { sanitizeHtml } from '~/composables/useMarkdown'
 
 definePageMeta({
   layout: false
 })
 
 useHead({
-  title: 'CMS Dashboard — HeadlineCentral.'
+  title: 'CMS Dashboard — HeadlineCentral.',
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' }
+  ]
 })
 
 interface EditableSectionForm {
@@ -1017,26 +1670,263 @@ interface EditableSectionForm {
   comparisonTable?: ArticleSection['comparisonTable']
 }
 
-const { articles, authors, addArticle, updateArticle, deleteArticle } = useArticles()
+const router = useRouter()
+const {
+  articles,
+  categories,
+  authors,
+  syncFromFirestore,
+  addArticle,
+  updateArticle,
+  deleteArticle,
+  addCategory,
+  updateCategory,
+  deleteCategory,
+  addSubCategory,
+  removeSubCategory
+} = useArticles()
+
+const {
+  currentUser,
+  managedUsers,
+  isUploading,
+  initFirebase,
+  loginWithGoogle,
+  logoutUser,
+  createManagedUser,
+  updateManagedUser,
+  deleteManagedUser,
+  uploadFileToStorage,
+  listStorageMedia
+} = useFirebase()
 
 const isSidebarCollapsed = ref(false)
-const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'users' | 'settings'>('dashboard')
+const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'users' | 'settings'>('dashboard')
 const cmsSearch = ref('')
 const liveVisitors = ref(12)
 const isPreviewMode = ref(false)
 const editingArticleId = ref<string | null>(null)
 const copiedMedia = ref('')
+const cloudMediaAssets = ref<{ name: string; path: string }[]>([])
 
 const userProfile = reactive({
-  welcomeName: 'username goes here',
-  sidebarName: 'Username goes here',
-  role: 'User Role Goes here'
+  welcomeName: 'Master Admin',
+  sidebarName: 'Master Admin',
+  role: 'Master Admin'
 })
+
+const hasPermission = (perm: keyof CmsUserPermissions): boolean => {
+  if (!currentUser.value) return false
+  if (currentUser.value.roleKey === 'admin') return true
+  return currentUser.value.permissions?.[perm] !== false
+}
+
+// ============================================================================
+// CATEGORIES & SUB-CATEGORIES STATE
+// ============================================================================
+const showNewCategoryForm = ref(false)
+const editingCategorySlug = ref<string | null>(null)
+const newSubCategoryInputs = reactive<Record<string, string>>({})
+
+const categoryForm = reactive({
+  name: '',
+  slug: '',
+  description: '',
+  image: '/images/tech-hero.jpg',
+  showInNavbar: true
+})
+
+const resetCategoryForm = () => {
+  editingCategorySlug.value = null
+  categoryForm.name = ''
+  categoryForm.slug = ''
+  categoryForm.description = ''
+  categoryForm.image = '/images/tech-hero.jpg'
+  categoryForm.showInNavbar = true
+  showNewCategoryForm.value = false
+}
+
+const startEditCategory = (cat: CategoryMeta) => {
+  editingCategorySlug.value = cat.slug
+  categoryForm.name = cat.name
+  categoryForm.slug = cat.slug
+  categoryForm.description = cat.description
+  categoryForm.image = cat.image
+  categoryForm.showInNavbar = cat.showInNavbar !== false
+  showNewCategoryForm.value = true
+}
+
+const handleSaveCategory = () => {
+  if (!categoryForm.name.trim()) return
+  const cleanSlug = categoryForm.slug.trim() || slugify(categoryForm.name)
+  if (editingCategorySlug.value) {
+    updateCategory(editingCategorySlug.value, {
+      name: categoryForm.name.trim(),
+      description: categoryForm.description.trim(),
+      image: categoryForm.image.trim() || '/images/tech-hero.jpg',
+      showInNavbar: categoryForm.showInNavbar
+    })
+  } else {
+    addCategory({
+      name: categoryForm.name.trim(),
+      slug: cleanSlug,
+      description: categoryForm.description.trim(),
+      image: categoryForm.image.trim() || '/images/tech-hero.jpg',
+      showInNavbar: categoryForm.showInNavbar,
+      subCategories: []
+    })
+  }
+  resetCategoryForm()
+}
+
+const handleAddSubCategory = (categorySlug: string) => {
+  const inputVal = (newSubCategoryInputs[categorySlug] || '').trim()
+  if (!inputVal) return
+  addSubCategory(categorySlug, inputVal)
+  newSubCategoryInputs[categorySlug] = ''
+}
+
+// ============================================================================
+// USER MANAGEMENT & ACCESS CONTROL STATE
+// ============================================================================
+const showAddUserForm = ref(false)
+const userFeedbackMessage = ref('')
+const userFeedbackType = ref<'success' | 'error'>('success')
+const editingUserId = ref<string | null>(null)
+
+const newUserForm = reactive({
+  displayName: '',
+  email: '',
+  password: '',
+  roleKey: 'editor' as CmsRoleKey,
+  permissions: getDefaultPermissionsForRole('editor')
+})
+
+const editUserForm = reactive({
+  displayName: '',
+  roleKey: 'editor' as CmsRoleKey,
+  newPassword: '',
+  permissions: getDefaultPermissionsForRole('editor')
+})
+
+const applyRolePresetToNewUser = (roleKey: CmsRoleKey) => {
+  newUserForm.permissions = getDefaultPermissionsForRole(roleKey)
+}
+
+const applyRolePresetToEditUser = (roleKey: CmsRoleKey) => {
+  editUserForm.permissions = getDefaultPermissionsForRole(roleKey)
+}
+
+const handleCreateNewUser = async () => {
+  userFeedbackMessage.value = ''
+  const result = await createManagedUser({
+    displayName: newUserForm.displayName,
+    email: newUserForm.email,
+    password: newUserForm.password,
+    roleKey: newUserForm.roleKey,
+    permissions: { ...newUserForm.permissions }
+  })
+
+  if (result.ok) {
+    userFeedbackType.value = 'success'
+    userFeedbackMessage.value = `User "${newUserForm.displayName}" (${newUserForm.email}) created with ${newUserForm.roleKey.toUpperCase()} role.`
+    newUserForm.displayName = ''
+    newUserForm.email = ''
+    newUserForm.password = ''
+    newUserForm.roleKey = 'editor'
+    newUserForm.permissions = getDefaultPermissionsForRole('editor')
+    showAddUserForm.value = false
+  } else {
+    userFeedbackType.value = 'error'
+    userFeedbackMessage.value = result.message || 'Unable to create user.'
+  }
+}
+
+const toggleEditUserAccess = (u: ManagedCmsUser) => {
+  if (editingUserId.value === u.uid) {
+    editingUserId.value = null
+    return
+  }
+  editingUserId.value = u.uid
+  editUserForm.displayName = u.displayName
+  editUserForm.roleKey = u.roleKey
+  editUserForm.newPassword = ''
+  editUserForm.permissions = { ...u.permissions }
+}
+
+const handleSaveEditedUser = async (uid: string) => {
+  const ok = await updateManagedUser(uid, {
+    displayName: editUserForm.displayName,
+    roleKey: editUserForm.roleKey,
+    permissions: { ...editUserForm.permissions },
+    newPassword: editUserForm.newPassword || undefined
+  })
+  if (ok) {
+    if (currentUser.value?.uid === uid && currentUser.value) {
+      userProfile.welcomeName = currentUser.value.displayName
+      userProfile.sidebarName = currentUser.value.displayName
+      userProfile.role = currentUser.value.role
+    }
+    userFeedbackType.value = 'success'
+    userFeedbackMessage.value = 'User role and access permissions updated.'
+    editingUserId.value = null
+  }
+}
+
+const handleToggleUserActive = async (u: ManagedCmsUser) => {
+  await updateManagedUser(u.uid, { active: u.active === false })
+}
+
+const handleRemoveUser = async (u: ManagedCmsUser) => {
+  const ok = await deleteManagedUser(u.uid)
+  if (ok) {
+    userFeedbackType.value = 'success'
+    userFeedbackMessage.value = `User "${u.displayName}" removed.`
+  }
+}
+
+onMounted(async () => {
+  initFirebase()
+
+  if (!currentUser.value) {
+    router.replace('/cms/login')
+    return
+  }
+
+  if (currentUser.value.displayName) {
+    userProfile.welcomeName = currentUser.value.displayName
+    userProfile.sidebarName = currentUser.value.displayName
+  }
+  if (currentUser.value.role) {
+    userProfile.role = currentUser.value.role
+  }
+
+  await syncFromFirestore()
+  const remoteMedia = await listStorageMedia('blogs')
+  if (remoteMedia.length > 0) {
+    cloudMediaAssets.value = remoteMedia
+  }
+})
+
+const handleConnectGoogleAccount = async () => {
+  const ok = await loginWithGoogle()
+  if (ok && currentUser.value) {
+    userProfile.welcomeName = currentUser.value.displayName
+    userProfile.sidebarName = currentUser.value.displayName
+    userProfile.role = currentUser.value.role
+  }
+}
+
+const handleLogout = async () => {
+  await logoutUser()
+  router.replace('/cms/login')
+}
 
 const editorForm = reactive({
   title: '',
   titleHighlight: '',
-  category: 'Technology' as Article['category'],
+  category: 'Technology',
+  subCategory: '',
   publishedAt: '2026 November 7',
   readTime: '5 min read',
   excerpt: '',
@@ -1050,12 +1940,10 @@ const editorForm = reactive({
   tagsInput: 'NVIDIA, GeForce 8800, Retro Tech, Hardware, PC Gaming History'
 })
 
-const categorySlugMap: Record<Article['category'], Article['categorySlug']> = {
-  'Technology': 'technology',
-  'Home and DIY': 'home-and-diy',
-  'Food': 'food',
-  'Parenting': 'parenting'
-}
+const availableSubCategoriesForEditor = computed(() => {
+  const found = categories.find(c => c.name === editorForm.category)
+  return found?.subCategories || []
+})
 
 const slugify = (text: string) =>
   text
@@ -1072,17 +1960,27 @@ const resolvePreviewUrl = (url: string) => {
   return useAsset(url)
 }
 
-const handleFileUpload = (event: Event, onLoaded: (dataUrl: string) => void) => {
+const handleFileUpload = async (event: Event, onLoaded: (url: string) => void) => {
   const input = event.target as HTMLInputElement
   const file = input?.files?.[0]
   if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => {
-    if (typeof reader.result === 'string') {
-      onLoaded(reader.result)
-    }
+  const uploadedUrl = await uploadFileToStorage(file, 'blogs')
+  if (uploadedUrl) {
+    onLoaded(uploadedUrl)
   }
-  reader.readAsDataURL(file)
+}
+
+const handleMediaLibraryUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input?.files?.[0]
+  if (!file) return
+  const uploadedUrl = await uploadFileToStorage(file, 'blogs')
+  if (uploadedUrl) {
+    cloudMediaAssets.value.unshift({
+      name: file.name,
+      path: uploadedUrl
+    })
+  }
 }
 
 const filteredCmsArticles = computed(() => {
@@ -1184,7 +2082,13 @@ const removeGalleryItem = (index: number) => {
 }
 
 const previewArticleObject = computed<Article>(() => {
-  const cat = editorForm.category
+  const catName = editorForm.category
+  const matchedCat = categories.find(c => c.name === catName)
+  const catSlug = matchedCat?.slug || slugify(catName)
+  const subName = editorForm.subCategory || undefined
+  const matchedSub = matchedCat?.subCategories?.find(s => s.name === subName)
+  const subSlug = matchedSub?.slug || (subName ? slugify(subName) : undefined)
+
   const desktopBanner = resolvePreviewUrl(editorForm.bannerImage)
   const mobileBanner = resolvePreviewUrl(editorForm.bannerImageMobile || editorForm.bannerImage)
 
@@ -1225,9 +2129,11 @@ const previewArticleObject = computed<Article>(() => {
     title: editorForm.title || 'Untitled Blog Post',
     titleHighlight: editorForm.titleHighlight || undefined,
     excerpt: editorForm.excerpt || '',
-    category: cat,
-    categorySlug: categorySlugMap[cat],
-    categoryColor: '#ee5102',
+    category: catName,
+    categorySlug: catSlug,
+    subCategory: subName,
+    subCategorySlug: subSlug,
+    categoryColor: matchedCat?.color || '#ee5102',
     featuredImage: mobileBanner || desktopBanner,
     bannerImage: desktopBanner,
     bannerImageMobile: mobileBanner,
@@ -1254,7 +2160,8 @@ const startNewBlog = () => {
   isPreviewMode.value = false
   editorForm.title = ''
   editorForm.titleHighlight = ''
-  editorForm.category = 'Technology'
+  editorForm.category = categories[0]?.name || 'Technology'
+  editorForm.subCategory = ''
   editorForm.publishedAt = '2026 November 7'
   editorForm.readTime = '5 min read'
   editorForm.excerpt = ''
@@ -1288,6 +2195,7 @@ const editBlog = (article: Article) => {
   editorForm.title = article.title
   editorForm.titleHighlight = article.titleHighlight || ''
   editorForm.category = article.category
+  editorForm.subCategory = article.subCategory || ''
   editorForm.publishedAt = article.publishedAt
   editorForm.readTime = article.readTime
   editorForm.excerpt = article.excerpt
@@ -1362,6 +2270,8 @@ const saveBlogPost = () => {
       excerpt: built.excerpt,
       category: built.category,
       categorySlug: built.categorySlug,
+      subCategory: built.subCategory,
+      subCategorySlug: built.subCategorySlug,
       featuredImage: built.featuredImage,
       bannerImage: built.bannerImage,
       bannerImageMobile: built.bannerImageMobile,
@@ -1384,6 +2294,7 @@ const saveBlogPost = () => {
 }
 
 const handleDeleteBlog = (id: string) => {
+  if (!hasPermission('canDeleteBlogs')) return
   deleteArticle(id)
 }
 
@@ -1403,6 +2314,8 @@ const mediaAssets = [
   { name: 'GeForce 8800 GTX Gallery 11', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-11.webp' },
   { name: 'GeForce 8800 GTX Gallery 12', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-12.webp' }
 ]
+
+const allMediaAssets = computed(() => [...cloudMediaAssets.value, ...mediaAssets])
 
 const copyMediaPath = (path: string) => {
   if (typeof window !== 'undefined' && navigator.clipboard) {

@@ -14,17 +14,47 @@
           </NuxtLink>
         </div>
 
-        <!-- Desktop Navigation Categories -->
+        <!-- Desktop Navigation Categories (with Sub-Category Dropdowns) -->
         <nav class="hidden lg:flex items-center space-x-7 xl:space-x-8">
-          <NuxtLink
+          <div
             v-for="item in navItems"
             :key="item.label"
-            :to="item.to"
-            class="text-[15px] font-normal transition-colors"
-            :class="$route.path === item.to ? 'text-[#EE5102] font-medium' : 'text-gray-900 hover:text-[#EE5102]'"
+            class="relative group py-2"
           >
-            {{ item.label }}
-          </NuxtLink>
+            <NuxtLink
+              :to="item.to"
+              class="inline-flex items-center gap-1 text-[15px] font-normal transition-colors"
+              :class="$route.path === item.to ? 'text-[#EE5102] font-medium' : 'text-gray-900 hover:text-[#EE5102]'"
+            >
+              <span>{{ item.label }}</span>
+              <svg
+                v-if="item.subCategories && item.subCategories.length > 0"
+                class="w-3.5 h-3.5 text-gray-400 group-hover:text-[#EE5102] transition-transform group-hover:rotate-180"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </NuxtLink>
+
+            <!-- Sub-Categories Dropdown Menu -->
+            <div
+              v-if="item.subCategories && item.subCategories.length > 0"
+              class="absolute left-0 top-full pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-40 min-w-[200px]"
+            >
+              <div class="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 px-1.5 space-y-0.5">
+                <NuxtLink
+                  v-for="sub in item.subCategories"
+                  :key="sub.id"
+                  :to="`${item.to}?sub=${sub.slug}`"
+                  class="block px-3.5 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-[#feeee6] hover:text-[#EE5102] transition-colors"
+                >
+                  {{ sub.name }}
+                </NuxtLink>
+              </div>
+            </div>
+          </div>
         </nav>
 
         <!-- Right Side: Search & Contact Us CTA -->
@@ -173,17 +203,22 @@ const isMobileMenuOpen = ref(false)
 const isSearchOpen = ref(false)
 const searchQuery = ref('')
 
-const navItems = [
-  { label: 'News', to: '/blog' },
-  { label: 'Tech', to: '/categories/technology' },
-  { label: 'Fashion', to: '/categories/fashion' },
-  { label: 'Food', to: '/categories/food' },
-  { label: 'Home & DIY', to: '/categories/home-and-diy' },
-  { label: 'Parenting', to: '/categories/parenting' },
-  { label: 'About', to: '/about' }
-]
+const { articles, categories } = useArticles()
 
-const { articles } = useArticles()
+const navItems = computed(() => {
+  const dynamicCatLinks = categories
+    .filter(c => c.showInNavbar !== false)
+    .map(c => ({
+      label: c.slug === 'technology' ? 'Tech' : c.slug === 'home-and-diy' ? 'Home & DIY' : c.name,
+      to: c.slug === 'news' ? '/blog' : `/categories/${c.slug}`,
+      subCategories: c.subCategories || []
+    }))
+
+  return [
+    ...dynamicCatLinks,
+    { label: 'About', to: '/about', subCategories: [] }
+  ]
+})
 
 const filteredArticles = computed(() => {
   if (!searchQuery.value.trim()) {

@@ -78,9 +78,6 @@
             <li>
               <NuxtLink to="/contact#press" class="hover:text-[#EE5102] transition-colors">Press &amp; Inquiries</NuxtLink>
             </li>
-            <li>
-              <NuxtLink to="/cms" class="text-[#EE5102] font-medium hover:underline transition-colors">CMS Dashboard</NuxtLink>
-            </li>
           </ul>
         </div>
 

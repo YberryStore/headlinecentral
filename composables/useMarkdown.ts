@@ -6,9 +6,6 @@ export interface TocItem {
   level?: number
 }
 
-// Custom renderer for marked to ensure headings have IDs for TOC anchor linking
-const renderer = new marked.Renderer()
-
 export const slugify = (text: string): string => {
   return text
     .toLowerCase()
@@ -18,20 +15,37 @@ export const slugify = (text: string): string => {
     .replace(/^-+|-+$/g, '')
 }
 
+/**
+ * Sanitize HTML string to prevent XSS via <script>, <iframe>, inline event handlers (on*),
+ * and dangerous URI schemes (javascript:, vbscript:, data:text/html).
+ */
+export const sanitizeHtml = (rawHtml: string): string => {
+  if (!rawHtml) return ''
+  return rawHtml
+    // Remove dangerous elements and their inner contents
+    .replace(/<\s*(script|iframe|object|embed|applet|meta|link|style|base|form)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
+    // Remove self-closing or unclosed dangerous tags
+    .replace(/<\s*\/?\s*(script|iframe|object|embed|applet|meta|link|style|base|form|input|button|textarea)\b[^>]*>/gi, '')
+    // Remove inline event handlers (onload, onerror, onclick, onmouseover, etc.)
+    .replace(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    // Neutralize javascript:, vbscript:, and data:text/html URIs in href/src/xlink:href/action
+    .replace(/\b(href|src|xlink:href|action|formaction)\s*=\s*(?:"\s*(?:javascript|vbscript|data\s*:\s*text\/html)[^"]*"|'\s*(?:javascript|vbscript|data\s*:\s*text\/html)[^']*'|(?:\s*(?:javascript|vbscript|data\s*:\s*text\/html)[^\s>]*))/gi, '$1="#"')
+}
+
 export const useMarkdown = () => {
   /**
-   * Parse a markdown string into styled HTML
+   * Parse a markdown string into sanitized, styled HTML
    */
   const renderMarkdown = (content: string): string => {
     if (!content) return ''
     try {
-      return marked.parse(content, {
+      const parsed = marked.parse(content, {
         gfm: true,
         breaks: true
       }) as string
-    } catch (e) {
-      console.error('Error parsing markdown:', e)
-      return content
+      return sanitizeHtml(parsed)
+    } catch {
+      return ''
     }
   }
 
@@ -57,7 +71,7 @@ export const useMarkdown = () => {
   return {
     renderMarkdown,
     extractHeadings,
+    sanitizeHtml,
     slugify
   }
 }
-

@@ -17,6 +17,19 @@ export default defineNuxtConfig({
     '~/assets/css/fonts.css',
     '~/assets/css/main.css'
   ],
+  runtimeConfig: {
+    public: {
+      firebase: {
+        apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY || '',
+        authDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'headline-central.firebaseapp.com',
+        projectId: process.env.NUXT_PUBLIC_FIREBASE_PROJECT_ID || 'headline-central',
+        databaseId: process.env.NUXT_PUBLIC_FIREBASE_DATABASE_ID || 'headline-central',
+        storageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'headline-central.firebasestorage.app',
+        messagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+        appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID || ''
+      }
+    }
+  },
   app: {
     baseURL: process.env.NUXT_APP_BASE_URL || (isProduction ? '/headlinecentral/' : '/'),
     head: {

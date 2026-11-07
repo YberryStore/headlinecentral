@@ -41,13 +41,40 @@
 
       <!-- Category Articles Feed -->
       <div class="mb-10">
-        <h2 class="text-2xl font-medium text-gray-950 font-sans tracking-tight mb-8">
-          All Stories in {{ categoryMeta.name }}
-        </h2>
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <h2 class="text-2xl font-medium text-gray-950 font-sans tracking-tight">
+            All Stories in {{ categoryMeta.name }}
+          </h2>
 
-        <div v-if="categoryArticles.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Sub-Categories Filter Pills -->
+          <div
+            v-if="categoryMeta.subCategories && categoryMeta.subCategories.length > 0"
+            class="flex flex-wrap items-center gap-2"
+          >
+            <button
+              @click="selectedSubSlug = ''"
+              type="button"
+              class="px-4 py-1.5 rounded-full text-xs font-medium transition-colors"
+              :class="!selectedSubSlug ? 'bg-[#EE5102] text-white' : 'bg-white border border-gray-200 text-gray-700 hover:border-[#EE5102]'"
+            >
+              All {{ categoryMeta.name }}
+            </button>
+            <button
+              v-for="sub in categoryMeta.subCategories"
+              :key="sub.id"
+              @click="selectedSubSlug = sub.slug"
+              type="button"
+              class="px-4 py-1.5 rounded-full text-xs font-medium transition-colors"
+              :class="selectedSubSlug === sub.slug ? 'bg-[#EE5102] text-white' : 'bg-white border border-gray-200 text-gray-700 hover:border-[#EE5102]'"
+            >
+              {{ sub.name }}
+            </button>
+          </div>
+        </div>
+
+        <div v-if="filteredCategoryArticles.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <article
-            v-for="article in categoryArticles"
+            v-for="article in filteredCategoryArticles"
             :key="article.id"
             class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group"
           >
@@ -126,21 +153,36 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useArticles } from '~/composables/useArticles'
 
 const route = useRoute()
 const { getCategoryMeta, getArticlesByCategory } = useArticles()
 
-const categorySlug = route.params.slug as string
-const categoryMeta = getCategoryMeta(categorySlug)
-const categoryArticles = getArticlesByCategory(categorySlug)
+const categorySlug = computed(() => route.params.slug as string)
+const categoryMeta = computed(() => getCategoryMeta(categorySlug.value))
+const categoryArticles = computed(() => getArticlesByCategory(categorySlug.value))
 
-if (categoryMeta) {
+const selectedSubSlug = ref((route.query.sub as string) || '')
+
+watch(
+  () => route.query.sub,
+  newSub => {
+    selectedSubSlug.value = (newSub as string) || ''
+  }
+)
+
+const filteredCategoryArticles = computed(() => {
+  if (!selectedSubSlug.value) return categoryArticles.value
+  return categoryArticles.value.filter(a => a.subCategorySlug === selectedSubSlug.value)
+})
+
+if (categoryMeta.value) {
   useHead({
-    title: `${categoryMeta.name} — Headline Central`,
+    title: `${categoryMeta.value.name} — Headline Central`,
     meta: [
-      { name: 'description', content: categoryMeta.description }
+      { name: 'description', content: categoryMeta.value.description }
     ]
   })
 }

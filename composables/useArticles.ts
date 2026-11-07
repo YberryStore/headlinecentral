@@ -40,14 +40,35 @@ export interface ArticleSection {
   galleryCaption?: string
 }
 
+export interface SubCategoryMeta {
+  id: string
+  name: string
+  slug: string
+  description?: string
+}
+
+export interface CategoryMeta {
+  name: string
+  slug: string
+  description: string
+  color: string
+  badgeBg: string
+  icon: string
+  image: string
+  showInNavbar?: boolean
+  subCategories?: SubCategoryMeta[]
+}
+
 export interface Article {
   id: string
   slug: string
   title: string
   titleHighlight?: string
   excerpt: string
-  category: 'Technology' | 'Home and DIY' | 'Food' | 'Parenting'
-  categorySlug: 'technology' | 'home-and-diy' | 'food' | 'parenting'
+  category: string
+  categorySlug: string
+  subCategory?: string
+  subCategorySlug?: string
   categoryColor: string
   featuredImage: string
   bannerImage?: string
@@ -68,17 +89,9 @@ export interface Article {
 }
 
 const sharedArticles = reactive<Article[]>([])
+const sharedCategories = reactive<CategoryMeta[]>([])
 let isInitialized = false
-
-export interface CategoryMeta {
-  name: string
-  slug: 'technology' | 'home-and-diy' | 'food' | 'parenting' | 'fashion' | 'news'
-  description: string
-  color: string
-  badgeBg: string
-  icon: string
-  image: string
-}
+let isCategoriesInitialized = false
 
 export const useArticles = () => {
   const asset = (path: string) => useAsset(path)
@@ -95,7 +108,21 @@ export const useArticles = () => {
     }
   }
 
-  const categories: CategoryMeta[] = [
+  const defaultCategories: CategoryMeta[] = [
+    {
+      name: 'News',
+      slug: 'news',
+      description: 'Breaking developments, global policy analysis, and essential daily reporting.',
+      color: '#ee5102',
+      badgeBg: 'bg-yberry-100 text-yberry-1000 border border-yberry-300',
+      icon: 'Newspaper',
+      image: asset('/images/tech-hero.jpg'),
+      showInNavbar: true,
+      subCategories: [
+        { id: 'sub-news-1', name: 'Global Policy', slug: 'global-policy' },
+        { id: 'sub-news-2', name: 'Industry Briefings', slug: 'industry-briefings' }
+      ]
+    },
     {
       name: 'Technology',
       slug: 'technology',
@@ -103,16 +130,27 @@ export const useArticles = () => {
       color: '#ee5102',
       badgeBg: 'bg-yberry-100 text-yberry-1000 border border-yberry-300',
       icon: 'Cpu',
-      image: asset('/images/tech-hero.jpg')
+      image: asset('/images/tech-hero.jpg'),
+      showInNavbar: true,
+      subCategories: [
+        { id: 'sub-tech-1', name: 'GPUs & Hardware', slug: 'gpus-and-hardware' },
+        { id: 'sub-tech-2', name: 'AI & Architecture', slug: 'ai-and-architecture' },
+        { id: 'sub-tech-3', name: 'Retro Tech', slug: 'retro-tech' }
+      ]
     },
     {
-      name: 'Home and DIY',
-      slug: 'home-and-diy',
-      description: 'Architectural craftsmanship, acoustic styling, woodworking, and smart hands-on renovations for modern living.',
-      color: '#f17435',
-      badgeBg: 'bg-amber-50 text-amber-900 border border-amber-200',
-      icon: 'Home',
-      image: asset('/images/diy-hero.jpg')
+      name: 'Fashion',
+      slug: 'fashion',
+      description: 'Timeless wardrobe curation, sustainable textiles, modern tailoring, and design culture.',
+      color: '#ee5102',
+      badgeBg: 'bg-yberry-100 text-yberry-1000 border border-yberry-300',
+      icon: 'Sparkles',
+      image: asset('/images/diy-hero.jpg'),
+      showInNavbar: true,
+      subCategories: [
+        { id: 'sub-fashion-1', name: 'Sustainable Style', slug: 'sustainable-style' },
+        { id: 'sub-fashion-2', name: 'Design Culture', slug: 'design-culture' }
+      ]
     },
     {
       name: 'Food',
@@ -121,7 +159,26 @@ export const useArticles = () => {
       color: '#f0631c',
       badgeBg: 'bg-orange-50 text-orange-900 border border-orange-200',
       icon: 'Utensils',
-      image: asset('/images/food-hero.jpg')
+      image: asset('/images/food-hero.jpg'),
+      showInNavbar: true,
+      subCategories: [
+        { id: 'sub-food-1', name: 'Artisan Baking', slug: 'artisan-baking' },
+        { id: 'sub-food-2', name: 'Seasonal Recipes', slug: 'seasonal-recipes' }
+      ]
+    },
+    {
+      name: 'Home and DIY',
+      slug: 'home-and-diy',
+      description: 'Architectural craftsmanship, acoustic styling, woodworking, and smart hands-on renovations for modern living.',
+      color: '#f17435',
+      badgeBg: 'bg-amber-50 text-amber-900 border border-amber-200',
+      icon: 'Home',
+      image: asset('/images/diy-hero.jpg'),
+      showInNavbar: true,
+      subCategories: [
+        { id: 'sub-diy-1', name: 'Woodworking & Craft', slug: 'woodworking-and-craft' },
+        { id: 'sub-diy-2', name: 'Smart Renovations', slug: 'smart-renovations' }
+      ]
     },
     {
       name: 'Parenting',
@@ -130,9 +187,44 @@ export const useArticles = () => {
       color: '#e88b6b',
       badgeBg: 'bg-rose-50 text-rose-900 border border-rose-200',
       icon: 'HeartHandshake',
-      image: asset('/images/parenting-hero.jpg')
+      image: asset('/images/parenting-hero.jpg'),
+      showInNavbar: true,
+      subCategories: [
+        { id: 'sub-parenting-1', name: 'Child Development', slug: 'child-development' },
+        { id: 'sub-parenting-2', name: 'Digital Balance', slug: 'digital-balance' }
+      ]
     }
   ]
+
+  if (!isCategoriesInitialized) {
+    sharedCategories.splice(0, sharedCategories.length, ...defaultCategories)
+    if (typeof window !== 'undefined') {
+      try {
+        const savedCats = localStorage.getItem('hc_cms_custom_categories')
+        if (savedCats) {
+          const parsedCats: CategoryMeta[] = JSON.parse(savedCats)
+          if (Array.isArray(parsedCats) && parsedCats.length > 0) {
+            sharedCategories.splice(0, sharedCategories.length, ...parsedCats)
+          }
+        }
+      } catch {
+        // Ignore storage errors
+      }
+    }
+    isCategoriesInitialized = true
+  }
+
+  const persistCategories = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('hc_cms_custom_categories', JSON.stringify(sharedCategories))
+      } catch {
+        // Ignore storage errors
+      }
+    }
+  }
+
+  const categories = sharedCategories
 
   const defaultArticles: Article[] = [
     {
@@ -143,6 +235,8 @@ export const useArticles = () => {
       excerpt: 'Software is no longer just a passive tool waiting for human input. We examine how multimodal agent architectures and proactive intelligence are quietly',
       category: 'Technology',
       categorySlug: 'technology',
+      subCategory: 'GPUs & Hardware',
+      subCategorySlug: 'gpus-and-hardware',
       categoryColor: '#ee5102',
       featuredImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp'),
       bannerImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp'),
@@ -298,24 +392,53 @@ export const useArticles = () => {
 
   const articles = sharedArticles
 
-  const addArticle = (newArticle: Article) => {
-    sharedArticles.unshift(newArticle)
-    persistArticles()
+  const syncFromFirestore = async () => {
+    if (typeof window === 'undefined') return
+    try {
+      const { fetchFirestoreArticles, saveFirestoreArticle } = useFirebase()
+      const remote = await fetchFirestoreArticles()
+      if (remote && remote.length > 0) {
+        sharedArticles.splice(0, sharedArticles.length, ...remote)
+        persistArticles()
+      } else if (remote && remote.length === 0 && sharedArticles.length > 0) {
+        // Seed initial article into Firestore DB "headline-central"
+        await saveFirestoreArticle(sharedArticles[0])
+      }
+    } catch {
+      // Ignore if Firestore is offline or unconfigured
+    }
   }
 
-  const updateArticle = (id: string, updated: Partial<Article>) => {
+  const addArticle = async (newArticle: Article) => {
+    sharedArticles.unshift(newArticle)
+    persistArticles()
+    if (typeof window !== 'undefined') {
+      const { saveFirestoreArticle } = useFirebase()
+      await saveFirestoreArticle(newArticle)
+    }
+  }
+
+  const updateArticle = async (id: string, updated: Partial<Article>) => {
     const idx = sharedArticles.findIndex(a => a.id === id)
     if (idx !== -1) {
       sharedArticles[idx] = { ...sharedArticles[idx], ...updated }
       persistArticles()
+      if (typeof window !== 'undefined') {
+        const { saveFirestoreArticle } = useFirebase()
+        await saveFirestoreArticle(sharedArticles[idx])
+      }
     }
   }
 
-  const deleteArticle = (id: string) => {
+  const deleteArticle = async (id: string) => {
     const idx = sharedArticles.findIndex(a => a.id === id)
     if (idx !== -1) {
       sharedArticles.splice(idx, 1)
       persistArticles()
+      if (typeof window !== 'undefined') {
+        const { deleteFirestoreArticle } = useFirebase()
+        await deleteFirestoreArticle(id)
+      }
     }
   }
 
@@ -343,40 +466,103 @@ export const useArticles = () => {
   }
 
   const getCategoryMeta = (slug: string): CategoryMeta | undefined => {
-    const found = categories.find(c => c.slug === slug)
-    if (found) return found
-    if (slug === 'fashion') {
-      return {
-        name: 'Fashion',
-        slug: 'fashion',
-        description: 'Timeless wardrobe curation, sustainable textiles, modern tailoring, and design culture.',
-        color: '#ee5102',
-        badgeBg: 'bg-yberry-100 text-yberry-1000 border border-yberry-300',
-        icon: 'Sparkles',
-        image: '/images/diy-hero.jpg'
-      }
+    return categories.find(c => c.slug === slug)
+  }
+
+  const addCategory = (cat: Omit<CategoryMeta, 'color' | 'badgeBg' | 'icon'> & Partial<Pick<CategoryMeta, 'color' | 'badgeBg' | 'icon'>>) => {
+    const existing = categories.find(c => c.slug === cat.slug)
+    if (existing) return existing
+    const newCat: CategoryMeta = {
+      name: cat.name.trim(),
+      slug: cat.slug.trim().toLowerCase(),
+      description: cat.description.trim() || `Stories and analysis in ${cat.name.trim()}.`,
+      color: cat.color || '#ee5102',
+      badgeBg: cat.badgeBg || 'bg-yberry-100 text-yberry-1000 border border-yberry-300',
+      icon: cat.icon || 'Sparkles',
+      image: cat.image || asset('/images/tech-hero.jpg'),
+      showInNavbar: cat.showInNavbar !== false,
+      subCategories: Array.isArray(cat.subCategories) ? cat.subCategories : []
     }
-    if (slug === 'news') {
-      return {
-        name: 'News',
-        slug: 'news',
-        description: 'Breaking developments, global policy analysis, and essential daily reporting.',
-        color: '#ee5102',
-        badgeBg: 'bg-yberry-100 text-yberry-1000 border border-yberry-300',
-        icon: 'Newspaper',
-        image: '/images/tech-hero.jpg'
+    sharedCategories.push(newCat)
+    persistCategories()
+    return newCat
+  }
+
+  const updateCategory = (slug: string, updates: Partial<CategoryMeta>) => {
+    const idx = sharedCategories.findIndex(c => c.slug === slug)
+    if (idx !== -1) {
+      sharedCategories[idx] = {
+        ...sharedCategories[idx],
+        ...updates
       }
+      persistCategories()
+      return sharedCategories[idx]
     }
     return undefined
+  }
+
+  const deleteCategory = (slug: string) => {
+    const idx = sharedCategories.findIndex(c => c.slug === slug)
+    if (idx !== -1 && sharedCategories.length > 1) {
+      sharedCategories.splice(idx, 1)
+      persistCategories()
+      return true
+    }
+    return false
+  }
+
+  const addSubCategory = (categorySlug: string, subName: string, subSlug?: string, description?: string) => {
+    const cat = sharedCategories.find(c => c.slug === categorySlug)
+    if (!cat) return undefined
+    if (!cat.subCategories) {
+      cat.subCategories = []
+    }
+    const cleanName = subName.trim()
+    const cleanSlug = (subSlug || cleanName)
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+
+    const exists = cat.subCategories.find(s => s.slug === cleanSlug)
+    if (exists) return exists
+
+    const newSub: SubCategoryMeta = {
+      id: `sub-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: cleanName,
+      slug: cleanSlug,
+      description: description?.trim()
+    }
+    cat.subCategories.push(newSub)
+    persistCategories()
+    return newSub
+  }
+
+  const removeSubCategory = (categorySlug: string, subIdOrSlug: string) => {
+    const cat = sharedCategories.find(c => c.slug === categorySlug)
+    if (!cat || !cat.subCategories) return false
+    const idx = cat.subCategories.findIndex(s => s.id === subIdOrSlug || s.slug === subIdOrSlug)
+    if (idx !== -1) {
+      cat.subCategories.splice(idx, 1)
+      persistCategories()
+      return true
+    }
+    return false
   }
 
   return {
     authors,
     categories,
     articles,
+    syncFromFirestore,
     addArticle,
     updateArticle,
     deleteArticle,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    addSubCategory,
+    removeSubCategory,
     getArticleBySlug,
     getArticlesByCategory,
     getPopularArticles,

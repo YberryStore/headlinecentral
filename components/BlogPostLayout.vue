@@ -111,7 +111,7 @@
               <!-- Custom HTML Field (e.g. Modern Tech Meets Vintage Silicon Table) -->
               <div
                 v-if="section.includeHtml !== false && section.htmlContent"
-                v-html="section.htmlContent"
+                v-html="sanitizeHtml(section.htmlContent)"
               ></div>
 
               <!-- Comparison Table Fallback -->
@@ -263,7 +263,7 @@ const props = defineProps<{
   article: Article
 }>()
 
-const { extractHeadings } = useMarkdown()
+const { extractHeadings, sanitizeHtml } = useMarkdown()
 const copied = ref(false)
 
 const copyShareLink = () => {
