@@ -1575,10 +1575,16 @@
                         {{ u.environment !== 'local' ? 'Live & Local' : 'Local Only' }}
                       </span>
                       <span
-                        v-if="u.provider === 'google' || u.provider === 'both' || u.isMaster"
+                        v-if="!u.isMaster && (u.provider === 'google' || u.provider === 'both')"
                         class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200/60"
                       >
-                        Google SSO Enabled
+                        Google OAuth Enabled
+                      </span>
+                      <span
+                        v-else-if="u.isMaster"
+                        class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200"
+                      >
+                        Master Password Only
                       </span>
                       <span
                         class="px-2 py-0.5 rounded-full text-[10px] font-semibold"

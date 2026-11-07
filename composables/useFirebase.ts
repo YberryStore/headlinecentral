@@ -172,7 +172,7 @@ export const useFirebase = () => {
       role: 'Master Administrator',
       roleKey: 'admin',
       permissions: getDefaultPermissionsForRole('admin'),
-      provider: 'both',
+      provider: 'email',
       environment: 'live',
       active: true,
       isMaster: true,
@@ -186,11 +186,21 @@ export const useFirebase = () => {
         if (raw) {
           const parsed: ManagedCmsUser[] = JSON.parse(raw)
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const hasMaster = parsed.some(u => u.isMaster)
+            const sanitized = parsed.map((u) => {
+              if (u.isMaster || u.email?.toLowerCase() === 'admin@headlinecentral.co.za') {
+                return {
+                  ...u,
+                  provider: 'email' as const,
+                  isMaster: true
+                }
+              }
+              return u
+            })
+            const hasMaster = sanitized.some(u => u.isMaster)
             managedUsers.splice(
               0,
               managedUsers.length,
-              ...(hasMaster ? parsed : [defaultMaster, ...parsed])
+              ...(hasMaster ? sanitized : [defaultMaster, ...sanitized])
             )
           }
         }
@@ -471,31 +481,30 @@ export const useFirebase = () => {
     initManagedUsers()
     const cfg = getInternalConfig()
 
-    // Restore verified session in current browser tab
+    // Restore cryptographically verified Email/Password session in current browser tab.
+    // Google Sign-In sessions are strictly verified by Google's real OAuth token via onAuthStateChanged.
     if (!currentUser.value) {
       const savedUserJson = sessionStorage.getItem(SESSION_USER_KEY)
       const activeToken = sessionStorage.getItem(SESSION_TOKEN_KEY)
       if (savedUserJson && activeToken) {
         try {
           const parsedUser: CmsAuthUser = JSON.parse(savedUserJson)
-          if (parsedUser.isMaster && constantTimeEqual(activeToken, MASTER_DIGEST_HEX)) {
+          if (
+            parsedUser.isMaster &&
+            parsedUser.provider === 'email' &&
+            constantTimeEqual(activeToken, MASTER_DIGEST_HEX)
+          ) {
             currentUser.value = parsedUser
-          } else {
+          } else if (!parsedUser.isMaster && parsedUser.provider === 'email') {
             const found = managedUsers.find(
-              u => (u.uid === parsedUser.uid || u.email.toLowerCase() === parsedUser.email.toLowerCase()) && u.active !== false
+              u => !u.isMaster && (u.uid === parsedUser.uid || u.email.toLowerCase() === parsedUser.email.toLowerCase()) && u.active !== false
             )
-            if (found) {
-              const ssoDigest = `sso_verified:${found.email.toLowerCase()}`
-              if (
-                (found.passwordHash && constantTimeEqual(activeToken, found.passwordHash)) ||
-                constantTimeEqual(activeToken, ssoDigest)
-              ) {
-                currentUser.value = {
-                  ...parsedUser,
-                  role: found.role,
-                  roleKey: found.roleKey,
-                  permissions: { ...found.permissions }
-                }
+            if (found && found.passwordHash && constantTimeEqual(activeToken, found.passwordHash)) {
+              currentUser.value = {
+                ...parsedUser,
+                role: found.role,
+                roleKey: found.roleKey,
+                permissions: { ...found.permissions }
               }
             }
           }
@@ -534,12 +543,57 @@ export const useFirebase = () => {
       // Sync cloud-managed users in the background
       syncUsersFromCloud()
 
+      const validateGoogleAuthenticatedUser = (fbUser: FirebaseUser): { allowed: boolean; error?: string } => {
+        const isGoogle = fbUser.providerData?.some(p => p.providerId === 'google.com')
+        if (!isGoogle) return { allowed: true }
+
+        const emailLower = (fbUser.email || '').toLowerCase()
+        const matched = managedUsers.find(u => u.email.toLowerCase() === emailLower)
+
+        // Block Master Admin from ever using Google Sign-On
+        if (emailLower === 'admin@headlinecentral.co.za' || matched?.isMaster) {
+          return {
+            allowed: false,
+            error: 'Master Administrator login is restricted to Email & Password for maximum security.'
+          }
+        }
+
+        if (!matched) {
+          return {
+            allowed: false,
+            error: 'This Google account is not authorized for CMS access. Please contact an administrator.'
+          }
+        }
+
+        if (matched.active === false) {
+          return {
+            allowed: false,
+            error: 'This account has been suspended by an administrator.'
+          }
+        }
+
+        if (matched.provider === 'email') {
+          return {
+            allowed: false,
+            error: 'Google Sign-In is disabled for this account. Please sign in with your Email & Password.'
+          }
+        }
+
+        return { allowed: true }
+      }
+
       if (!authListenerInitialized && firebaseAuth) {
         authListenerInitialized = true
 
         getRedirectResult(firebaseAuth)
           .then((result) => {
             if (result?.user) {
+              const validation = validateGoogleAuthenticatedUser(result.user)
+              if (!validation.allowed) {
+                authError.value = validation.error || 'Access denied.'
+                signOut(firebaseAuth!)
+                return
+              }
               const mapped = mapAuthenticatedUser(result.user)
               if (mapped.active === false) {
                 authError.value = 'This account has been suspended by an administrator.'
@@ -547,26 +601,26 @@ export const useFirebase = () => {
                 return
               }
               currentUser.value = mapped
-              if (typeof window !== 'undefined') {
-                sessionStorage.setItem(SESSION_TOKEN_KEY, `sso_verified:${mapped.email.toLowerCase()}`)
-                sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(mapped))
-              }
               syncUserRecord(mapped)
             }
           })
           .catch(() => {
-            authError.value = 'Unable to complete sign-in. Please try again.'
+            authError.value = 'Unable to complete Google sign-in. Please try again.'
           })
 
         onAuthStateChanged(firebaseAuth, (fbUser) => {
           if (fbUser) {
+            const validation = validateGoogleAuthenticatedUser(fbUser)
+            if (!validation.allowed) {
+              authError.value = validation.error || 'Access denied.'
+              signOut(firebaseAuth!)
+              currentUser.value = null
+              isAuthReady.value = true
+              return
+            }
             const mapped = mapAuthenticatedUser(fbUser)
             if (mapped.active !== false) {
               currentUser.value = mapped
-              if (typeof window !== 'undefined') {
-                sessionStorage.setItem(SESSION_TOKEN_KEY, `sso_verified:${mapped.email.toLowerCase()}`)
-                sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(mapped))
-              }
               syncUserRecord(mapped)
             }
           } else {
@@ -591,100 +645,79 @@ export const useFirebase = () => {
 
   /**
    * Sign in with Google Single Sign-On (SSO)
-   * Supports both Live Google OAuth Popup/Redirect and Admin-provisioned Google SSO accounts.
+   * Strictly uses Google's official OAuth 2.0 Sign-In flow (signInWithPopup / signInWithRedirect).
+   * Master Admin login is never accessible via Google Sign-On.
    */
-  const loginWithGoogle = async (googleEmailHint?: string): Promise<boolean> => {
+  const loginWithGoogle = async (): Promise<boolean> => {
     authError.value = null
     initFirebase()
     await syncUsersFromCloud()
 
-    // 1. Live Google OAuth Popup / Redirect flow when configured
-    if (firebaseAuth && isAuthServiceConfigured.value && !googleEmailHint) {
-      const provider = new GoogleAuthProvider()
-      provider.addScope('profile')
-      provider.addScope('email')
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      })
+    if (!firebaseAuth || !isAuthServiceConfigured.value) {
+      authError.value = 'Google Sign-In requires a live authentication connection. Please sign in with your Email & Password.'
+      return false
+    }
 
-      try {
-        const cred = await signInWithPopup(firebaseAuth, provider)
-        const mapped = mapAuthenticatedUser(cred.user)
-        if (mapped.active === false) {
-          await signOut(firebaseAuth)
-          authError.value = 'This account has been suspended by an administrator.'
-          return false
-        }
-        currentUser.value = mapped
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem(SESSION_TOKEN_KEY, `sso_verified:${mapped.email.toLowerCase()}`)
-          sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(mapped))
-        }
-        await syncUserRecord(mapped)
-        return true
-      } catch (err: any) {
-        if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
-          try {
-            await signInWithRedirect(firebaseAuth, provider)
-            return true
-          } catch {
-            authError.value = 'Unable to open the sign-in window. Please check your popup blocker.'
-            return false
-          }
-        }
-        // If user closed popup, stop; otherwise allow fallback if hint provided
-        if (err?.code === 'auth/popup-closed-by-user') {
-          authError.value = 'Google Single Sign-On was cancelled.'
+    const provider = new GoogleAuthProvider()
+    provider.addScope('profile')
+    provider.addScope('email')
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    })
+
+    try {
+      const cred = await signInWithPopup(firebaseAuth, provider)
+      const emailLower = (cred.user.email || '').toLowerCase()
+      const matchedManaged = managedUsers.find(u => u.email.toLowerCase() === emailLower)
+
+      // Strictly block Master Admin from Google Sign-On
+      if (emailLower === 'admin@headlinecentral.co.za' || matchedManaged?.isMaster) {
+        await signOut(firebaseAuth)
+        authError.value = 'Master Administrator login is restricted to Email & Password for maximum security.'
+        return false
+      }
+
+      if (!matchedManaged) {
+        await signOut(firebaseAuth)
+        authError.value = 'This Google account is not authorized for CMS access. Ask an administrator to add your email.'
+        return false
+      }
+
+      if (matchedManaged.active === false) {
+        await signOut(firebaseAuth)
+        authError.value = 'This account has been suspended by an administrator.'
+        return false
+      }
+
+      if (matchedManaged.provider === 'email') {
+        await signOut(firebaseAuth)
+        authError.value = 'Google Sign-In is disabled for this account. Please sign in with your Email & Password.'
+        return false
+      }
+
+      const mapped = mapAuthenticatedUser(cred.user)
+      currentUser.value = mapped
+      matchedManaged.lastLoginAt = mapped.lastLoginAt
+      persistManagedUsers()
+      await syncUserRecord(mapped)
+      return true
+    } catch (err: any) {
+      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
+        try {
+          await signInWithRedirect(firebaseAuth, provider)
+          return true
+        } catch {
+          authError.value = 'Unable to open Google Sign-In window. Please check your popup blocker.'
           return false
         }
       }
-    }
-
-    // 2. Google SSO Account Resolution (for pre-authorized Google SSO accounts or local/staging SSO selector)
-    const targetEmail = (googleEmailHint || '').trim().toLowerCase()
-    if (!targetEmail) {
-      authError.value = 'Please select or enter your authorized Google account email to continue with Single Sign-On.'
+      if (err?.code === 'auth/popup-closed-by-user') {
+        authError.value = 'Google Sign-In was cancelled.'
+        return false
+      }
+      authError.value = 'Unable to complete Google Sign-In. Please try again.'
       return false
     }
-
-    const matchedManaged = managedUsers.find(u => u.email.toLowerCase() === targetEmail)
-    if (!matchedManaged) {
-      authError.value = 'This Google account is not yet authorized for CMS access. Ask an administrator to add your email.'
-      return false
-    }
-    if (matchedManaged.active === false) {
-      authError.value = 'This account has been suspended by an administrator.'
-      return false
-    }
-
-    const ssoUser: CmsAuthUser = {
-      uid: matchedManaged.uid,
-      email: matchedManaged.email,
-      displayName: matchedManaged.displayName,
-      role: matchedManaged.role,
-      roleKey: matchedManaged.roleKey,
-      permissions: { ...matchedManaged.permissions },
-      photoURL: matchedManaged.photoURL,
-      provider: 'google',
-      environment: matchedManaged.environment || 'live',
-      active: true,
-      isMaster: Boolean(matchedManaged.isMaster),
-      lastLoginAt: new Date().toISOString()
-    }
-
-    currentUser.value = ssoUser
-    matchedManaged.lastLoginAt = ssoUser.lastLoginAt
-    persistManagedUsers()
-
-    if (typeof window !== 'undefined') {
-      const tokenVal = matchedManaged.isMaster
-        ? MASTER_DIGEST_HEX
-        : `sso_verified:${matchedManaged.email.toLowerCase()}`
-      sessionStorage.setItem(SESSION_TOKEN_KEY, tokenVal)
-      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(ssoUser))
-    }
-    await syncUserRecord(ssoUser)
-    return true
   }
 
   /**

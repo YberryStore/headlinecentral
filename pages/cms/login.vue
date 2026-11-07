@@ -26,7 +26,7 @@
         {{ authError }}
       </div>
 
-      <!-- Primary Google Single Sign-On (SSO) Button -->
+      <!-- Primary Google Sign-In Button (Official Google OAuth 2.0 Flow Only) -->
       <button
         @click="handleGoogleLogin"
         type="button"
@@ -39,61 +39,8 @@
           <path fill="#FBBC05" d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.9z" />
           <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5l-3.7 2.8C3.5 19.9 7.4 23 12 23z" />
         </svg>
-        <span>{{ isGoogleSubmitting ? 'Signing in with Google...' : 'Single Sign-On with Google' }}</span>
+        <span>{{ isGoogleSubmitting ? 'Signing in with Google...' : 'Sign in with Google' }}</span>
       </button>
-
-      <!-- Google SSO Account Picker (when choosing an authorized Google account) -->
-      <div
-        v-if="showGoogleSsoPicker"
-        class="mt-3 p-4 rounded-2xl border border-gray-200 bg-gray-50/70 space-y-3"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-gray-800">Select Google SSO Account</span>
-          <button
-            @click="showGoogleSsoPicker = false"
-            type="button"
-            class="text-xs text-gray-400 hover:text-gray-700"
-          >
-            Close
-          </button>
-        </div>
-
-        <!-- Authorized Google SSO Accounts List -->
-        <div class="space-y-1.5">
-          <button
-            v-for="u in googleAuthorizedUsers"
-            :key="u.uid"
-            @click="completeGoogleSsoWithEmail(u.email)"
-            type="button"
-            class="w-full flex items-center justify-between p-2.5 rounded-xl bg-white border border-gray-200 hover:border-[#EE5102] text-left transition-colors"
-          >
-            <div class="min-w-0">
-              <p class="text-xs font-semibold text-gray-900 truncate">{{ u.displayName }}</p>
-              <p class="text-[11px] text-gray-500 truncate">{{ u.email }}</p>
-            </div>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#feeee6] text-[#EE5102] flex-shrink-0">
-              {{ u.role }}
-            </span>
-          </button>
-        </div>
-
-        <!-- Or Enter Google Email Directly -->
-        <form @submit.prevent="completeGoogleSsoWithEmail(googleSsoEmail)" class="flex items-center gap-2 pt-1">
-          <input
-            v-model="googleSsoEmail"
-            type="email"
-            required
-            placeholder="Enter authorized Google email..."
-            class="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
-          />
-          <button
-            type="submit"
-            class="px-3.5 py-2 rounded-xl bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-medium flex-shrink-0"
-          >
-            Continue
-          </button>
-        </form>
-      </div>
 
       <!-- Divider -->
       <div class="relative my-5">
@@ -150,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFirebase } from '~/composables/useFirebase'
 
@@ -169,8 +116,6 @@ useHead({
 const router = useRouter()
 const {
   currentUser,
-  managedUsers,
-  isAuthServiceConfigured,
   authError,
   initFirebase,
   loginWithEmail,
@@ -181,12 +126,6 @@ const email = ref('')
 const password = ref('')
 const isSubmitting = ref(false)
 const isGoogleSubmitting = ref(false)
-const showGoogleSsoPicker = ref(false)
-const googleSsoEmail = ref('')
-
-const googleAuthorizedUsers = computed(() =>
-  managedUsers.filter(u => u.active !== false && (u.provider === 'google' || u.provider === 'both' || u.isMaster))
-)
 
 onMounted(() => {
   initFirebase()
@@ -212,25 +151,10 @@ const handleEmailLogin = async () => {
 
 const handleGoogleLogin = async () => {
   authError.value = null
-  if (isAuthServiceConfigured.value) {
-    isGoogleSubmitting.value = true
-    const ok = await loginWithGoogle()
-    isGoogleSubmitting.value = false
-    if (ok && currentUser.value) {
-      router.push('/cms')
-      return
-    }
-  }
-  showGoogleSsoPicker.value = !showGoogleSsoPicker.value
-}
-
-const completeGoogleSsoWithEmail = async (targetEmail: string) => {
-  if (!targetEmail) return
   isGoogleSubmitting.value = true
-  const ok = await loginWithGoogle(targetEmail)
+  const ok = await loginWithGoogle()
   isGoogleSubmitting.value = false
   if (ok && currentUser.value) {
-    showGoogleSsoPicker.value = false
     router.push('/cms')
   }
 }
