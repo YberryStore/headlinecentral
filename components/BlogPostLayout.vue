@@ -34,14 +34,21 @@
       </div>
     </header>
 
-    <!-- Full-Width Featured Banner Matching 1600x800 Layout -->
-    <div v-if="article.bannerImage || article.featuredImage" class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
+    <!-- Full-Width Featured Banner (Desktop & Mobile with Alt Tag) -->
+    <div v-if="article.bannerImage || article.bannerImageMobile || article.featuredImage" class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
       <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm bg-gray-950">
-        <img
-          :src="article.bannerImage || article.featuredImage"
-          :alt="article.title"
-          class="w-full h-auto aspect-[2/1] object-cover object-center"
-        />
+        <picture>
+          <source
+            v-if="article.bannerImageMobile"
+            media="(max-width: 639px)"
+            :srcset="article.bannerImageMobile"
+          />
+          <img
+            :src="article.bannerImage || article.featuredImage || article.bannerImageMobile"
+            :alt="article.bannerAlt || article.title"
+            class="w-full h-auto aspect-[2/1] object-cover object-center"
+          />
+        </picture>
       </div>
       <p v-if="article.imageCaption" class="mt-3 text-xs text-gray-400 text-center italic">
         {{ article.imageCaption }}
@@ -79,20 +86,36 @@
               <!-- Rich Markdown Content -->
               <MarkdownRenderer :content="section.content" />
 
-              <!-- Mid-Article Embedded Image -->
-              <figure v-if="section.image" class="my-6 rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-100 shadow-sm bg-gray-950">
-                <img
-                  :src="section.image.src"
-                  :alt="section.image.alt"
-                  class="w-full h-auto object-cover"
-                />
+              <!-- Mid-Article Embedded Image (Desktop & Mobile with Alt Tag) -->
+              <figure
+                v-if="section.image && (section.image.src || section.image.mobileSrc)"
+                class="my-6 rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-100 shadow-sm bg-gray-950"
+              >
+                <picture>
+                  <source
+                    v-if="section.image.mobileSrc"
+                    media="(max-width: 639px)"
+                    :srcset="section.image.mobileSrc"
+                  />
+                  <img
+                    :src="section.image.src || section.image.mobileSrc"
+                    :alt="section.image.alt || section.title"
+                    class="w-full h-auto object-cover"
+                  />
+                </picture>
                 <figcaption v-if="section.image.caption" class="p-3 text-xs text-gray-500 bg-white border-t border-gray-100 text-center italic">
                   {{ section.image.caption }}
                 </figcaption>
               </figure>
 
-              <!-- Comparison Table -->
-              <div v-if="section.comparisonTable" class="my-8 overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+              <!-- Custom HTML Field (e.g. Modern Tech Meets Vintage Silicon Table) -->
+              <div
+                v-if="section.includeHtml !== false && section.htmlContent"
+                v-html="section.htmlContent"
+              ></div>
+
+              <!-- Comparison Table Fallback -->
+              <div v-else-if="section.comparisonTable" class="my-8 overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
                 <div class="overflow-x-auto">
                   <table class="w-full text-left border-collapse text-xs sm:text-sm">
                     <thead>
@@ -128,8 +151,8 @@
                 </div>
               </div>
 
-              <!-- Interactive Photo Gallery (1040x600 Desktop, responsive Mobile) -->
-              <div v-if="section.gallery && section.gallery.length">
+              <!-- Interactive Photo Gallery (Section-Level Fallback if Article-Level Gallery Not Used) -->
+              <div v-if="(!article.galleryItems || article.galleryItems.length === 0) && section.gallery && section.gallery.length">
                 <ArticleGallery
                   :images="section.gallery"
                   :caption="section.galleryCaption"
@@ -160,6 +183,14 @@
           <article v-else-if="article.content" class="space-y-6">
             <MarkdownRenderer :content="article.content" />
           </article>
+
+          <!-- Article-Level Photo Gallery (Up to 12 Images with Alt Tags) -->
+          <div v-if="article.galleryItems && article.galleryItems.length > 0">
+            <ArticleGallery
+              :images="article.galleryItems"
+              :caption="article.galleryCaption"
+            />
+          </div>
 
           <!-- Article Topics & Tags -->
           <div v-if="article.tags && article.tags.length > 0" class="pt-8 border-t border-gray-200">
@@ -265,3 +296,4 @@ const tocItems = computed<TocItem[]>(() => {
   return []
 })
 </script>
+

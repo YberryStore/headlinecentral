@@ -10,12 +10,18 @@ export interface Author {
   linkedin: string
 }
 
+export interface GalleryItem {
+  src: string
+  alt: string
+}
+
 export interface ArticleSection {
   id: string
   title: string
   content: string
   image?: {
     src: string
+    mobileSrc?: string
     alt: string
     caption: string
   }
@@ -28,7 +34,9 @@ export interface ArticleSection {
     headers: string[]
     rows: string[][]
   }
-  gallery?: string[]
+  includeHtml?: boolean
+  htmlContent?: string
+  gallery?: (string | GalleryItem)[]
   galleryCaption?: string
 }
 
@@ -43,6 +51,8 @@ export interface Article {
   categoryColor: string
   featuredImage: string
   bannerImage?: string
+  bannerImageMobile?: string
+  bannerAlt?: string
   imageCaption: string
   publishedAt: string
   readTime: string
@@ -51,6 +61,8 @@ export interface Article {
   isPopular?: boolean
   author: Author
   sections: ArticleSection[]
+  galleryItems?: GalleryItem[]
+  galleryCaption?: string
   content?: string
   tags: string[]
 }
@@ -134,6 +146,8 @@ export const useArticles = () => {
       categoryColor: '#ee5102',
       featuredImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp'),
       bannerImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp'),
+      bannerImageMobile: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp'),
+      bannerAlt: 'Unboxing 2006 in Full Path Tracing: NVIDIA GeForce 8800 GTX Hero Banner',
       imageCaption: 'Photo courtesy: NVIDIA G80 20-Year Archive Celebration • Captured in 4K Path Tracing',
       publishedAt: '2026 November 7',
       readTime: '5 min read',
@@ -154,6 +168,7 @@ export const useArticles = () => {
           content: `To commemorate twenty years of G80, enthusiasts and graphics engineers reconstructed the iconic 2006 demo scene using fully path-traced rendering pipelines, pushing modern hardware while honoring the visual language of the original release.\n\nRevisiting the original 2006 demo on contemporary silicon reveals how ahead of its time the architectural concept really was. By routing every pipeline through unified compute blocks, the modern recreation demonstrates dynamic bounce lighting, volumetric vapor dispersion, and photorealistic silicon reflections that the original engineers envisioned twenty years ago.`,
           image: {
             src: asset('/images/geforce-8800-gtx-gpu-celebration-20-year-steam-tech-demo.webp'),
+            mobileSrc: asset('/images/geforce-8800-gtx-gpu-celebration-20-year-steam-tech-demo.webp'),
             alt: 'GeForce 8800 GTX 20 Years of a Legend',
             caption: '20 Years of a Legend: Reconstructing the vintage GeForce 8800 GTX tech demo with modern real-time lighting.'
           }
@@ -162,6 +177,47 @@ export const useArticles = () => {
           id: 'modern-tech-meets-vintage-silicon',
           title: 'Modern Tech Meets Vintage Silicon',
           content: `How does the silicon of 2006 compare to modern workstation GPUs? While clock speeds and memory bandwidth have scaled by orders of magnitude, the fundamental conceptual shift introduced by G80—general-purpose parallel computation—remains the foundation of modern high-performance computing.\n\nBelow is an architectural breakdown highlighting the generational leap from the original G80 milestone to current-generation 2026 neural architectures:`,
+          includeHtml: true,
+          htmlContent: `<div class="my-8 overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+      <thead>
+        <tr class="bg-[#EE5102] text-white">
+          <th class="py-3.5 px-4 sm:px-5 font-semibold text-xs tracking-wider">Component / Feature</th>
+          <th class="py-3.5 px-4 sm:px-5 font-semibold text-xs tracking-wider">GeForce 8800 GTX (2006)</th>
+          <th class="py-3.5 px-4 sm:px-5 font-semibold text-xs tracking-wider">Modern Architecture (2026 Target)</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 bg-white">
+        <tr class="bg-white hover:bg-orange-50/40 transition-colors">
+          <td class="py-3.5 px-4 sm:px-5 font-medium text-gray-900 border-r border-gray-100">Unified Architecture</td>
+          <td class="py-3.5 px-4 sm:px-5 text-gray-700 border-r border-gray-100">128 Stream Processors</td>
+          <td class="py-3.5 px-4 sm:px-5 text-gray-700">Thousands of Parallel Cores + Dedicated RT &amp; Tensor Cores</td>
+        </tr>
+        <tr class="bg-orange-50/20 hover:bg-orange-50/40 transition-colors">
+          <td class="py-3.5 px-4 sm:px-5 font-medium text-gray-900 border-r border-gray-100">Core Clock &amp; Memory</td>
+          <td class="py-3.5 px-4 sm:px-5 text-gray-700 border-r border-gray-100">575 MHz Core / 768 MB GDDR3 (384-bit)</td>
+          <td class="py-3.5 px-4 sm:px-5 text-gray-700">2.5+ GHz Core / 24+ GB High-Bandwidth GDDR6X / HBM3</td>
+        </tr>
+        <tr class="bg-white hover:bg-orange-50/40 transition-colors">
+          <td class="py-3.5 px-4 sm:px-5 font-medium text-gray-900 border-r border-gray-100">3D Graphics API</td>
+          <td class="py-3.5 px-4 sm:px-5 text-gray-700 border-r border-gray-100">DirectX 10 Shader Model 4.0</td>
+          <td class="py-3.5 px-4 sm:px-5 text-gray-700">DirectX 12 Ultimate / Full Hardware Path Tracing</td>
+        </tr>
+        <tr class="bg-orange-50/20 hover:bg-orange-50/40 transition-colors">
+          <td class="py-3.5 px-4 sm:px-5 font-medium text-gray-900 border-r border-gray-100">Architecture Paradigm</td>
+          <td class="py-3.5 px-4 sm:px-5 text-gray-700 border-r border-gray-100">First Unified Computing Architecture (G80)</td>
+          <td class="py-3.5 px-4 sm:px-5 text-gray-700">Neural, Agentic &amp; Autonomous Acceleration</td>
+        </tr>
+        <tr class="bg-white hover:bg-orange-50/40 transition-colors">
+          <td class="py-3.5 px-4 sm:px-5 font-medium text-gray-900 border-r border-gray-100">Historical Market Impact</td>
+          <td class="py-3.5 px-4 sm:px-5 text-gray-700 border-r border-gray-100">First Consumer GPU to Break 500 GFLOPs</td>
+          <td class="py-3.5 px-4 sm:px-5 text-gray-700">PetaFLOP Workstation Workhorses Powering Real-Time AI</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>`,
           comparisonTable: {
             headers: ['Component / Feature', 'GeForce 8800 GTX (2006)', 'Modern Architecture (2026 Target)'],
             rows: [
@@ -178,22 +234,37 @@ export const useArticles = () => {
           title: 'The Enduring Legacy of the G80',
           content: `Looking back, the GeForce 8800 GTX did something far more profound than win a single hardware cycle. It unlocked CUDA, paved the road for general-purpose GPU computing, and proved that programmable parallel pipelines could tackle challenges far beyond polygon rasterization.\n\nWhether in autonomous AI clusters or the latest generation of real-time photorealistic path tracing, every single frame rendered today owes a debt to the ambitious silicon gamble taken two decades ago. Explore the high-resolution hardware archive below:`,
           gallery: [
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-2.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-3.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-4.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-5.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-6.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-7.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-8.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-9.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-10.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-11.webp'),
-            asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-12.webp')
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp'), alt: 'GeForce 8800 GTX unboxing overhead view on vintage 2006 desk' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-2.webp'), alt: 'GeForce 8800 GTX full path-traced desktop workstation scene' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-3.webp'), alt: 'GeForce 8800 GTX PCIe power connectors and cooling shroud detail' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-4.webp'), alt: 'Vintage PC case installation with GeForce 8800 GTX' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-5.webp'), alt: 'GeForce 8800 GTX retail box and retro game collection' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-6.webp'), alt: 'G80 silicon die and heatsink engineering close-up' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-7.webp'), alt: 'Path-traced lighting reflections on the GeForce 8800 GTX fan housing' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-8.webp'), alt: 'Retro 2006 gaming bedroom setup rendered in RTX Remix' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-9.webp'), alt: 'GeForce 8800 GTX dual-slot bracket and DVI outputs' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-10.webp'), alt: 'NVIDIA SLI bridge and 8800 GTX collector edition box' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-11.webp'), alt: '20-year celebration Steam tech demo interactive desk objects' },
+            { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-12.webp'), alt: 'GeForce 8800 GTX commemorative hardware showcase' }
           ],
           galleryCaption: 'A high-resolution visual archive celebrating 20 years of GeForce 8800 GTX hardware craft and industrial design.'
         }
-      ]
+      ],
+      galleryItems: [
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp'), alt: 'GeForce 8800 GTX unboxing overhead view on vintage 2006 desk' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-2.webp'), alt: 'GeForce 8800 GTX full path-traced desktop workstation scene' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-3.webp'), alt: 'GeForce 8800 GTX PCIe power connectors and cooling shroud detail' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-4.webp'), alt: 'Vintage PC case installation with GeForce 8800 GTX' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-5.webp'), alt: 'GeForce 8800 GTX retail box and retro game collection' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-6.webp'), alt: 'G80 silicon die and heatsink engineering close-up' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-7.webp'), alt: 'Path-traced lighting reflections on the GeForce 8800 GTX fan housing' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-8.webp'), alt: 'Retro 2006 gaming bedroom setup rendered in RTX Remix' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-9.webp'), alt: 'GeForce 8800 GTX dual-slot bracket and DVI outputs' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-10.webp'), alt: 'NVIDIA SLI bridge and 8800 GTX collector edition box' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-11.webp'), alt: '20-year celebration Steam tech demo interactive desk objects' },
+        { src: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-12.webp'), alt: 'GeForce 8800 GTX commemorative hardware showcase' }
+      ],
+      galleryCaption: 'A high-resolution visual archive celebrating 20 years of GeForce 8800 GTX hardware craft and industrial design.'
     }
   ]
 
