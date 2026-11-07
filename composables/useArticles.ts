@@ -1,3 +1,5 @@
+import { reactive } from 'vue'
+
 export interface Author {
   id: string
   name: string
@@ -49,8 +51,12 @@ export interface Article {
   isPopular?: boolean
   author: Author
   sections: ArticleSection[]
+  content?: string
   tags: string[]
 }
+
+const sharedArticles = reactive<Article[]>([])
+let isInitialized = false
 
 export interface CategoryMeta {
   name: string
@@ -116,7 +122,7 @@ export const useArticles = () => {
     }
   ]
 
-  const articles: Article[] = [
+  const defaultArticles: Article[] = [
     {
       id: 'art-1',
       slug: 'unboxing-2006-full-path-tracing-geforce-8800-gtx',
@@ -191,6 +197,57 @@ export const useArticles = () => {
     }
   ]
 
+  if (!isInitialized) {
+    sharedArticles.splice(0, sharedArticles.length, ...defaultArticles)
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('hc_cms_custom_articles')
+        if (saved) {
+          const parsed: Article[] = JSON.parse(saved)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            sharedArticles.splice(0, sharedArticles.length, ...parsed)
+          }
+        }
+      } catch (e) {
+        // Ignore storage errors
+      }
+    }
+    isInitialized = true
+  }
+
+  const persistArticles = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('hc_cms_custom_articles', JSON.stringify(sharedArticles))
+      } catch (e) {
+        // Ignore storage errors
+      }
+    }
+  }
+
+  const articles = sharedArticles
+
+  const addArticle = (newArticle: Article) => {
+    sharedArticles.unshift(newArticle)
+    persistArticles()
+  }
+
+  const updateArticle = (id: string, updated: Partial<Article>) => {
+    const idx = sharedArticles.findIndex(a => a.id === id)
+    if (idx !== -1) {
+      sharedArticles[idx] = { ...sharedArticles[idx], ...updated }
+      persistArticles()
+    }
+  }
+
+  const deleteArticle = (id: string) => {
+    const idx = sharedArticles.findIndex(a => a.id === id)
+    if (idx !== -1) {
+      sharedArticles.splice(idx, 1)
+      persistArticles()
+    }
+  }
+
   const getArticleBySlug = (slug: string) => {
     if (slug === 'autonomous-systems-agentic-workflows-2026' || slug === 'unboxing-2006-full-path-tracing-geforce-8800-gtx') {
       return articles.find(a => a.slug === 'autonomous-systems-agentic-workflows-2026' || a.slug === 'unboxing-2006-full-path-tracing-geforce-8800-gtx') || articles[0]
@@ -246,6 +303,9 @@ export const useArticles = () => {
     authors,
     categories,
     articles,
+    addArticle,
+    updateArticle,
+    deleteArticle,
     getArticleBySlug,
     getArticlesByCategory,
     getPopularArticles,
