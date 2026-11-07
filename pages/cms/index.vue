@@ -1357,6 +1357,19 @@
               </button>
 
               <button
+                @click="showNotificationLogsModal = true"
+                type="button"
+                class="inline-flex items-center gap-1.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium px-3.5 py-2 rounded-full transition-colors shadow-sm"
+              >
+                <svg class="w-3.5 h-3.5 text-[#EE5102]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+                <span>Email Logs</span>
+                <span v-if="notificationLogs.length" class="px-1.5 py-0.2 rounded-full text-[10px] bg-orange-100 text-[#EE5102] font-semibold">{{ notificationLogs.length }}</span>
+              </button>
+
+              <button
                 v-if="hasPermission('canManageUsers')"
                 @click="showAddUserForm = !showAddUserForm"
                 type="button"
@@ -1375,6 +1388,100 @@
           >
             <span>{{ userFeedbackMessage }}</span>
             <button @click="userFeedbackMessage = ''" type="button" class="text-current font-bold ml-4">&times;</button>
+          </div>
+
+          <!-- PENDING ACCOUNT APPROVALS QUEUE (Google & Email Registration Requests) -->
+          <div
+            v-if="hasPermission('canManageUsers') && pendingUsers.length > 0"
+            class="p-5 sm:p-6 rounded-2xl border-2 border-amber-300 bg-amber-50/50 space-y-4 max-w-4xl shadow-sm"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-amber-200/80 pb-3.5">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center font-bold text-sm">
+                  {{ pendingUsers.length }}
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold text-gray-950 flex items-center gap-2">
+                    Pending Account Approvals
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-200 text-amber-900">
+                      Approval Required
+                    </span>
+                  </h3>
+                  <p class="text-xs text-gray-600 mt-0.5">
+                    Newly registered Google and Email sign-ups. Approving activates access and dispatches a push notification email to the user.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- List of Pending Account Cards -->
+            <div class="space-y-3.5">
+              <div
+                v-for="pu in pendingUsers"
+                :key="pu.uid"
+                class="p-4 rounded-xl border border-amber-200/90 bg-white shadow-sm space-y-3"
+              >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <img
+                      :src="pu.photoURL || useAsset('/images/author-marcus.jpg')"
+                      :alt="pu.displayName"
+                      class="w-10 h-10 rounded-full object-cover border border-amber-200 flex-shrink-0"
+                    />
+                    <div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-sm font-semibold text-gray-900">{{ pu.displayName }}</span>
+                        <span
+                          class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                          :class="pu.provider === 'google' ? 'bg-blue-50 text-blue-700 border border-blue-200/60' : 'bg-gray-100 text-gray-700'"
+                        >
+                          {{ pu.provider === 'google' ? 'Google OAuth Request' : 'Email Sign-Up Request' }}
+                        </span>
+                        <span class="text-[11px] text-gray-400">Registered: {{ pu.createdAt }}</span>
+                      </div>
+                      <p class="text-xs text-gray-500 font-mono mt-0.5">{{ pu.email }}</p>
+                      <p v-if="pu.registrationNotes" class="text-xs text-gray-600 italic mt-1 bg-gray-50 px-2 py-1 rounded-md">
+                        Note: &ldquo;{{ pu.registrationNotes }}&rdquo;
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="flex flex-wrap items-center gap-2 ml-auto">
+                    <!-- Role assignment selector before approval -->
+                    <select
+                      v-model="pendingRoleSelections[pu.uid]"
+                      class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs focus:outline-none focus:border-[#EE5102]"
+                    >
+                      <option value="editor">Role: Senior Editor</option>
+                      <option value="author">Role: Contributor / Writer</option>
+                      <option value="viewer">Role: Analyst (Read-Only)</option>
+                      <option value="admin">Role: Administrator (Full Access)</option>
+                    </select>
+
+                    <button
+                      @click="handleApproveUser(pu)"
+                      :disabled="approvingUserId === pu.uid"
+                      type="button"
+                      class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm disabled:opacity-50"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span>{{ approvingUserId === pu.uid ? 'Activating & Sending Email...' : 'Approve & Send Activation Email' }}</span>
+                    </button>
+
+                    <button
+                      @click="handleRejectUser(pu)"
+                      type="button"
+                      class="px-3 py-2 rounded-full text-xs font-medium text-gray-600 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- ADD NEW USER & ACCESS CONTROL FORM (Admin Only) -->
@@ -1547,8 +1654,13 @@
 
           <!-- Managed Users List & Access Control Cards -->
           <div class="space-y-4 max-w-4xl">
+            <div class="flex items-center justify-between pb-1">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                Active Editorial Team ({{ activeUsers.length }})
+              </h3>
+            </div>
             <div
-              v-for="u in managedUsers"
+              v-for="u in activeUsers"
               :key="u.uid"
               class="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm space-y-4"
             >
@@ -1969,6 +2081,96 @@
         </div>
       </main>
     </div>
+
+    <!-- NOTIFICATION LOGS & EMAIL PREVIEW MODAL -->
+    <div
+      v-if="showNotificationLogsModal"
+      class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 max-h-[90vh] flex flex-col shadow-2xl space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-full bg-orange-50 text-[#EE5102] flex items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold text-gray-900">Email &amp; Push Notification History</h3>
+              <p class="text-xs text-gray-400">Push emails dispatched to newly activated users</p>
+            </div>
+          </div>
+          <button
+            @click="showNotificationLogsModal = false"
+            type="button"
+            class="text-gray-400 hover:text-gray-700 text-sm font-semibold p-1"
+          >
+            &times; Close
+          </button>
+        </div>
+
+        <!-- Logs List -->
+        <div class="flex-1 overflow-y-auto space-y-3">
+          <div v-if="!notificationLogs.length" class="text-center py-10 text-xs text-gray-400">
+            No activation emails dispatched yet. Newly approved users will appear here.
+          </div>
+          <div
+            v-for="log in notificationLogs"
+            :key="log.id"
+            class="p-4 rounded-2xl border border-gray-200 bg-gray-50/50 space-y-2.5"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-semibold text-gray-900">{{ log.recipientName }}</span>
+                  <span class="text-[11px] text-gray-500 font-mono">{{ log.recipientEmail }}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                    ✓ {{ log.status === 'delivered' ? 'Push Email Delivered' : 'Dispatched' }}
+                  </span>
+                </div>
+                <p class="text-xs font-medium text-gray-800 mt-1">{{ log.subject }}</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">
+                  Dispatched on {{ log.dispatchedAt.split('T')[0] }} by {{ log.dispatchedBy }}
+                </p>
+              </div>
+              <button
+                @click="selectedPreviewEmail = log"
+                type="button"
+                class="px-3 py-1 rounded-full text-xs font-medium border border-gray-200 hover:bg-white text-gray-700 flex-shrink-0"
+              >
+                Preview Email
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMAIL PREVIEW DIALOG -->
+    <div
+      v-if="selectedPreviewEmail"
+      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-3xl max-w-xl w-full p-6 max-h-[90vh] flex flex-col shadow-2xl space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900">Email Preview</h3>
+            <p class="text-[11px] text-gray-400">To: {{ selectedPreviewEmail.recipientEmail }}</p>
+          </div>
+          <button
+            @click="selectedPreviewEmail = null"
+            type="button"
+            class="text-gray-400 hover:text-gray-700 text-sm font-semibold"
+          >
+            &times; Close
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto border border-gray-200 rounded-2xl p-4 bg-gray-50">
+          <div v-html="selectedPreviewEmail.contentHtml" class="w-full"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1982,7 +2184,8 @@ import {
   getDefaultPermissionsForRole,
   type CmsRoleKey,
   type CmsUserPermissions,
-  type ManagedCmsUser
+  type ManagedCmsUser,
+  type NotificationLog
 } from '~/composables/useFirebase'
 import { sanitizeHtml } from '~/composables/useMarkdown'
 
@@ -2030,6 +2233,9 @@ const {
 const {
   currentUser,
   managedUsers,
+  pendingUsers,
+  activeUsers,
+  notificationLogs,
   isUploading,
   initFirebase,
   loginWithGoogle,
@@ -2037,9 +2243,40 @@ const {
   createManagedUser,
   updateManagedUser,
   deleteManagedUser,
+  approveAndActivateUser,
+  rejectUserRequest,
   uploadFileToStorage,
   listStorageMedia
 } = useFirebase()
+
+const showNotificationLogsModal = ref(false)
+const selectedPreviewEmail = ref<NotificationLog | null>(null)
+const approvingUserId = ref<string | null>(null)
+const pendingRoleSelections = reactive<Record<string, CmsRoleKey>>({})
+
+const handleApproveUser = async (pu: ManagedCmsUser) => {
+  approvingUserId.value = pu.uid
+  const selectedRole = pendingRoleSelections[pu.uid] || 'editor'
+  const res = await approveAndActivateUser(pu.uid, { roleKey: selectedRole })
+  approvingUserId.value = null
+  if (res.ok) {
+    userFeedbackType.value = 'success'
+    userFeedbackMessage.value = res.message
+  } else {
+    userFeedbackType.value = 'error'
+    userFeedbackMessage.value = res.message
+  }
+}
+
+const handleRejectUser = async (pu: ManagedCmsUser) => {
+  if (confirm(`Decline account request for ${pu.email}?`)) {
+    const res = await rejectUserRequest(pu.uid)
+    if (res.ok) {
+      userFeedbackType.value = 'success'
+      userFeedbackMessage.value = res.message
+    }
+  }
+}
 
 const {
   pagesSeo,

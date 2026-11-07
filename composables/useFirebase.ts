@@ -35,6 +35,7 @@ import {
 import type { Article } from '~/composables/useArticles'
 
 export type CmsRoleKey = 'admin' | 'editor' | 'author' | 'viewer'
+export type CmsAccountStatus = 'active' | 'pending' | 'suspended' | 'rejected'
 
 export interface CmsUserPermissions {
   canManageBlogs: boolean
@@ -43,6 +44,20 @@ export interface CmsUserPermissions {
   canManageMedia: boolean
   canManageUsers: boolean
   canManageSettings: boolean
+}
+
+export interface NotificationLog {
+  id: string
+  recipientEmail: string
+  recipientName: string
+  subject: string
+  contentHtml: string
+  contentText: string
+  type: 'account_activated' | 'account_pending' | 'account_suspended'
+  channel: 'email_push'
+  status: 'delivered' | 'sent' | 'failed'
+  dispatchedAt: string
+  dispatchedBy: string
 }
 
 export interface CmsAuthUser {
@@ -56,6 +71,10 @@ export interface CmsAuthUser {
   provider: 'google' | 'email' | 'both'
   environment?: 'live' | 'local'
   active?: boolean
+  status?: CmsAccountStatus
+  registrationNotes?: string
+  approvedAt?: string
+  approvedBy?: string
   isMaster?: boolean
   lastLoginAt?: string
 }
@@ -128,6 +147,7 @@ const MASTER_DIGEST_HEX = 'cea91bc5bc5cecb209361d9626ad4a64aa4032e1c67e91e551121
 const SESSION_TOKEN_KEY = 'hc_cms_session_token'
 const SESSION_USER_KEY = 'hc_cms_session_user'
 const MANAGED_USERS_STORAGE_KEY = 'hc_cms_managed_users'
+const NOTIFICATION_LOGS_STORAGE_KEY = 'hc_cms_notification_logs'
 
 export const computeSha256Hex = async (input: string): Promise<string> => {
   if (typeof window === 'undefined' || !window.crypto?.subtle) return ''
@@ -152,7 +172,9 @@ const isAuthReady = ref(false)
 const authError = ref<string | null>(null)
 const isUploading = ref(false)
 const managedUsers = reactive<ManagedCmsUser[]>([])
+const notificationLogs = reactive<NotificationLog[]>([])
 let usersInitialized = false
+let notificationsInitialized = false
 
 let firebaseApp: FirebaseApp | null = null
 let firebaseAuth: Auth | null = null
@@ -162,6 +184,34 @@ let authListenerInitialized = false
 
 export const useFirebase = () => {
   const runtimeConfig = useRuntimeConfig()
+
+  const initNotificationLogs = () => {
+    if (notificationsInitialized) return
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(NOTIFICATION_LOGS_STORAGE_KEY)
+        if (raw) {
+          const parsed: NotificationLog[] = JSON.parse(raw)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            notificationLogs.splice(0, notificationLogs.length, ...parsed)
+          }
+        }
+      } catch {
+        // Ignore parse error
+      }
+    }
+    notificationsInitialized = true
+  }
+
+  const persistNotificationLogs = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(NOTIFICATION_LOGS_STORAGE_KEY, JSON.stringify(notificationLogs))
+      } catch {
+        // Ignore error
+      }
+    }
+  }
 
   const initManagedUsers = () => {
     if (usersInitialized) return
@@ -175,6 +225,7 @@ export const useFirebase = () => {
       provider: 'email',
       environment: 'live',
       active: true,
+      status: 'active',
       isMaster: true,
       createdAt: '2026-11-07'
     }
@@ -189,6 +240,7 @@ export const useFirebase = () => {
       provider: 'both',
       environment: 'live',
       active: true,
+      status: 'active',
       isMaster: false,
       createdAt: '2026-11-08'
     }
@@ -206,10 +258,15 @@ export const useFirebase = () => {
                 return {
                   ...u,
                   provider: 'email' as const,
+                  status: 'active' as const,
+                  active: true,
                   isMaster: true
                 }
               }
-              return u
+              return {
+                ...u,
+                status: u.status || (u.active !== false ? 'active' : 'pending')
+              }
             })
             const hasMaster = sanitized.some(u => u.isMaster)
             const hasYberry = sanitized.some(u => u.email?.toLowerCase() === 'info@yberry.co.za')
@@ -243,6 +300,7 @@ export const useFirebase = () => {
   }
 
   initManagedUsers()
+  initNotificationLogs()
 
   const getInternalConfig = () => {
     const pub = runtimeConfig.public.firebase || {}
@@ -269,6 +327,7 @@ export const useFirebase = () => {
 
     const roleKey: CmsRoleKey = matchedManaged?.roleKey || 'admin'
     const permissions = matchedManaged?.permissions || getDefaultPermissionsForRole(roleKey)
+    const status: CmsAccountStatus = matchedManaged?.status || (matchedManaged ? (matchedManaged.active !== false ? 'active' : 'pending') : 'active')
 
     return {
       uid: matchedManaged?.uid || fbUser.uid,
@@ -280,6 +339,10 @@ export const useFirebase = () => {
       photoURL: fbUser.photoURL || undefined,
       provider: isGoogle ? 'google' : 'email',
       active: matchedManaged ? matchedManaged.active !== false : true,
+      status,
+      registrationNotes: matchedManaged?.registrationNotes,
+      approvedAt: matchedManaged?.approvedAt,
+      approvedBy: matchedManaged?.approvedBy,
       isMaster: matchedManaged?.isMaster || false,
       lastLoginAt: new Date().toISOString()
     }
@@ -496,6 +559,258 @@ export const useFirebase = () => {
     }
     return true
   }
+
+  /**
+   * Public / User: Register an account access request (Email + Password)
+   * The account enters the Pending Approval queue for admin activation.
+   */
+  const registerAccountRequest = async (payload: {
+    displayName: string
+    email: string
+    password?: string
+    notes?: string
+  }): Promise<{ ok: boolean; message: string }> => {
+    authError.value = null
+    const normalizedEmail = (payload.email || '').trim().toLowerCase()
+    const name = (payload.displayName || '').trim()
+    const rawPassword = (payload.password || '').trim()
+
+    if (!name || !normalizedEmail) {
+      return { ok: false, message: 'Full name and a valid email address are required.' }
+    }
+    if (rawPassword.length < 6) {
+      return { ok: false, message: 'Password must be at least 6 characters long.' }
+    }
+    if (managedUsers.some(u => u.email.toLowerCase() === normalizedEmail)) {
+      return { ok: false, message: 'An account with this email address already exists. Please sign in.' }
+    }
+
+    const passwordHash = await computeSha256Hex(`hc_user_v1:${normalizedEmail}:${rawPassword}`)
+    const newPendingUser: ManagedCmsUser = {
+      uid: `req-${Date.now()}`,
+      email: normalizedEmail,
+      displayName: name,
+      role: 'Contributor / Writer (Pending Review)',
+      roleKey: 'author',
+      permissions: getDefaultPermissionsForRole('author'),
+      provider: 'email',
+      environment: 'live',
+      active: false,
+      status: 'pending',
+      registrationNotes: (payload.notes || '').trim(),
+      passwordHash,
+      isMaster: false,
+      createdAt: new Date().toISOString().split('T')[0]
+    }
+
+    managedUsers.push(newPendingUser)
+    persistManagedUsers()
+    await syncUserRecord(newPendingUser)
+
+    return {
+      ok: true,
+      message: 'Account request submitted! An administrator will review and activate your account. You will receive an email once activated.'
+    }
+  }
+
+  /**
+   * Dispatch branded email & browser push notification confirming account activation
+   */
+  const dispatchAccountActivationEmail = async (user: ManagedCmsUser): Promise<NotificationLog> => {
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://headlinecentral.co.za'
+    const loginUrl = `${siteUrl}/cms/login`
+    const timestamp = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+    const subject = `Welcome to Headline Central — Your CMS Account is Activated!`
+
+    const contentHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f7f8; margin: 0; padding: 24px; color: #1f2937;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e5e7eb;">
+    <tr>
+      <td style="padding: 32px 32px 24px; background-color: #111827; text-align: center;">
+        <h1 style="color: #ffffff; font-size: 22px; margin: 0; font-weight: 700;">Headline<span style="color: #EE5102;">Central.</span></h1>
+        <p style="color: #9ca3af; font-size: 13px; margin: 6px 0 0;">Content Management System & Editorial Portal</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 32px;">
+        <div style="display: inline-block; padding: 4px 12px; background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 9999px; color: #047857; font-size: 12px; font-weight: 600; margin-bottom: 16px;">
+          ✓ Account Activated
+        </div>
+        <h2 style="font-size: 20px; font-weight: 600; color: #111827; margin: 0 0 16px;">Hello ${user.displayName},</h2>
+        <p style="font-size: 14px; line-height: 1.6; color: #4b5563; margin: 0 0 16px;">
+          Great news! Your account request for <strong>Headline Central CMS</strong> has been approved by an administrator.
+        </p>
+        <div style="background-color: #f9fafb; border-radius: 12px; padding: 16px; margin: 20px 0; border: 1px solid #f3f4f6;">
+          <table width="100%" border="0" cellspacing="0" cellpadding="4">
+            <tr>
+              <td style="font-size: 12px; color: #6b7280; width: 140px;">Registered Email:</td>
+              <td style="font-size: 13px; font-weight: 600; color: #111827;">${user.email}</td>
+            </tr>
+            <tr>
+              <td style="font-size: 12px; color: #6b7280;">Assigned Role:</td>
+              <td style="font-size: 13px; font-weight: 600; color: #EE5102;">${user.role}</td>
+            </tr>
+            <tr>
+              <td style="font-size: 12px; color: #6b7280;">Sign-In Method:</td>
+              <td style="font-size: 13px; font-weight: 600; color: #111827;">${user.provider === 'google' ? 'Google Single Sign-On (SSO)' : user.provider === 'email' ? 'Email & Password' : 'Google SSO + Email'}</td>
+            </tr>
+            <tr>
+              <td style="font-size: 12px; color: #6b7280;">Activation Date:</td>
+              <td style="font-size: 13px; color: #374151;">${timestamp}</td>
+            </tr>
+          </table>
+        </div>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${loginUrl}" style="background-color: #EE5102; color: #ffffff; padding: 13px 32px; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block;">
+            Sign In to CMS Portal &rarr;
+          </a>
+        </div>
+        <p style="font-size: 12px; line-height: 1.5; color: #6b7280; margin: 24px 0 0; border-top: 1px solid #f3f4f6; padding-top: 16px;">
+          For security, keep your credentials confidential. If you did not request this account, please contact security@headlinecentral.co.za immediately.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 20px 32px; background-color: #f9fafb; text-align: center; border-top: 1px solid #f3f4f6;">
+        <p style="font-size: 11px; color: #9ca3af; margin: 0;">&copy; 2026 Headline Central. All rights reserved.</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`.trim()
+
+    const contentText = `Hello ${user.displayName},\n\nYour Headline Central CMS account has been approved and activated!\n\nRegistered Email: ${user.email}\nAssigned Role: ${user.role}\nSign-in Method: ${user.provider}\n\nYou can sign in now at: ${loginUrl}\n\nHeadline Central Editorial Team`
+
+    // Browser Web Notification Push
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        try {
+          new Notification('Headline Central CMS: Account Activated', {
+            body: `Push notification sent to ${user.email}. Role: ${user.role}`,
+            icon: '/favicon.svg'
+          })
+        } catch {
+          // Ignore
+        }
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            try {
+              new Notification('Headline Central CMS: Account Activated', {
+                body: `Push notification sent to ${user.email}. Role: ${user.role}`,
+                icon: '/favicon.svg'
+              })
+            } catch {
+              // Ignore
+            }
+          }
+        }).catch(() => {})
+      }
+    }
+
+    const logEntry: NotificationLog = {
+      id: `notif-${Date.now()}`,
+      recipientEmail: user.email,
+      recipientName: user.displayName,
+      subject,
+      contentHtml,
+      contentText,
+      type: 'account_activated',
+      channel: 'email_push',
+      status: 'delivered',
+      dispatchedAt: new Date().toISOString(),
+      dispatchedBy: currentUser.value?.email || 'Administrator'
+    }
+
+    notificationLogs.unshift(logEntry)
+    persistNotificationLogs()
+
+    if (firestoreDb && isAuthServiceConfigured.value) {
+      try {
+        const notifDocRef = doc(firestoreDb, 'notifications', logEntry.id)
+        await setDoc(notifDocRef, logEntry)
+      } catch {
+        // Ignore offline error
+      }
+    }
+
+    return logEntry
+  }
+
+  /**
+   * Admin: Approve a pending account, assign Role, and dispatch push activation email
+   */
+  const approveAndActivateUser = async (
+    uid: string,
+    options?: {
+      roleKey?: CmsRoleKey
+      permissions?: CmsUserPermissions
+    }
+  ): Promise<{ ok: boolean; message: string; notification?: NotificationLog }> => {
+    if (!currentUser.value?.permissions?.canManageUsers) {
+      return { ok: false, message: 'You do not have permission to approve accounts.' }
+    }
+    const idx = managedUsers.findIndex(u => u.uid === uid)
+    if (idx === -1) {
+      return { ok: false, message: 'User request not found.' }
+    }
+
+    const target = managedUsers[idx]
+    const assignedRoleKey = options?.roleKey || (target.roleKey === 'author' ? 'editor' : target.roleKey) || 'editor'
+
+    target.status = 'active'
+    target.active = true
+    target.roleKey = assignedRoleKey
+    target.role = ROLE_LABELS[assignedRoleKey]
+    target.permissions = options?.permissions || getDefaultPermissionsForRole(assignedRoleKey)
+    target.approvedAt = new Date().toISOString()
+    target.approvedBy = currentUser.value?.email || 'Administrator'
+
+    persistManagedUsers()
+    await syncUserRecord(target)
+
+    const notif = await dispatchAccountActivationEmail(target)
+
+    return {
+      ok: true,
+      message: `Account for ${target.displayName} (${target.email}) approved! Activation push email sent.`,
+      notification: notif
+    }
+  }
+
+  /**
+   * Admin: Decline / Reject a pending account request
+   */
+  const rejectUserRequest = async (uid: string, reason?: string): Promise<{ ok: boolean; message: string }> => {
+    if (!currentUser.value?.permissions?.canManageUsers) {
+      return { ok: false, message: 'You do not have permission to decline user requests.' }
+    }
+    const idx = managedUsers.findIndex(u => u.uid === uid)
+    if (idx === -1 || managedUsers[idx].isMaster) {
+      return { ok: false, message: 'User request not found.' }
+    }
+    const target = managedUsers[idx]
+    target.status = 'rejected'
+    target.active = false
+    persistManagedUsers()
+    await syncUserRecord(target)
+    return { ok: true, message: `Account request for ${target.email} declined.` }
+  }
+
+  const pendingUsers = computed(() =>
+    managedUsers.filter(u => !u.isMaster && (u.status === 'pending' || (u.active === false && u.status !== 'suspended' && u.status !== 'rejected')))
+  )
+
+  const activeUsers = computed(() =>
+    managedUsers.filter(u => u.isMaster || u.status === 'active' || (u.active !== false && u.status !== 'pending' && u.status !== 'rejected'))
+  )
 
   const initFirebase = () => {
     if (typeof window === 'undefined') return null
@@ -717,9 +1032,21 @@ export const useFirebase = () => {
         return false
       }
 
-      if (matchedManaged && matchedManaged.active === false) {
+      if (matchedManaged && (matchedManaged.status === 'pending' || (matchedManaged.active === false && matchedManaged.status !== 'suspended' && matchedManaged.status !== 'rejected'))) {
+        await signOut(firebaseAuth)
+        authError.value = `Your Google account (${emailLower}) has been registered and is pending administrator approval. You will receive an email notification once activated.`
+        return false
+      }
+
+      if (matchedManaged && matchedManaged.status === 'suspended') {
         await signOut(firebaseAuth)
         authError.value = 'This account has been suspended by an administrator.'
+        return false
+      }
+
+      if (matchedManaged && matchedManaged.status === 'rejected') {
+        await signOut(firebaseAuth)
+        authError.value = 'This account request was declined by an administrator.'
         return false
       }
 
@@ -729,23 +1056,29 @@ export const useFirebase = () => {
         return false
       }
 
-      // Auto-provision verified Google accounts if not yet in managed list
+      // If new Google account: Register as PENDING administrator approval
       if (!matchedManaged) {
-        matchedManaged = {
+        const pendingGoogleUser: ManagedCmsUser = {
           uid: cred.user.uid,
           email: emailLower,
           displayName: cred.user.displayName || emailLower.split('@')[0],
-          role: 'Administrator',
-          roleKey: 'admin',
-          permissions: getDefaultPermissionsForRole('admin'),
+          role: 'Contributor / Writer (Pending Approval)',
+          roleKey: 'author',
+          permissions: getDefaultPermissionsForRole('author'),
           photoURL: cred.user.photoURL || undefined,
           provider: 'google',
           environment: 'live',
-          active: true,
+          active: false,
+          status: 'pending',
           isMaster: false,
           createdAt: new Date().toISOString().split('T')[0]
         }
-        managedUsers.push(matchedManaged)
+        managedUsers.push(pendingGoogleUser)
+        persistManagedUsers()
+        await syncUserRecord(pendingGoogleUser)
+        await signOut(firebaseAuth)
+        authError.value = `Welcome, ${pendingGoogleUser.displayName}! Your Google account has been registered and is pending administrator approval. An email notification will be sent to ${emailLower} once approved.`
+        return false
       } else if (cred.user.photoURL && !matchedManaged.photoURL) {
         matchedManaged.photoURL = cred.user.photoURL
       }
@@ -856,8 +1189,18 @@ export const useFirebase = () => {
     // 2. Check Admin-Managed Role Users (SHA-256 verified)
     const matchedUser = managedUsers.find(u => !u.isMaster && u.email.toLowerCase() === normalizedEmail)
     if (matchedUser) {
-      if (matchedUser.active === false) {
+      if (matchedUser.status === 'pending' || (matchedUser.active === false && matchedUser.status !== 'suspended' && matchedUser.status !== 'rejected')) {
+        authError.value = `Your account (${matchedUser.email}) is currently awaiting administrator approval. You will receive an email once activated.`
+        return false
+      }
+
+      if (matchedUser.status === 'suspended') {
         authError.value = 'This account has been suspended by an administrator.'
+        return false
+      }
+
+      if (matchedUser.status === 'rejected') {
+        authError.value = 'This account request was declined by an administrator.'
         return false
       }
 
@@ -1049,6 +1392,9 @@ export const useFirebase = () => {
   return {
     currentUser,
     managedUsers,
+    pendingUsers,
+    activeUsers,
+    notificationLogs,
     isAuthReady,
     isAuthServiceConfigured,
     authError,
@@ -1057,6 +1403,10 @@ export const useFirebase = () => {
     syncUsersFromCloud,
     loginWithGoogle,
     loginWithEmail,
+    registerAccountRequest,
+    approveAndActivateUser,
+    rejectUserRequest,
+    dispatchAccountActivationEmail,
     logoutUser,
     createManagedUser,
     updateManagedUser,
