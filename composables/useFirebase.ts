@@ -178,7 +178,22 @@ export const useFirebase = () => {
       isMaster: true,
       createdAt: '2026-11-07'
     }
-    managedUsers.splice(0, managedUsers.length, defaultMaster)
+
+    const defaultYberryAdmin: ManagedCmsUser = {
+      uid: 'admin-yberry',
+      email: 'info@yberry.co.za',
+      displayName: 'Admin (YBerry)',
+      role: 'Administrator',
+      roleKey: 'admin',
+      permissions: getDefaultPermissionsForRole('admin'),
+      provider: 'both',
+      environment: 'live',
+      active: true,
+      isMaster: false,
+      createdAt: '2026-11-08'
+    }
+
+    managedUsers.splice(0, managedUsers.length, defaultMaster, defaultYberryAdmin)
 
     if (typeof window !== 'undefined') {
       try {
@@ -197,10 +212,16 @@ export const useFirebase = () => {
               return u
             })
             const hasMaster = sanitized.some(u => u.isMaster)
+            const hasYberry = sanitized.some(u => u.email?.toLowerCase() === 'info@yberry.co.za')
+            const toPrepend: ManagedCmsUser[] = []
+            if (!hasMaster) toPrepend.push(defaultMaster)
+            if (!hasYberry) toPrepend.push(defaultYberryAdmin)
+
             managedUsers.splice(
               0,
               managedUsers.length,
-              ...(hasMaster ? sanitized : [defaultMaster, ...sanitized])
+              ...toPrepend,
+              ...sanitized
             )
           }
         }
@@ -226,13 +247,13 @@ export const useFirebase = () => {
   const getInternalConfig = () => {
     const pub = runtimeConfig.public.firebase || {}
     return {
-      apiKey: pub.apiKey || '',
+      apiKey: pub.apiKey || 'AIzaSyAQaA9qugSaMxKMmqiQYPUBmTWz827EvFI',
       authDomain: pub.authDomain || 'headline-central.firebaseapp.com',
       projectId: pub.projectId || 'headline-central',
       databaseId: pub.databaseId || 'headline-central',
       storageBucket: pub.storageBucket || 'headline-central.firebasestorage.app',
-      messagingSenderId: pub.messagingSenderId || '',
-      appId: pub.appId || ''
+      messagingSenderId: pub.messagingSenderId || '523616926810',
+      appId: pub.appId || '1:523616926810:web:257d509d40ed4b39606c63'
     }
   }
 

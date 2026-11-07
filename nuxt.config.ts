@@ -20,17 +20,17 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       firebase: {
-        apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY || '',
+        apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY || 'AIzaSyAQaA9qugSaMxKMmqiQYPUBmTWz827EvFI',
         authDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'headline-central.firebaseapp.com',
         projectId: process.env.NUXT_PUBLIC_FIREBASE_PROJECT_ID || 'headline-central',
         databaseId: process.env.NUXT_PUBLIC_FIREBASE_DATABASE_ID || 'headline-central',
         storageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'headline-central.firebasestorage.app',
-        messagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
-        appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID || ''
+        messagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '523616926810',
+        appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID || '1:523616926810:web:257d509d40ed4b39606c63'
       },
       analytics: {
         gtmId: process.env.NUXT_PUBLIC_GTM_ID || '',
-        ga4Id: process.env.NUXT_PUBLIC_GA4_ID || '',
+        ga4Id: process.env.NUXT_PUBLIC_GA4_ID || 'G-TD8S7EFPLV',
         metaPixelId: process.env.NUXT_PUBLIC_META_PIXEL_ID || ''
       }
     }
