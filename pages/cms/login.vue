@@ -38,6 +38,52 @@
         </div>
       </div>
 
+      <!-- DEDICATED AWAITING ADMINISTRATOR APPROVAL CARD -->
+      <div
+        v-if="pendingApprovalInfo"
+        class="mb-6 p-5 rounded-2xl border-2 border-amber-300 bg-amber-50/70 space-y-4 shadow-sm"
+      >
+        <div class="flex items-center gap-3.5">
+          <img
+            :src="pendingApprovalInfo.photoURL || useAsset('/images/author-marcus.jpg')"
+            :alt="pendingApprovalInfo.displayName"
+            class="w-12 h-12 rounded-full object-cover border-2 border-amber-300 flex-shrink-0"
+          />
+          <div class="min-w-0">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 mb-1">
+              Awaiting Administrator Approval
+            </span>
+            <p class="text-sm font-semibold text-gray-950 truncate">{{ pendingApprovalInfo.displayName }}</p>
+            <p class="text-xs text-gray-600 font-mono truncate">{{ pendingApprovalInfo.email }}</p>
+          </div>
+        </div>
+
+        <div class="text-xs text-gray-700 bg-white/80 p-3.5 rounded-xl border border-amber-200/80 space-y-2">
+          <p class="font-medium text-gray-900">
+            Your {{ pendingApprovalInfo.provider === 'google' ? 'Google Sign-In' : 'account registration' }} has been received and verified.
+          </p>
+          <p class="text-gray-600 leading-relaxed">
+            An administrator must review your registration and assign your <strong>CMS editorial access level &amp; permissions</strong> before you can enter the portal.
+          </p>
+          <div class="flex items-center gap-1.5 text-[11px] text-amber-800 font-semibold pt-1">
+            <svg class="w-3.5 h-3.5 text-amber-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            <span>You will receive an automated push email notification once approved.</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <button
+            @click="pendingApprovalInfo = null; authError = null"
+            type="button"
+            class="w-full py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-medium text-gray-700 transition-colors shadow-sm"
+          >
+            &larr; Switch Account / Return to Sign In
+          </button>
+        </div>
+      </div>
+
       <!-- Success Alert (e.g. registration submitted) -->
       <div
         v-if="requestSuccessMessage"
@@ -244,6 +290,7 @@ const router = useRouter()
 const {
   currentUser,
   authError,
+  pendingApprovalInfo,
   initFirebase,
   loginWithEmail,
   loginWithGoogle,

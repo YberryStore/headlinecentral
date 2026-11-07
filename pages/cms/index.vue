@@ -1415,68 +1415,168 @@
             </div>
 
             <!-- List of Pending Account Cards -->
-            <div class="space-y-3.5">
+            <div class="space-y-4">
               <div
                 v-for="pu in pendingUsers"
                 :key="pu.uid"
-                class="p-4 rounded-xl border border-amber-200/90 bg-white shadow-sm space-y-3"
+                class="p-5 rounded-2xl border border-amber-200/90 bg-white shadow-sm space-y-4"
               >
                 <div class="flex flex-wrap items-start justify-between gap-3">
-                  <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-3.5">
                     <img
                       :src="pu.photoURL || useAsset('/images/author-marcus.jpg')"
                       :alt="pu.displayName"
-                      class="w-10 h-10 rounded-full object-cover border border-amber-200 flex-shrink-0"
+                      class="w-11 h-11 rounded-full object-cover border-2 border-amber-200 flex-shrink-0"
                     />
                     <div>
                       <div class="flex flex-wrap items-center gap-2">
                         <span class="text-sm font-semibold text-gray-900">{{ pu.displayName }}</span>
                         <span
-                          class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                          class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold"
                           :class="pu.provider === 'google' ? 'bg-blue-50 text-blue-700 border border-blue-200/60' : 'bg-gray-100 text-gray-700'"
                         >
-                          {{ pu.provider === 'google' ? 'Google OAuth Request' : 'Email Sign-Up Request' }}
+                          {{ pu.provider === 'google' ? 'Google Sign-In Registration' : 'Email Sign-Up Request' }}
                         </span>
                         <span class="text-[11px] text-gray-400">Registered: {{ pu.createdAt }}</span>
                       </div>
                       <p class="text-xs text-gray-500 font-mono mt-0.5">{{ pu.email }}</p>
-                      <p v-if="pu.registrationNotes" class="text-xs text-gray-600 italic mt-1 bg-gray-50 px-2 py-1 rounded-md">
-                        Note: &ldquo;{{ pu.registrationNotes }}&rdquo;
+                      <p v-if="pu.registrationNotes" class="text-xs text-gray-600 italic mt-1 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
+                        Registration Note: &ldquo;{{ pu.registrationNotes }}&rdquo;
                       </p>
                     </div>
                   </div>
 
-                  <!-- Actions -->
-                  <div class="flex flex-wrap items-center gap-2 ml-auto">
-                    <!-- Role assignment selector before approval -->
-                    <select
-                      v-model="pendingRoleSelections[pu.uid]"
-                      class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs focus:outline-none focus:border-[#EE5102]"
+                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-200">
+                    Awaiting Access Assignment
+                  </span>
+                </div>
+
+                <!-- Granular User Access Assignment Panel (Admin Configures Before Approval) -->
+                <div class="bg-amber-50/40 rounded-xl p-4 border border-amber-200/70 space-y-3">
+                  <div class="flex flex-wrap items-center justify-between gap-2.5 border-b border-amber-200/60 pb-2.5">
+                    <span class="text-xs font-bold text-gray-900 flex items-center gap-1.5 uppercase tracking-wide">
+                      <svg class="w-3.5 h-3.5 text-[#EE5102]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      </svg>
+                      Assign User Access Level &amp; Permissions
+                    </span>
+
+                    <div class="flex items-center gap-2">
+                      <label class="text-xs font-medium text-gray-600">Role Preset:</label>
+                      <select
+                        :value="getPendingAccess(pu.uid).roleKey"
+                        @change="handlePendingRoleChange(pu.uid, ($event.target as HTMLSelectElement).value as CmsRoleKey)"
+                        class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#EE5102]"
+                      >
+                        <option value="editor">Senior Editor (Blogs, Categories, Media)</option>
+                        <option value="author">Contributor / Writer (Create &amp; Edit Blogs)</option>
+                        <option value="viewer">Analyst (Read-Only)</option>
+                        <option value="admin">Administrator (Full Access)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- 6 Access Control Checkboxes -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+                    <label class="flex items-center gap-2 text-xs text-gray-700 p-2.5 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-[#EE5102] transition-colors">
+                      <input
+                        v-model="getPendingAccess(pu.uid).permissions.canManageBlogs"
+                        type="checkbox"
+                        class="accent-[#EE5102] w-4 h-4 rounded"
+                      />
+                      <div>
+                        <span class="font-medium block text-gray-900">Create &amp; Edit Blogs</span>
+                        <span class="text-[10px] text-gray-400">Write and publish articles</span>
+                      </div>
+                    </label>
+
+                    <label class="flex items-center gap-2 text-xs text-gray-700 p-2.5 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-[#EE5102] transition-colors">
+                      <input
+                        v-model="getPendingAccess(pu.uid).permissions.canDeleteBlogs"
+                        type="checkbox"
+                        class="accent-[#EE5102] w-4 h-4 rounded"
+                      />
+                      <div>
+                        <span class="font-medium block text-gray-900">Delete Blogs</span>
+                        <span class="text-[10px] text-gray-400">Permanently remove articles</span>
+                      </div>
+                    </label>
+
+                    <label class="flex items-center gap-2 text-xs text-gray-700 p-2.5 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-[#EE5102] transition-colors">
+                      <input
+                        v-model="getPendingAccess(pu.uid).permissions.canManageCategories"
+                        type="checkbox"
+                        class="accent-[#EE5102] w-4 h-4 rounded"
+                      />
+                      <div>
+                        <span class="font-medium block text-gray-900">Manage Categories</span>
+                        <span class="text-[10px] text-gray-400">Add &amp; edit sub-categories</span>
+                      </div>
+                    </label>
+
+                    <label class="flex items-center gap-2 text-xs text-gray-700 p-2.5 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-[#EE5102] transition-colors">
+                      <input
+                        v-model="getPendingAccess(pu.uid).permissions.canManageMedia"
+                        type="checkbox"
+                        class="accent-[#EE5102] w-4 h-4 rounded"
+                      />
+                      <div>
+                        <span class="font-medium block text-gray-900">Media Library Access</span>
+                        <span class="text-[10px] text-gray-400">Upload &amp; browse images</span>
+                      </div>
+                    </label>
+
+                    <label class="flex items-center gap-2 text-xs text-gray-700 p-2.5 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-[#EE5102] transition-colors">
+                      <input
+                        v-model="getPendingAccess(pu.uid).permissions.canManageUsers"
+                        type="checkbox"
+                        class="accent-[#EE5102] w-4 h-4 rounded"
+                      />
+                      <div>
+                        <span class="font-medium block text-gray-900">User Control Access</span>
+                        <span class="text-[10px] text-gray-400">Approve &amp; manage accounts</span>
+                      </div>
+                    </label>
+
+                    <label class="flex items-center gap-2 text-xs text-gray-700 p-2.5 rounded-lg bg-white border border-gray-200 cursor-pointer hover:border-[#EE5102] transition-colors">
+                      <input
+                        v-model="getPendingAccess(pu.uid).permissions.canManageSettings"
+                        type="checkbox"
+                        class="accent-[#EE5102] w-4 h-4 rounded"
+                      />
+                      <div>
+                        <span class="font-medium block text-gray-900">CMS Settings</span>
+                        <span class="text-[10px] text-gray-400">SEO &amp; tracking configurations</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Action Footer -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100">
+                  <span class="text-xs text-gray-500">
+                    Will activate with <strong>{{ ROLE_LABELS[getPendingAccess(pu.uid).roleKey] }}</strong> role &amp; dispatch activation push email.
+                  </span>
+
+                  <div class="flex items-center gap-2 ml-auto">
+                    <button
+                      @click="handleRejectUser(pu)"
+                      type="button"
+                      class="px-4 py-2 rounded-full text-xs font-medium text-gray-600 hover:text-red-700 hover:bg-red-50 border border-gray-200 hover:border-red-200 transition-colors"
                     >
-                      <option value="editor">Role: Senior Editor</option>
-                      <option value="author">Role: Contributor / Writer</option>
-                      <option value="viewer">Role: Analyst (Read-Only)</option>
-                      <option value="admin">Role: Administrator (Full Access)</option>
-                    </select>
+                      Decline Request
+                    </button>
 
                     <button
                       @click="handleApproveUser(pu)"
                       :disabled="approvingUserId === pu.uid"
                       type="button"
-                      class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm disabled:opacity-50"
+                      class="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm disabled:opacity-50"
                     >
                       <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
-                      <span>{{ approvingUserId === pu.uid ? 'Activating & Sending Email...' : 'Approve & Send Activation Email' }}</span>
-                    </button>
-
-                    <button
-                      @click="handleRejectUser(pu)"
-                      type="button"
-                      class="px-3 py-2 rounded-full text-xs font-medium text-gray-600 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors"
-                    >
-                      Decline
+                      <span>{{ approvingUserId === pu.uid ? 'Activating & Sending Email...' : 'Approve & Activate Account' }}</span>
                     </button>
                   </div>
                 </div>
@@ -2182,6 +2282,7 @@ import { useSiteSeo } from '~/composables/useSiteSeo'
 import {
   useFirebase,
   getDefaultPermissionsForRole,
+  ROLE_LABELS,
   type CmsRoleKey,
   type CmsUserPermissions,
   type ManagedCmsUser,
@@ -2252,12 +2353,33 @@ const {
 const showNotificationLogsModal = ref(false)
 const selectedPreviewEmail = ref<NotificationLog | null>(null)
 const approvingUserId = ref<string | null>(null)
-const pendingRoleSelections = reactive<Record<string, CmsRoleKey>>({})
+const pendingUserAccess = reactive<Record<string, { roleKey: CmsRoleKey; permissions: CmsUserPermissions }>>({})
+
+const getPendingAccess = (uid: string) => {
+  if (!pendingUserAccess[uid]) {
+    const userMatch = managedUsers.find(u => u.uid === uid)
+    const initRole: CmsRoleKey = (userMatch?.roleKey && userMatch.roleKey !== 'admin') ? userMatch.roleKey : 'editor'
+    pendingUserAccess[uid] = {
+      roleKey: initRole,
+      permissions: userMatch?.permissions ? { ...userMatch.permissions } : { ...getDefaultPermissionsForRole(initRole) }
+    }
+  }
+  return pendingUserAccess[uid]
+}
+
+const handlePendingRoleChange = (uid: string, newRole: CmsRoleKey) => {
+  const access = getPendingAccess(uid)
+  access.roleKey = newRole
+  access.permissions = { ...getDefaultPermissionsForRole(newRole) }
+}
 
 const handleApproveUser = async (pu: ManagedCmsUser) => {
   approvingUserId.value = pu.uid
-  const selectedRole = pendingRoleSelections[pu.uid] || 'editor'
-  const res = await approveAndActivateUser(pu.uid, { roleKey: selectedRole })
+  const access = getPendingAccess(pu.uid)
+  const res = await approveAndActivateUser(pu.uid, {
+    roleKey: access.roleKey,
+    permissions: access.permissions
+  })
   approvingUserId.value = null
   if (res.ok) {
     userFeedbackType.value = 'success'

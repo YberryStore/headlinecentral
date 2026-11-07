@@ -60,6 +60,14 @@ export interface NotificationLog {
   dispatchedBy: string
 }
 
+export interface PendingApprovalDetails {
+  email: string
+  displayName: string
+  photoURL?: string
+  provider: 'google' | 'email'
+  registeredAt?: string
+}
+
 export interface CmsAuthUser {
   uid: string
   email: string
@@ -170,6 +178,7 @@ const constantTimeEqual = (a: string, b: string): boolean => {
 const currentUser = ref<CmsAuthUser | null>(null)
 const isAuthReady = ref(false)
 const authError = ref<string | null>(null)
+const pendingApprovalInfo = ref<PendingApprovalDetails | null>(null)
 const isUploading = ref(false)
 const managedUsers = reactive<ManagedCmsUser[]>([])
 const notificationLogs = reactive<NotificationLog[]>([])
@@ -233,14 +242,14 @@ export const useFirebase = () => {
     const defaultYberryAdmin: ManagedCmsUser = {
       uid: 'admin-yberry',
       email: 'info@yberry.co.za',
-      displayName: 'Admin (YBerry)',
-      role: 'Administrator',
-      roleKey: 'admin',
-      permissions: getDefaultPermissionsForRole('admin'),
-      provider: 'both',
+      displayName: 'YBerry User',
+      role: 'Contributor / Writer (Pending Approval)',
+      roleKey: 'author',
+      permissions: getDefaultPermissionsForRole('author'),
+      provider: 'google',
       environment: 'live',
-      active: true,
-      status: 'active',
+      active: false,
+      status: 'pending',
       isMaster: false,
       createdAt: '2026-11-08'
     }
@@ -261,6 +270,14 @@ export const useFirebase = () => {
                   status: 'active' as const,
                   active: true,
                   isMaster: true
+                }
+              }
+              // If info@yberry.co.za hasn't been explicitly approved yet, keep as pending
+              if (u.email?.toLowerCase() === 'info@yberry.co.za' && !u.approvedAt) {
+                return {
+                  ...u,
+                  status: 'pending' as const,
+                  active: false
                 }
               }
               return {
@@ -661,6 +678,19 @@ export const useFirebase = () => {
               <td style="font-size: 13px; font-weight: 600; color: #111827;">${user.provider === 'google' ? 'Google Single Sign-On (SSO)' : user.provider === 'email' ? 'Email & Password' : 'Google SSO + Email'}</td>
             </tr>
             <tr>
+              <td style="font-size: 12px; color: #6b7280;">Assigned Permissions:</td>
+              <td style="font-size: 12px; color: #374151;">
+                ${[
+                  user.permissions?.canManageBlogs ? 'Create/Edit Blogs' : null,
+                  user.permissions?.canDeleteBlogs ? 'Delete Blogs' : null,
+                  user.permissions?.canManageCategories ? 'Categories' : null,
+                  user.permissions?.canManageMedia ? 'Media Library' : null,
+                  user.permissions?.canManageUsers ? 'User Control' : null,
+                  user.permissions?.canManageSettings ? 'Settings' : null
+                ].filter(Boolean).join(' • ') || 'Standard Access'}
+              </td>
+            </tr>
+            <tr>
               <td style="font-size: 12px; color: #6b7280;">Activation Date:</td>
               <td style="font-size: 13px; color: #374151;">${timestamp}</td>
             </tr>
@@ -896,17 +926,17 @@ export const useFirebase = () => {
           }
         }
 
-        if (!matched) {
-          return {
-            allowed: false,
-            error: 'This Google account is not authorized for CMS access. Please contact an administrator.'
+        if (!matched || matched.status === 'pending' || (matched.active === false && matched.status !== 'suspended' && matched.status !== 'rejected')) {
+          pendingApprovalInfo.value = {
+            email: emailLower,
+            displayName: matched?.displayName || fbUser.displayName || emailLower.split('@')[0],
+            photoURL: matched?.photoURL || fbUser.photoURL || undefined,
+            provider: 'google',
+            registeredAt: matched?.createdAt || new Date().toISOString().split('T')[0]
           }
-        }
-
-        if (matched.active === false) {
           return {
             allowed: false,
-            error: 'This account has been suspended by an administrator.'
+            error: `Your Google account (${emailLower}) is awaiting administrator approval. An administrator must assign your user access before you can enter the CMS portal.`
           }
         }
 
@@ -1033,8 +1063,15 @@ export const useFirebase = () => {
       }
 
       if (matchedManaged && (matchedManaged.status === 'pending' || (matchedManaged.active === false && matchedManaged.status !== 'suspended' && matchedManaged.status !== 'rejected'))) {
+        pendingApprovalInfo.value = {
+          email: emailLower,
+          displayName: matchedManaged.displayName,
+          photoURL: matchedManaged.photoURL || cred.user.photoURL || undefined,
+          provider: 'google',
+          registeredAt: matchedManaged.createdAt
+        }
         await signOut(firebaseAuth)
-        authError.value = `Your Google account (${emailLower}) has been registered and is pending administrator approval. You will receive an email notification once activated.`
+        authError.value = `Your Google account (${emailLower}) has been registered and is pending administrator approval. An administrator will assign your access level before activation.`
         return false
       }
 
@@ -1076,8 +1113,15 @@ export const useFirebase = () => {
         managedUsers.push(pendingGoogleUser)
         persistManagedUsers()
         await syncUserRecord(pendingGoogleUser)
+        pendingApprovalInfo.value = {
+          email: emailLower,
+          displayName: pendingGoogleUser.displayName,
+          photoURL: pendingGoogleUser.photoURL,
+          provider: 'google',
+          registeredAt: pendingGoogleUser.createdAt
+        }
         await signOut(firebaseAuth)
-        authError.value = `Welcome, ${pendingGoogleUser.displayName}! Your Google account has been registered and is pending administrator approval. An email notification will be sent to ${emailLower} once approved.`
+        authError.value = `Welcome, ${pendingGoogleUser.displayName}! Your Google account has been registered and is awaiting administrator approval. An administrator will assign your access permissions before you can sign in.`
         return false
       } else if (cred.user.photoURL && !matchedManaged.photoURL) {
         matchedManaged.photoURL = cred.user.photoURL
@@ -1398,6 +1442,7 @@ export const useFirebase = () => {
     isAuthReady,
     isAuthServiceConfigured,
     authError,
+    pendingApprovalInfo,
     isUploading,
     initFirebase,
     syncUsersFromCloud,
