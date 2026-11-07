@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+const isProduction = process.env.NODE_ENV === 'production'
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: false },
@@ -16,7 +18,7 @@ export default defineNuxtConfig({
     '~/assets/css/main.css'
   ],
   app: {
-    baseURL: process.env.NUXT_APP_BASE_URL || '/',
+    baseURL: process.env.NUXT_APP_BASE_URL || (isProduction ? '/headlinecentral/' : '/'),
     head: {
       title: 'Headline Central — Essential Stories & Investigative Digital Journalism',
       meta: [
