@@ -208,7 +208,23 @@ export const useArticles = () => {
       isPopular: true,
       author: authors.marcus,
       tags: ['NVIDIA', 'CUDA', 'Hardware', 'Architecture'],
-      sections: []
+      sections: [
+        {
+          id: 'birth-of-general-purpose-computing',
+          title: 'The Birth of General-Purpose Computing',
+          content: `In November 2006, NVIDIA unveiled more than a graphics card; they introduced **G80**, the first graphics processor built around unified stream processors rather than fixed pixel and vertex pipelines.\n\nThis architectural pivot allowed developers to run arbitrary C-code across hundreds of parallel threads, giving birth to **CUDA** (Compute Unified Device Architecture). Almost overnight, scientists, financial modelers, and graphics engineers discovered that consumer desktop hardware could outperform multi-node supercomputing clusters.`
+        },
+        {
+          id: 'from-shaders-to-supercomputers',
+          title: 'From Shaders to Supercomputers',
+          content: `Before G80, graphics cards were strictly visual rendering coprocessors. If a computation couldn't be disguised as a 2D pixel shader pass, the GPU couldn't execute it.\n\nWith CUDA, the GPU became an open parallel computer:\n- **Unified Memory Addressing**: Laying the foundation for seamless host-device memory transfers.\n- **Massively Parallel Throughput**: Transforming molecular dynamics, climate simulations, and seismic modeling.\n- **The Deep Learning Seed**: Without CUDA and the G80 architecture, the explosion of modern deep learning in the 2010s would have been delayed by a decade.`
+        },
+        {
+          id: 'a-20-year-paradigm-shift',
+          title: 'A 20-Year Paradigm Shift',
+          content: `Twenty years on, the architectural DNA of the GeForce 8800 GTX lives in every single datacenter tensor engine, autonomous robotics cluster, and consumer ray-tracing card in existence. It wasn't just a win for PC gaming—it was the moment modern computing changed forever.`
+        }
+      ]
     },
     {
       id: 'art-3',
@@ -229,7 +245,23 @@ export const useArticles = () => {
       isPopular: true,
       author: authors.marcus,
       tags: ['Crysis', 'DirectX 10', 'Gaming History'],
-      sections: []
+      sections: [
+        {
+          id: 'can-it-run-crysis-the-ultimate-benchmark',
+          title: 'Can It Run Crysis? The Ultimate Benchmark',
+          content: `No hardware discussion of late 2006 is complete without acknowledging Crytek's legendary *Crysis*. When the game launched in 2007, it brought even top-tier hardware to its knees.\n\nYet, the GeForce 8800 GTX was the *only* GPU in existence that could even contemplate running Very High settings at playable framerates. It spawned the internet's most enduring hardware meme: **\"Yeah, but can it run Crysis?\"**`
+        },
+        {
+          id: 'directx-10-and-shader-model-4',
+          title: 'DirectX 10 and Shader Model 4.0',
+          content: `The 8800 GTX introduced **DirectX 10** and Shader Model 4.0 to millions of enthusiasts:\n- **Geometry Shaders**: Enabling on-the-fly mesh generation and displacement mapping.\n- **Full 128-bit HDR Lighting**: Realistic atmospheric scattering without banding or crushed shadow detail.\n- **Advanced Anti-Aliasing**: CSAA (Coverage Sampling Anti-Aliasing) providing 16x visual quality with minimal performance overhead.`
+        },
+        {
+          id: 'the-cultural-footprint-of-2006-hardware',
+          title: 'The Cultural Footprint of 2006 Hardware',
+          content: `The 8800 GTX stood as an undisputed king for over eighteen months—an eternity in the fast-paced silicon wars of the mid-2000s. It established NVIDIA's premium halo brand and remains a revered icon in hardware museums and enthusiast collections worldwide.`
+        }
+      ]
     },
     {
       id: 'art-4',
@@ -250,7 +282,23 @@ export const useArticles = () => {
       isPopular: true,
       author: authors.marcus,
       tags: ['NVIDIA', 'Neural Computing', 'Path Tracing'],
-      sections: []
+      sections: [
+        {
+          id: 'the-evolution-of-silicon-pipelines',
+          title: 'The Evolution of Silicon Pipelines',
+          content: `Over the span of two decades, GPU architecture transformed through three distinct epochs:\n1. **The Brute-Force Rasterization Era (2006–2017)**: Scaling core counts, clock speeds, and memory bus widths to push higher native resolutions.\n2. **The Hybrid Ray-Tracing Revolution (2018–2023)**: Introducing dedicated BVH traversal and ray-triangle intersection hardware.\n3. **The Neural Reconstruction Era (2024–2026)**: Pervasive path tracing accelerated by real-time neural denoisers, frame generators, and autonomous workstation agents.`
+        },
+        {
+          id: 'ray-tracing-dlss-and-real-time-path-tracing',
+          title: 'Ray Tracing, DLSS, and Real-Time Path Tracing',
+          content: `Re-rendering the original 2006 G80 demo with full path tracing demonstrates how far real-time rendering has advanced. Where the original demo utilized clever shadow maps and baked specular highlights, modern GPUs trace hundreds of light bounces per pixel, capturing the exact physical behavior of photons through glass, smoke, and polished silicon.`
+        },
+        {
+          id: 'the-road-to-2026-and-autonomous-hardware',
+          title: 'The Road to 2026 and Autonomous Hardware',
+          content: `Today's computing workloads combine generative AI, real-time physics, and photorealistic rendering. The foundation that made all of this possible was laid when a team of visionary engineers decided to replace fixed rendering pipes with unified stream processors back in 2006.`
+        }
+      ]
     }
   ]
 

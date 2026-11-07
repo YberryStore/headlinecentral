@@ -16,15 +16,15 @@
     </div>
 
     <ul :class="isOpen ? 'block' : 'hidden lg:block'" class="space-y-2.5 text-xs">
-      <li v-for="(section, idx) in sections" :key="section.id">
+      <li v-for="item in tocList" :key="item.id">
         <a
-          :href="`#${section.id}`"
-          @click.prevent="scrollTo(section.id)"
+          :href="`#${item.id}`"
+          @click.prevent="scrollTo(item.id)"
           class="flex items-start space-x-2.5 py-1.5 px-2 rounded-lg transition-all duration-150 leading-relaxed"
-          :class="activeId === section.id ? 'text-[#EE5102] font-semibold bg-orange-50/50' : 'text-gray-600 hover:text-gray-950 hover:bg-gray-50'"
+          :class="activeId === item.id ? 'text-[#EE5102] font-semibold bg-orange-50/50' : 'text-gray-600 hover:text-gray-950 hover:bg-gray-50'"
         >
-          <span class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" :class="activeId === section.id ? 'bg-[#EE5102]' : 'bg-gray-300'"></span>
-          <span class="line-clamp-2">{{ section.title }}</span>
+          <span class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" :class="activeId === item.id ? 'bg-[#EE5102]' : 'bg-gray-300'"></span>
+          <span class="line-clamp-2">{{ item.title }}</span>
         </a>
       </li>
     </ul>
@@ -32,12 +32,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import type { ArticleSection } from '~/composables/useArticles'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
-const props = defineProps<{
-  sections: ArticleSection[]
-}>()
+export interface TocEntry {
+  id: string
+  title: string
+}
+
+const props = withDefaults(defineProps<{
+  sections?: TocEntry[]
+  items?: TocEntry[]
+}>(), {
+  sections: () => [],
+  items: () => []
+})
+
+const tocList = computed(() => {
+  if (props.items && props.items.length > 0) return props.items
+  return props.sections || []
+})
 
 const isOpen = ref(true)
 const activeId = ref('')
@@ -55,8 +68,8 @@ const scrollTo = (id: string) => {
 let observer: IntersectionObserver | null = null
 
 onMounted(() => {
-  if (props.sections.length > 0) {
-    activeId.value = props.sections[0].id
+  if (tocList.value.length > 0) {
+    activeId.value = tocList.value[0].id
   }
 
   observer = new IntersectionObserver(
@@ -70,7 +83,7 @@ onMounted(() => {
     { rootMargin: '-100px 0px -60% 0px' }
   )
 
-  props.sections.forEach((sec) => {
+  tocList.value.forEach((sec) => {
     const el = document.getElementById(sec.id)
     if (el) observer?.observe(el)
   })
