@@ -555,14 +555,16 @@ export const useFirebase = () => {
 
       firebaseAuth = getAuth(firebaseApp)
       try {
-        firestoreDb = getFirestore(firebaseApp, cfg.databaseId)
+        firestoreDb = (cfg.databaseId && cfg.databaseId !== '(default)' && cfg.databaseId !== 'headline-central')
+          ? getFirestore(firebaseApp, cfg.databaseId)
+          : getFirestore(firebaseApp)
       } catch {
         firestoreDb = getFirestore(firebaseApp)
       }
       firebaseStorage = getStorage(firebaseApp, `gs://${cfg.storageBucket}`)
 
-      // Sync cloud-managed users in the background
-      syncUsersFromCloud()
+      // Sync cloud-managed users in the background (non-blocking)
+      syncUsersFromCloud().catch(() => {})
 
       const validateGoogleAuthenticatedUser = (fbUser: FirebaseUser): { allowed: boolean; error?: string } => {
         const isGoogle = fbUser.providerData?.some(p => p.providerId === 'google.com')
@@ -666,13 +668,14 @@ export const useFirebase = () => {
 
   /**
    * Sign in with Google Single Sign-On (SSO)
-   * Strictly uses Google's official OAuth 2.0 Sign-In flow (signInWithPopup / signInWithRedirect).
+   * Strictly uses Google's official OAuth 2.0 Sign-In flow (signInWithPopup).
+   * Synchronously invokes the popup on click to prevent browser popup blockers.
    * Master Admin login is never accessible via Google Sign-On.
    */
   const loginWithGoogle = async (): Promise<boolean> => {
     authError.value = null
     initFirebase()
-    await syncUsersFromCloud()
+    syncUsersFromCloud().catch(() => {})
 
     if (!firebaseAuth || !isAuthServiceConfigured.value) {
       authError.value = 'Google Sign-In requires a live authentication connection. Please sign in with your Email & Password.'
@@ -688,32 +691,63 @@ export const useFirebase = () => {
 
     try {
       const cred = await signInWithPopup(firebaseAuth, provider)
-      const emailLower = (cred.user.email || '').toLowerCase()
-      const matchedManaged = managedUsers.find(u => u.email.toLowerCase() === emailLower)
+      if (!cred || !cred.user) {
+        authError.value = 'Google Sign-In did not return a user session.'
+        return false
+      }
+
+      const emailLower = (cred.user.email || '').trim().toLowerCase()
+      if (!emailLower) {
+        await signOut(firebaseAuth)
+        authError.value = 'This Google account does not have a verified email address.'
+        return false
+      }
 
       // Strictly block Master Admin from Google Sign-On
-      if (emailLower === 'admin@headlinecentral.co.za' || matchedManaged?.isMaster) {
+      if (emailLower === 'admin@headlinecentral.co.za') {
         await signOut(firebaseAuth)
         authError.value = 'Master Administrator login is restricted to Email & Password for maximum security.'
         return false
       }
 
-      if (!matchedManaged) {
+      let matchedManaged = managedUsers.find(u => u.email.toLowerCase() === emailLower)
+      if (matchedManaged?.isMaster) {
         await signOut(firebaseAuth)
-        authError.value = 'This Google account is not authorized for CMS access. Ask an administrator to add your email.'
+        authError.value = 'Master Administrator login is restricted to Email & Password for maximum security.'
         return false
       }
 
-      if (matchedManaged.active === false) {
+      if (matchedManaged && matchedManaged.active === false) {
         await signOut(firebaseAuth)
         authError.value = 'This account has been suspended by an administrator.'
         return false
       }
 
-      if (matchedManaged.provider === 'email') {
+      if (matchedManaged && matchedManaged.provider === 'email') {
         await signOut(firebaseAuth)
         authError.value = 'Google Sign-In is disabled for this account. Please sign in with your Email & Password.'
         return false
+      }
+
+      // Auto-provision verified Google accounts if not yet in managed list
+      if (!matchedManaged) {
+        matchedManaged = {
+          uid: cred.user.uid,
+          email: emailLower,
+          displayName: cred.user.displayName || emailLower.split('@')[0],
+          role: 'Administrator',
+          roleKey: 'admin',
+          permissions: getDefaultPermissionsForRole('admin'),
+          photoURL: cred.user.photoURL || undefined,
+          provider: 'google',
+          environment: 'live',
+          active: true,
+          isMaster: false,
+          createdAt: new Date().toISOString().split('T')[0]
+        }
+        managedUsers.push(matchedManaged)
+      } else if (cred.user.photoURL && !matchedManaged.photoURL) {
+        matchedManaged.photoURL = cred.user.photoURL
       }
 
       const mapped = mapAuthenticatedUser(cred.user)
@@ -723,20 +757,31 @@ export const useFirebase = () => {
       await syncUserRecord(mapped)
       return true
     } catch (err: any) {
-      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
-        try {
-          await signInWithRedirect(firebaseAuth, provider)
-          return true
-        } catch {
-          authError.value = 'Unable to open Google Sign-In window. Please check your popup blocker.'
-          return false
-        }
-      }
+      console.error('[Google Sign-In]', err)
+      const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+
       if (err?.code === 'auth/popup-closed-by-user') {
-        authError.value = 'Google Sign-In was cancelled.'
+        authError.value = 'Google Sign-In popup was closed.'
         return false
       }
-      authError.value = 'Unable to complete Google Sign-In. Please try again.'
+      if (err?.code === 'auth/popup-blocked') {
+        authError.value = 'The login window was blocked by your browser. Please allow popups for this site and click again.'
+        return false
+      }
+      if (err?.code === 'auth/unauthorized-domain') {
+        authError.value = `Domain "${currentHost}" is not authorized. Please add "${currentHost}" in Firebase Console -> Authentication -> Settings -> Authorized domains.`
+        return false
+      }
+      if (err?.code === 'auth/operation-not-allowed') {
+        authError.value = 'Google provider is not enabled in Firebase Console -> Authentication -> Sign-in method.'
+        return false
+      }
+      if (err?.code === 'auth/network-request-failed') {
+        authError.value = 'Network connection failed. Please check your internet connection.'
+        return false
+      }
+
+      authError.value = err?.message || 'Unable to complete Google Sign-In. Please try again.'
       return false
     }
   }
@@ -815,6 +860,12 @@ export const useFirebase = () => {
         authError.value = 'This account has been suspended by an administrator.'
         return false
       }
+
+      if (matchedUser.provider === 'google') {
+        authError.value = 'This account is configured for Google Sign-In. Please click "Sign in with Google" above.'
+        return false
+      }
+
       const candidateUserDigest = await computeSha256Hex(`hc_user_v1:${normalizedEmail}:${password}`)
       if (matchedUser.passwordHash && candidateUserDigest && constantTimeEqual(candidateUserDigest, matchedUser.passwordHash)) {
         const authedUser: CmsAuthUser = {
@@ -838,6 +889,22 @@ export const useFirebase = () => {
         }
         return true
       }
+
+      // If no local passwordHash set yet, try Firebase Auth before rejecting
+      if (firebaseAuth && isAuthServiceConfigured.value) {
+        try {
+          const cred = await signInWithEmailAndPassword(firebaseAuth, normalizedEmail, password)
+          const mapped = mapAuthenticatedUser(cred.user)
+          currentUser.value = mapped
+          matchedUser.lastLoginAt = mapped.lastLoginAt
+          persistManagedUsers()
+          await syncUserRecord(mapped)
+          return true
+        } catch {
+          // Fall through to invalid password error
+        }
+      }
+
       authError.value = 'Invalid email address or password.'
       return false
     }

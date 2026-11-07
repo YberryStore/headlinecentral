@@ -141,21 +141,40 @@ watch(currentUser, (user) => {
 })
 
 const handleEmailLogin = async () => {
+  authError.value = null
   isSubmitting.value = true
-  const ok = await loginWithEmail(email.value, password.value)
-  isSubmitting.value = false
-  if (ok && currentUser.value) {
-    router.push('/cms')
+  try {
+    const ok = await loginWithEmail(email.value, password.value)
+    if (ok && currentUser.value) {
+      await router.push('/cms').catch(() => {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/cms'
+        }
+      })
+    }
+  } catch (err: any) {
+    authError.value = err?.message || 'Login failed. Please check your credentials.'
+  } finally {
+    isSubmitting.value = false
   }
 }
 
 const handleGoogleLogin = async () => {
   authError.value = null
   isGoogleSubmitting.value = true
-  const ok = await loginWithGoogle()
-  isGoogleSubmitting.value = false
-  if (ok && currentUser.value) {
-    router.push('/cms')
+  try {
+    const ok = await loginWithGoogle()
+    if (ok && currentUser.value) {
+      await router.push('/cms').catch(() => {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/cms'
+        }
+      })
+    }
+  } catch (err: any) {
+    authError.value = err?.message || 'Unable to complete sign-in. Please try again.'
+  } finally {
+    isGoogleSubmitting.value = false
   }
 }
 </script>
