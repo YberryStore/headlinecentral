@@ -163,7 +163,7 @@
           <!-- Article Topics & Tags -->
           <div class="pt-8 border-t border-gray-200">
             <span class="text-xs font-semibold text-gray-400 block mb-3 uppercase tracking-wider">
-              Article Topics &amp; Tags
+              Explore the full hardware archive:
             </span>
             <div class="flex flex-wrap gap-2">
               <span

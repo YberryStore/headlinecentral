@@ -128,7 +128,7 @@ export const useArticles = () => {
       categoryColor: '#ee5102',
       featuredImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp'),
       bannerImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp'),
-      imageCaption: 'A high-resolution visual archive celebrating 20 years of GeForce 8800 GTX hardware craft and industrial design.',
+      imageCaption: 'Photo courtesy: NVIDIA G80 20-Year Archive Celebration • Captured in 4K Path Tracing',
       publishedAt: '2026 November 7',
       readTime: '5 min read',
       views: 52400,
@@ -140,7 +140,7 @@ export const useArticles = () => {
         {
           id: 'standing-in-awe-2006-memory',
           title: 'Standing in Awe: A 2006 Memory',
-          content: `Back in 2006, the release of the GeForce 8800 GTX was a genuine seismic shockwave. Full programmable shaders, unified lighting, dynamic shadows that didn't stutter, and a heat-sink assembly that felt like heavy industrial art.\n\nFrom the moment you opened the box, this card didn't just feel like an iterative speed bump. It felt like an alien artifact delivered from five years in the future. The sheer architectural confidence was unmistakable: gone were dedicated pixel and vertex pipelines, replaced by unified stream processors that could pivot between rendering physics, geometry, and high-precision lighting shaders on demand.\n\nThe physical presence of the card left an indelible impression. The heavy glossy shroud, the dual PCIe auxiliary power connectors, and that iconic green-and-black eye graphic promised an unprecedented realm of immersion in Crysis and Oblivion.\n\nTwenty years later, with path tracing and neural reconstruction becoming the modern baseline, revisiting the 8800 GTX offers a fascinating lens on where modern GPUs began. What was once the pinnacle of brute-force rasterization now serves as the spiritual progenitor to everything from ray-tracing cores to autonomous computing clusters.`
+          content: `Back in 2006, the release of the GeForce 8800 GTX was a genuine seismic shockwave. Full programmable shaders, unified lighting, dynamic shadows that didn't stutter, and a heat-sink assembly that felt like heavy industrial art.\n\nFrom the moment you opened the box, this card didn't just feel like an iterative speed bump. It felt like an alien artifact delivered from five years in the future. The sheer architectural confidence was unmistakable: gone were dedicated pixel and vertex pipelines, replaced by unified stream processors that could pivot between rendering physics, geometry, and high-precision lighting shaders on demand.\n\nThe physical presence of the card left an indelible impression. The heavy glossy shroud, the dual PCIe auxiliary power connectors, and that iconic green-and-black eye graphic promised an unprecedented realm of immersion in Crysis and Oblivion.\n\nIn an era where 1280x1024 was standard resolution and 1600x1200 felt like the absolute bleeding edge, the 8800 GTX delivered something that modern gamers take for granted: smooth, uncompromising performance at settings that humbled every other chip on the market. It didn't merely play games; it redefined expectations for what interactive 3D worlds could look like.\n\nA revelation of power, where other systems struggled and stuttered to keep up with demanding shader models, the 8800 GTX stood alone. For hardware enthusiasts who lived through that winter of 2006, it remains the gold standard for what a generational performance leap should look like: unmistakable, audacious, and permanently memorable.\n\nTwenty years later, with path tracing and neural reconstruction becoming the modern baseline, revisiting the 8800 GTX offers a fascinating lens on where modern GPUs began. What was once the pinnacle of brute-force rasterization now serves as the spiritual progenitor to everything from ray-tracing cores to autonomous computing clusters.`
         },
         {
           id: 'rebuilding-the-dream-steam-tech-demo',
@@ -188,8 +188,70 @@ export const useArticles = () => {
           galleryCaption: 'A high-resolution visual archive celebrating 20 years of GeForce 8800 GTX hardware craft and industrial design.'
         }
       ]
+    },
+    {
+      id: 'art-2',
+      slug: 'return-of-a-legend-20-years-of-g80-cuda',
+      title: 'The Return of A Legend: Revisiting 20 Years of G80 & CUDA Architecture',
+      titleHighlight: 'The Return of A Legend',
+      excerpt: "Two decades later, NVIDIA's G80 remains the foundational blueprint that transformed graphics processors into general-purpose supercomputers.",
+      category: 'Technology',
+      categorySlug: 'technology',
+      categoryColor: '#ee5102',
+      featuredImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-2.webp'),
+      bannerImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp'),
+      imageCaption: 'G80 silicon architecture deep dive.',
+      publishedAt: '2026 November 5',
+      readTime: '4 min read',
+      views: 38200,
+      isFeatured: false,
+      isPopular: true,
+      author: authors.marcus,
+      tags: ['NVIDIA', 'CUDA', 'Hardware', 'Architecture'],
+      sections: []
+    },
+    {
+      id: 'art-3',
+      slug: 'card-that-changed-everything-crysis-directx-10',
+      title: 'The Card That Changed Everything: Crysis, DirectX 10, and Silicon History',
+      titleHighlight: 'The Card That Changed Everything',
+      excerpt: 'How the 8800 GTX humbled every PC game on Earth and set an unmatched benchmark for generational graphical leaps.',
+      category: 'Technology',
+      categorySlug: 'technology',
+      categoryColor: '#ee5102',
+      featuredImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-3.webp'),
+      bannerImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp'),
+      imageCaption: 'Crysis and DirectX 10 retrospective.',
+      publishedAt: '2026 November 3',
+      readTime: '6 min read',
+      views: 44100,
+      isFeatured: false,
+      isPopular: true,
+      author: authors.marcus,
+      tags: ['Crysis', 'DirectX 10', 'Gaming History'],
+      sections: []
+    },
+    {
+      id: 'art-4',
+      slug: 'from-direct3d-10-to-neural-computing-evolution-pc-gpus',
+      title: 'From Direct3D 10 to Neural Computing: The 20-Year Evolution of PC GPUs',
+      titleHighlight: 'From Direct3D 10 to Neural Computing',
+      excerpt: 'Tracing the technical lineage from fixed-function pipelines to unified stream processors, ray tracing cores, and real-time AI.',
+      category: 'Technology',
+      categorySlug: 'technology',
+      categoryColor: '#ee5102',
+      featuredImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-4.webp'),
+      bannerImage: asset('/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp'),
+      imageCaption: 'Evolution from G80 to modern neural architectures.',
+      publishedAt: '2026 November 1',
+      readTime: '5 min read',
+      views: 29800,
+      isFeatured: false,
+      isPopular: true,
+      author: authors.marcus,
+      tags: ['NVIDIA', 'Neural Computing', 'Path Tracing'],
+      sections: []
     }
-  ]
 
   const getArticleBySlug = (slug: string) => {
     if (slug === 'autonomous-systems-agentic-workflows-2026' || slug === 'unboxing-2006-full-path-tracing-geforce-8800-gtx') {
