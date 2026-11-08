@@ -17,6 +17,7 @@ import {
   getFirestore,
   collection,
   doc,
+  getDoc,
   getDocs,
   setDoc,
   deleteDoc,
@@ -184,8 +185,11 @@ const pendingApprovalInfo = ref<PendingApprovalDetails | null>(null)
 const isUploading = ref(false)
 const managedUsers = reactive<ManagedCmsUser[]>([])
 const notificationLogs = reactive<NotificationLog[]>([])
+const ADMIN_USER_NAV_STORAGE_KEY = 'hc_cms_allow_admin_user_nav'
+const allowAdminUserManagementInNav = ref(false)
 let usersInitialized = false
 let notificationsInitialized = false
+let adminUserNavInitialized = false
 
 let firebaseApp: FirebaseApp | null = null
 let firebaseAuth: Auth | null = null
@@ -320,8 +324,24 @@ export const useFirebase = () => {
     }
   }
 
+  const initAdminUserNavSetting = () => {
+    if (adminUserNavInitialized) return
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(ADMIN_USER_NAV_STORAGE_KEY)
+        if (raw !== null) {
+          allowAdminUserManagementInNav.value = raw === 'true'
+        }
+      } catch {
+        // Ignore error
+      }
+    }
+    adminUserNavInitialized = true
+  }
+
   initManagedUsers()
   initNotificationLogs()
+  initAdminUserNavSetting()
 
   const getInternalConfig = () => {
     const pub = runtimeConfig.public.firebase || {}
@@ -474,6 +494,60 @@ export const useFirebase = () => {
       }
     } catch (err: any) {
       console.warn('[Firestore] syncUsersFromCloud error:', err?.message || err)
+    }
+
+    await syncAdminUserNavSettingFromCloud()
+  }
+
+  const setAllowAdminUserManagementInNav = async (allowed: boolean): Promise<boolean> => {
+    const isMaster = Boolean(
+      currentUser.value?.isMaster ||
+      currentUser.value?.email?.toLowerCase() === 'admin@headlinecentral.co.za'
+    )
+    if (!isMaster) return false
+
+    allowAdminUserManagementInNav.value = allowed
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(ADMIN_USER_NAV_STORAGE_KEY, String(allowed))
+      } catch {}
+    }
+
+    initFirebase()
+    if (firestoreDb && isAuthServiceConfigured.value) {
+      try {
+        const settingsRef = doc(firestoreDb, 'system_settings', 'access_control')
+        await setDoc(settingsRef, {
+          allowAdminUserManagementInNav: allowed,
+          updatedAt: new Date().toISOString(),
+          updatedBy: currentUser.value?.email || 'admin@headlinecentral.co.za'
+        }, { merge: true })
+      } catch (err: any) {
+        console.warn('[Firestore] Failed to sync navigation settings:', err?.message || err)
+      }
+    }
+    return true
+  }
+
+  const syncAdminUserNavSettingFromCloud = async () => {
+    initFirebase()
+    if (!firestoreDb || !isAuthServiceConfigured.value) return
+    try {
+      const settingsRef = doc(firestoreDb, 'system_settings', 'access_control')
+      const snap = await getDoc(settingsRef)
+      if (snap.exists()) {
+        const data = snap.data()
+        if (typeof data.allowAdminUserManagementInNav === 'boolean') {
+          allowAdminUserManagementInNav.value = data.allowAdminUserManagementInNav
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem(ADMIN_USER_NAV_STORAGE_KEY, String(data.allowAdminUserManagementInNav))
+            } catch {}
+          }
+        }
+      }
+    } catch {
+      // Ignore if offline
     }
   }
 
@@ -1585,6 +1659,9 @@ export const useFirebase = () => {
     deleteManagedUser,
     uploadFileToStorage,
     listStorageMedia,
+    allowAdminUserManagementInNav,
+    setAllowAdminUserManagementInNav,
+    syncAdminUserNavSettingFromCloud,
     fetchFirestoreArticles,
     saveFirestoreArticle,
     deleteFirestoreArticle

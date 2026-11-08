@@ -155,7 +155,7 @@
         <nav class="space-y-1 mb-3">
           <!-- User Management -->
           <button
-            v-if="hasPermission('canManageUsers')"
+            v-if="canViewUserManagementInNav"
             @click="activeTab = 'users'"
             type="button"
             :class="[
@@ -1403,6 +1403,56 @@
             <button @click="userFeedbackMessage = ''" type="button" class="text-current font-bold ml-4">&times;</button>
           </div>
 
+          <!-- MASTER ADMIN EXCLUSIVE: ADMIN USER MANAGEMENT NAVBAR PERMISSION TOGGLE -->
+          <div
+            v-if="isMasterAdmin"
+            class="p-5 rounded-2xl border-2 transition-all shadow-sm"
+            :class="allowAdminUserManagementInNav ? 'border-emerald-300 bg-emerald-50/70' : 'border-amber-300 bg-amber-50/70'"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="space-y-1 max-w-2xl">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900 text-white">
+                    Master Admin Control
+                  </span>
+                  <span
+                    class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                    :class="allowAdminUserManagementInNav ? 'bg-emerald-200 text-emerald-950' : 'bg-amber-200 text-amber-950'"
+                  >
+                    {{ allowAdminUserManagementInNav ? 'Navbar Item: Active for Admins' : 'Navbar Item: Hidden from Admins' }}
+                  </span>
+                </div>
+                <h3 class="text-sm font-bold text-gray-950">
+                  Allow Administrators to Access &amp; View "User Management" in Navbar
+                </h3>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                  When enabled, accounts with the <strong>Administrator</strong> role will see the "User Management" tab in their sidebar navigation and have permission to manage users. When disabled, the navbar link is hidden from all non-master admins and access is strictly reserved for the Master Admin.
+                </p>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <button
+                  @click="handleToggleAdminNavAccess"
+                  :disabled="isTogglingAdminNav"
+                  type="button"
+                  class="relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50"
+                  :class="allowAdminUserManagementInNav ? 'bg-[#EE5102]' : 'bg-gray-300'"
+                  role="switch"
+                  :aria-checked="allowAdminUserManagementInNav"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    :class="allowAdminUserManagementInNav ? 'translate-x-7' : 'translate-x-0'"
+                  />
+                </button>
+                <span class="text-xs font-semibold" :class="allowAdminUserManagementInNav ? 'text-[#EE5102]' : 'text-gray-500'">
+                  {{ isTogglingAdminNav ? 'Saving...' : (allowAdminUserManagementInNav ? 'Enabled' : 'Disabled') }}
+                </span>
+              </div>
+            </div>
+          </div>
+
           <!-- GATEKEEPER SECURITY INCIDENTS & BLOCKED TERMINAL REQUESTS -->
           <div
             v-if="hasPermission('canManageUsers') && blockedRecords.length > 0"
@@ -2292,6 +2342,55 @@
               />
             </div>
 
+            <!-- Master Admin Governance Settings Card -->
+            <div
+              v-if="isMasterAdmin"
+              class="p-5 rounded-2xl border-2 transition-all shadow-sm space-y-3"
+              :class="allowAdminUserManagementInNav ? 'border-emerald-300 bg-emerald-50/70' : 'border-amber-300 bg-amber-50/70'"
+            >
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900 text-white">
+                  Master Admin Governance
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                  :class="allowAdminUserManagementInNav ? 'bg-emerald-200 text-emerald-950' : 'bg-amber-200 text-amber-950'"
+                >
+                  {{ allowAdminUserManagementInNav ? 'Navbar Item Enabled' : 'Navbar Item Hidden' }}
+                </span>
+              </div>
+
+              <div>
+                <h3 class="text-sm font-bold text-gray-950">
+                  User Management Tab for Administrators
+                </h3>
+                <p class="text-xs text-gray-600 leading-relaxed mt-1">
+                  Control whether users with the Administrator role can see and access the "User Management" link in the CMS navbar.
+                </p>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-gray-200/60">
+                <span class="text-xs font-semibold" :class="allowAdminUserManagementInNav ? 'text-[#EE5102]' : 'text-gray-500'">
+                  {{ isTogglingAdminNav ? 'Updating...' : (allowAdminUserManagementInNav ? 'Enabled for Administrators' : 'Hidden from Administrators') }}
+                </span>
+                <button
+                  @click="handleToggleAdminNavAccess"
+                  :disabled="isTogglingAdminNav"
+                  type="button"
+                  class="relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50"
+                  :class="allowAdminUserManagementInNav ? 'bg-[#EE5102]' : 'bg-gray-300'"
+                  role="switch"
+                  :aria-checked="allowAdminUserManagementInNav"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    :class="allowAdminUserManagementInNav ? 'translate-x-7' : 'translate-x-0'"
+                  />
+                </button>
+              </div>
+            </div>
+
             <!-- Active Session & Sign Out Card -->
             <div class="pt-6 border-t border-gray-100">
               <div class="p-4 rounded-2xl border border-gray-200 bg-gray-50/60 flex items-center justify-between gap-4">
@@ -2517,6 +2616,8 @@ const {
   pendingUsers,
   activeUsers,
   notificationLogs,
+  allowAdminUserManagementInNav,
+  setAllowAdminUserManagementInNav,
   isUploading,
   initFirebase,
   syncUsersFromCloud,
@@ -2650,10 +2751,52 @@ const userProfile = reactive({
   role: 'Master Admin'
 })
 
+const isMasterAdmin = computed(() => Boolean(
+  currentUser.value?.isMaster ||
+  currentUser.value?.email?.toLowerCase() === 'admin@headlinecentral.co.za'
+))
+
+const canViewUserManagementInNav = computed(() => {
+  if (!currentUser.value) return false
+  if (isMasterAdmin.value) return true
+  if (currentUser.value.roleKey === 'admin') {
+    return Boolean(allowAdminUserManagementInNav.value)
+  }
+  return Boolean(allowAdminUserManagementInNav.value && hasPermission('canManageUsers'))
+})
+
 const hasPermission = (perm: keyof CmsUserPermissions): boolean => {
   if (!currentUser.value) return false
+  if (isMasterAdmin.value) return true
+  if (perm === 'canManageUsers') {
+    return Boolean(allowAdminUserManagementInNav.value && (currentUser.value.roleKey === 'admin' || currentUser.value.permissions?.canManageUsers))
+  }
   if (currentUser.value.roleKey === 'admin') return true
   return currentUser.value.permissions?.[perm] !== false
+}
+
+watch(canViewUserManagementInNav, (canView) => {
+  if (!canView && activeTab.value === 'users') {
+    activeTab.value = 'dashboard'
+  }
+})
+
+const isTogglingAdminNav = ref(false)
+const handleToggleAdminNavAccess = async () => {
+  if (!isMasterAdmin.value) return
+  isTogglingAdminNav.value = true
+  try {
+    const nextVal = !allowAdminUserManagementInNav.value
+    const ok = await setAllowAdminUserManagementInNav(nextVal)
+    if (ok) {
+      userFeedbackType.value = 'success'
+      userFeedbackMessage.value = nextVal
+        ? 'User Management navigation item is now ENABLED for Administrator accounts.'
+        : 'User Management navigation tab is now DISABLED for Administrator accounts (restricted to Master Admin).'
+    }
+  } finally {
+    isTogglingAdminNav.value = false
+  }
 }
 
 // ============================================================================

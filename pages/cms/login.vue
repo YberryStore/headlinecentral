@@ -438,7 +438,7 @@
 
       <!-- TAB 1: SIGN IN (Google SSO + Email/Password) -->
       <div v-if="authMode === 'login'">
-        <!-- Official Google Sign-In Button -->
+        <!-- Official Google Sign-In Button (Popup Flow) -->
         <button
           @click="handleGoogleLogin"
           :disabled="isGoogleSubmitting || isSubmitting"
@@ -453,6 +453,18 @@
           </svg>
           <span>{{ isGoogleSubmitting ? 'Authenticating with Google...' : 'Sign in with Google' }}</span>
         </button>
+
+        <!-- Redirect Alternative for strict COOP or popup-blocked browsers -->
+        <div class="mt-2 text-center">
+          <button
+            @click="handleGoogleLoginRedirect"
+            :disabled="isGoogleSubmitting || isSubmitting"
+            type="button"
+            class="text-[11px] text-gray-500 hover:text-[#EE5102] transition-colors underline decoration-dotted"
+          >
+            Popup blocked or browser policy warnings? Click here to Sign in via Redirect
+          </button>
+        </div>
 
         <div class="relative my-5">
           <div class="absolute inset-0 flex items-center">
@@ -687,6 +699,7 @@ const {
   initFirebase,
   loginWithEmail,
   loginWithGoogle,
+  loginWithGoogleRedirect,
   registerAccountRequest
 } = useFirebase()
 
@@ -761,6 +774,18 @@ const handleGoogleLogin = async () => {
   } catch (err: any) {
     authError.value = err?.message || 'Unable to complete sign-in. Please try again.'
   } finally {
+    isGoogleSubmitting.value = false
+  }
+}
+
+const handleGoogleLoginRedirect = async () => {
+  authError.value = null
+  requestSuccessMessage.value = ''
+  isGoogleSubmitting.value = true
+  try {
+    await loginWithGoogleRedirect()
+  } catch (err: any) {
+    authError.value = err?.message || 'Unable to initiate Google redirect. Please try again.'
     isGoogleSubmitting.value = false
   }
 }
