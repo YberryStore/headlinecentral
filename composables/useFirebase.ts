@@ -1288,7 +1288,6 @@ export const useFirebase = () => {
     provider.setCustomParameters({ prompt: 'select_account' })
     await signInWithRedirect(firebaseAuth, provider)
   }
-  }
 
   /**
    * Sign in with Email & Password (supports Master Admin + Admin-Managed Role Users + Firebase Auth)
