@@ -19,10 +19,10 @@
             </span>
           </div>
           <h1 class="text-3xl sm:text-4xl lg:text-[42px] font-medium text-gray-950 font-sans tracking-tight mb-3">
-            Cookie Policy &amp; Regional Compliance Controls
+            Cookie Policy &amp; POPIA Act Compliance Controls
           </h1>
           <p class="text-xs text-gray-500">
-            Effective Date: November 1, 2026 &bull; Compliant with POPIA (South Africa), GDPR (EU), CCPA/CPRA (USA), and APAC Privacy Acts
+            Effective Date: November 1, 2026 &bull; Compliant with the Protection of Personal Information Act (POPIA) &bull; Published by Headline Central
           </p>
         </header>
 
@@ -33,7 +33,7 @@
               <span class="text-[11px] font-bold uppercase tracking-wider text-[#EE5102]">Interactive Controls</span>
               <h2 class="text-xl font-bold text-gray-950 mt-0.5">Your Cookie Consent Settings</h2>
               <p class="text-xs text-gray-500 mt-1">
-                Toggle options below to customize which tracking technologies you authorize.
+                Toggle options below to customize which tracking technologies you authorize Headline Central to utilize.
               </p>
             </div>
             <!-- Status Badge (Clean rectangle, not pill) -->
@@ -48,24 +48,12 @@
             </div>
           </div>
 
-          <!-- Regional Framework Coverage Notice -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs">
-            <div class="bg-white p-3 rounded-xl border border-gray-200">
-              <span class="block font-bold text-gray-900 text-xs">South Africa</span>
-              <span class="text-[11px] text-gray-500">POPIA Section 11</span>
-            </div>
-            <div class="bg-white p-3 rounded-xl border border-gray-200">
-              <span class="block font-bold text-gray-900 text-xs">European Union</span>
-              <span class="text-[11px] text-gray-500">GDPR &amp; ePrivacy</span>
-            </div>
-            <div class="bg-white p-3 rounded-xl border border-gray-200">
-              <span class="block font-bold text-gray-900 text-xs">United States</span>
-              <span class="text-[11px] text-gray-500">CCPA / CPRA</span>
-            </div>
-            <div class="bg-white p-3 rounded-xl border border-gray-200">
-              <span class="block font-bold text-gray-900 text-xs">Asia-Pacific</span>
-              <span class="text-[11px] text-gray-500">PDPA &amp; APPI</span>
-            </div>
+          <!-- POPIA Compliance Notice Card -->
+          <div class="bg-white p-4 rounded-2xl border border-gray-200 space-y-1.5">
+            <span class="font-bold text-gray-950 text-sm block">POPIA Act Statutory Compliance</span>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              In terms of Section 11 of the South African Protection of Personal Information Act (POPIA Act No. 4 of 2013), Headline Central ensures that processing of personal information via non-essential cookies occurs only with your informed authorization. You have the right to modify or withdraw consent at any time.
+            </p>
           </div>
 
           <!-- The 4 Categorized Toggles -->
@@ -85,7 +73,7 @@
                 </div>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed">
-                Mandatory for session continuity, authentication security, network rate-limiting, and terminal gatekeeping. In accordance with South African POPIA Section 11 and EU ePrivacy Directive Article 5(3), these cookies do not require prior opt-in.
+                Mandatory for session continuity, authentication security, network rate-limiting, and terminal gatekeeping. Under Section 11 of the South African POPIA, these essential cookies operate to deliver requested services.
               </p>
             </div>
 
@@ -106,7 +94,7 @@
                 </label>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed">
-                Allows our editorial analytics team to measure audience engagement, assess reading duration across investigative pieces, and identify infrastructure bottlenecks with anonymized IP addresses.
+                Allows Headline Central to measure audience engagement, assess reading duration across investigative pieces, and identify infrastructure bottlenecks with anonymized IP addresses.
               </p>
             </div>
 
@@ -131,17 +119,12 @@
               </p>
             </div>
 
-            <!-- 4. Targeting & Advertising Cookies (Toggleable, CCPA opt-out) -->
+            <!-- 4. Targeting & Advertising Cookies (Toggleable) -->
             <div class="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200 space-y-2 hover:border-gray-300 transition-colors">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="flex items-center gap-2">
-                    <h3 class="text-sm font-semibold text-gray-950">4. Targeting &amp; Advertising Cookies</h3>
-                    <span class="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
-                      US CCPA Opt-Out
-                    </span>
-                  </div>
-                  <p class="text-[11px] text-gray-500">Meta Pixel, Google AdSense &amp; commercial sponsor units</p>
+                  <h3 class="text-sm font-semibold text-gray-950">4. Targeting &amp; Advertising Cookies</h3>
+                  <p class="text-[11px] text-gray-500">Google AdSense, Meta Pixel &amp; commercial sponsor units</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input
@@ -153,7 +136,7 @@
                 </label>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed">
-                Empowers delivery of relevant advertising and verifies sponsor campaign reach. Turning this toggle <strong>OFF</strong> satisfies your statutory <strong>"Do Not Sell or Share My Personal Information"</strong> election under the California Consumer Privacy Act (CCPA/CPRA).
+                Empowers delivery of relevant advertising and verifies sponsor campaign reach without personal profiling. Turning this toggle OFF disables advertising and marketing cookies.
               </p>
             </div>
           </div>
@@ -200,7 +183,7 @@
 
         <!-- Section 2: Detailed Cookie Inventory Table -->
         <section class="space-y-4">
-          <h2 class="text-xl font-semibold text-gray-950">2. Complete Inventory of Cookies Employed</h2>
+          <h2 class="text-xl font-semibold text-gray-950">2. Complete Inventory of Cookies Employed by Headline Central</h2>
           <p class="text-sm text-gray-700 leading-relaxed">
             Below is the comprehensive audit of all cookies and storage keys utilized by Headline Central:
           </p>
@@ -221,7 +204,7 @@
                   <td class="p-3.5 font-mono font-medium text-gray-900">hc_cookie_consent_v1</td>
                   <td class="p-3.5"><span class="font-semibold text-gray-800">Strictly Necessary</span></td>
                   <td class="p-3.5">Headline Central</td>
-                  <td class="p-3.5">Preserves your regional cookie consent toggles across visits.</td>
+                  <td class="p-3.5">Preserves your POPIA cookie consent toggles across visits.</td>
                   <td class="p-3.5">Persistent (1 Year)</td>
                 </tr>
                 <tr>
@@ -264,39 +247,21 @@
           </div>
         </section>
 
-        <!-- Section 3: Multi-Jurisdictional Legal Alignment -->
-        <section class="space-y-4">
-          <h2 class="text-xl font-semibold text-gray-950">3. Multi-Jurisdictional Statutory Compliance</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm text-gray-700">
-            <!-- POPIA -->
-            <div class="p-5 rounded-2xl bg-gray-50 border border-gray-200 space-y-2">
-              <h3 class="font-bold text-gray-950 text-sm">South Africa (POPIA &amp; ECTA)</h3>
-              <p class="leading-relaxed">
-                Section 11 of the Protection of Personal Information Act mandates that personal information can only be processed with informed consent. We do not load non-essential analytical beacons until our consent interface is acknowledged.
-              </p>
-            </div>
-            <!-- GDPR -->
-            <div class="p-5 rounded-2xl bg-gray-50 border border-gray-200 space-y-2">
-              <h3 class="font-bold text-gray-950 text-sm">European Union (GDPR / ePrivacy)</h3>
-              <p class="leading-relaxed">
-                In terms of Article 5(3) of the ePrivacy Directive (Directive 2002/58/EC as amended), storing or accessing data on a user's terminal device requires prior opt-in consent. Our system automatically holds analytical and marketing tags until you click "Accept All" or toggle them ON.
-              </p>
-            </div>
-            <!-- CCPA -->
-            <div class="p-5 rounded-2xl bg-gray-50 border border-gray-200 space-y-2">
-              <h3 class="font-bold text-gray-950 text-sm">United States (CCPA / CPRA)</h3>
-              <p class="leading-relaxed">
-                The California Privacy Rights Act empowers consumers to opt out of the "sale" or "sharing" of personal data for cross-context behavioral advertising. Toggling off Category 4 executes this opt-out immediately.
-              </p>
-            </div>
-            <!-- APAC -->
-            <div class="p-5 rounded-2xl bg-gray-50 border border-gray-200 space-y-2">
-              <h3 class="font-bold text-gray-950 text-sm">Asia-Pacific (PDPA &amp; APPI)</h3>
-              <p class="leading-relaxed">
-                Under the Singapore Personal Data Protection Act and Japanese APPI, users receive unambiguous notification of tracking purposes and maintain the right to withdraw consent at any time.
-              </p>
-            </div>
+        <!-- Section 3: POPIA & South African Online Compliance -->
+        <section class="space-y-3 bg-gray-50/80 p-6 rounded-2xl border border-gray-200">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#EE5102]"></span>
+            <h2 class="text-lg font-bold text-gray-950">3. South African Online Laws &amp; POPIA Compliance</h2>
           </div>
+          <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
+            In terms of the <strong>Protection of Personal Information Act, 2013 (Act No. 4 of 2013)</strong> and the <strong>Electronic Communications and Transactions Act, 2002 (Act No. 25 of 2002)</strong>:
+          </p>
+          <ul class="list-disc pl-5 text-xs sm:text-sm text-gray-700 space-y-1.5 leading-relaxed">
+            <li><strong>Informed Consent:</strong> Section 11 of POPIA requires that data subjects provide voluntary, specific, and informed consent before non-essential cookies and analytics tracking are activated.</li>
+            <li><strong>Right to Withdraw Consent:</strong> You retain the unrestricted legal right to modify or revoke your cookie authorizations at any time using the on-page toggle switches above.</li>
+            <li><strong>Security Measures:</strong> Section 19 of POPIA mandates that Headline Central secures the integrity and confidentiality of personal information by taking appropriate technical measures.</li>
+            <li><strong>Regulatory Oversight:</strong> If you believe your personal data is handled contrary to POPIA, you may lodge a complaint with the <strong>Information Regulator of South Africa</strong> (<a href="mailto:POPIAComplaints@inforegulator.org.za" class="text-[#EE5102] underline">POPIAComplaints@inforegulator.org.za</a>).</li>
+          </ul>
         </section>
 
         <!-- Section 4: Browser Level Controls -->
@@ -315,13 +280,13 @@
 
         <!-- Section 5: Inquiries -->
         <section class="space-y-3 border-t border-gray-100 pt-8">
-          <h2 class="text-xl font-semibold text-gray-950">5. Contact Our Privacy Office</h2>
+          <h2 class="text-xl font-semibold text-gray-950">5. Contact Headline Central Privacy Office</h2>
           <p class="text-sm text-gray-700 leading-relaxed">
             If you have questions regarding our cookie compliance measures or technical implementations, please reach out to our compliance desk:
           </p>
           <div class="text-sm text-gray-700 space-y-1">
-            <p><strong>Email:</strong> <a href="mailto:privacy@headlinecentral.co.za" class="text-[#EE5102] underline">privacy@headlinecentral.co.za</a></p>
-            <p><strong>Editorial Bureau:</strong> Rosebank, Johannesburg, South Africa</p>
+            <p><strong>Company:</strong> Headline Central</p>
+            <p><strong>Email:</strong> <a href="mailto:support@headlinecentral.co.za" class="text-[#EE5102] underline">support@headlinecentral.co.za</a></p>
           </div>
         </section>
       </article>

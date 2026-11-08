@@ -1,7 +1,7 @@
 <template>
   <div>
-    <!-- Featured Hero Banner (Renders only when a published blog is loaded) -->
-    <HeroBanner v-if="featuredArticle" :article="featuredArticle" />
+    <!-- Featured Hero Banner (Renders CMS Hero Banner or featured article fallback) -->
+    <HeroBanner :article="featuredArticle" />
 
     <!-- Popular Articles (Renders only when blogs are loaded) -->
     <PopularArticles v-if="popularArticles.length > 0" :articles="popularArticles" />
@@ -12,9 +12,9 @@
     <!-- Latest Articles (Renders only when blogs are loaded) -->
     <ArticleGrid v-if="latestArticles.length > 0" :articles="latestArticles" />
 
-    <!-- Empty state when no blogs have been loaded under CMS Blogs -->
+    <!-- Empty state when no blogs have been loaded under CMS Blogs and no hero banner -->
     <section
-      v-if="articles.length === 0"
+      v-if="articles.length === 0 && activeBanners.length === 0"
       class="py-16 bg-white border-b border-gray-100"
     >
       <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -35,15 +35,13 @@
         </div>
       </div>
     </section>
-
-    <!-- Newsletter Subscription -->
-    <NewsletterSection />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useArticles } from '~/composables/useArticles'
+import { useBanners } from '~/composables/useBanners'
 import { useSiteSeo } from '~/composables/useSiteSeo'
 
 const {
@@ -55,6 +53,7 @@ const {
   syncFromFirestore
 } = useArticles()
 
+const { activeBanners, syncFromFirestore: syncBanners } = useBanners()
 const { applyPageSeo } = useSiteSeo()
 
 const featuredArticle = computed(() => getFeaturedArticle())
@@ -62,7 +61,10 @@ const popularArticles = computed(() => getPopularArticles())
 const latestArticles = computed(() => getLatestArticles(6))
 
 onMounted(async () => {
-  await syncFromFirestore().catch(() => {})
+  await Promise.allSettled([
+    syncFromFirestore(),
+    syncBanners()
+  ])
 })
 
 applyPageSeo('home')

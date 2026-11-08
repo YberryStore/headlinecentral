@@ -47,6 +47,7 @@ export interface ContactPageConfig {
   badge: string
   title: string
   description: string
+  supportEmail: string
   pitchesEmail: string
   correctionsEmail: string
   advertisingEmail: string
@@ -137,20 +138,14 @@ const defaultHeaderFooterConfig: HeaderFooterConfig = {
         { id: 'sub-parenting-1', name: 'Child Development', slug: 'child-development' },
         { id: 'sub-parenting-2', name: 'Digital Balance', slug: 'digital-balance' }
       ]
-    },
-    {
-      id: 'nav-about',
-      label: 'About',
-      to: '/about',
-      isVisible: true
     }
   ],
   footer: {
     brandDescription: 'Essential long-form journalism, rigorous analysis, and practical craft guides across News, Tech, Fashion, Food, Home & DIY, and Mindful Parenting.',
     copyright: '© 2026 Headline Central. All rights reserved.',
-    contactEmail: 'contact@headlinecentral.co.za',
-    contactPhone: '+27 11 000 0000',
-    contactAddress: 'Sandton City, Johannesburg, South Africa',
+    contactEmail: 'support@headlinecentral.co.za',
+    contactPhone: '',
+    contactAddress: '',
     socialLinks: {
       twitter: 'https://twitter.com',
       linkedin: 'https://linkedin.com',
@@ -160,11 +155,9 @@ const defaultHeaderFooterConfig: HeaderFooterConfig = {
       rss: '/rss.xml'
     },
     editorialLinks: [
-      { label: 'About Us', to: '/about' },
-      { label: 'Editorial Standards', to: '/about#mission' },
-      { label: 'Our Writers', to: '/about#team' },
+      { label: 'Editorial Policy', to: '/editorial-policy' },
       { label: 'Contact Us', to: '/contact' },
-      { label: 'Press & Inquiries', to: '/contact#press' }
+      { label: 'Press & Newsroom', to: '/contact' }
     ],
     legalLinks: [
       { label: 'Privacy Policy', to: '/privacy' },
@@ -179,12 +172,13 @@ const defaultContactPageConfig: ContactPageConfig = {
   badge: 'Get in Touch',
   title: 'Contact the Newsroom',
   description: 'Whether you have an investigative tip, a partnership proposal, or a factual correction, we are eager to hear from you.',
-  pitchesEmail: 'pitches@headlinecentral.co.za',
-  correctionsEmail: 'corrections@headlinecentral.co.za',
-  advertisingEmail: 'advertising@headlinecentral.co.za',
-  generalEmail: 'info@headlinecentral.co.za',
-  phone: '+27 11 000 0000',
-  address: 'Sandton City, Johannesburg, South Africa',
+  supportEmail: 'support@headlinecentral.co.za',
+  pitchesEmail: 'support@headlinecentral.co.za',
+  correctionsEmail: 'support@headlinecentral.co.za',
+  advertisingEmail: 'support@headlinecentral.co.za',
+  generalEmail: 'support@headlinecentral.co.za',
+  phone: '',
+  address: '',
   responseTitle: 'Response Commitment',
   responseCommitment: 'We read every email. If submitting a breaking news tip with supporting documentation, please specify confidentiality requirements in your subject line.',
   responseTime: '24 to 48 hours',

@@ -101,9 +101,9 @@ const defaultPagesSeo: Record<string, PageSeoEntry> = {
     key: 'cookies',
     label: 'Cookie Policy Page',
     path: '/cookies',
-    title: 'Cookie Policy & Consent Settings — Headline Central',
-    description: 'Manage cookie preferences and learn about tracking technology governance across POPIA, GDPR, CCPA, and APAC regulations.',
-    keywords: 'cookie policy, cookie preferences, POPIA, GDPR, CCPA, Headline Central',
+    title: 'Cookie Policy & POPIA Act Compliance — Headline Central',
+    description: 'Manage cookie preferences and learn about tracking technology governance and POPIA Act compliance at Headline Central.',
+    keywords: 'cookie policy, cookie preferences, POPIA, privacy, cookies, Headline Central',
     ogImage: '/images/tech-hero.jpg'
   }
 }

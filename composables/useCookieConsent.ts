@@ -14,9 +14,6 @@ export interface CookieConsentRecord {
   version: string
   frameworks: {
     popia: boolean // South Africa Protection of Personal Information Act
-    gdpr: boolean  // European Union & UK General Data Protection Regulation
-    ccpa: boolean  // US California Consumer Privacy Act & CPRA
-    apac: boolean  // Asia-Pacific regional frameworks (Singapore PDPA, Japan APPI)
   }
 }
 
@@ -36,10 +33,7 @@ const consentState = reactive<CookieConsentRecord>({
   consentDate: '',
   version: CONSENT_VERSION,
   frameworks: {
-    popia: true,
-    gdpr: true,
-    ccpa: true,
-    apac: true
+    popia: true
   }
 })
 

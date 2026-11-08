@@ -139,9 +139,6 @@
           <NuxtLink to="/blog" class="btn-primary !text-xs !py-2.5 !px-5">Explore All Stories</NuxtLink>
         </div>
       </div>
-
-      <!-- Newsletter Section -->
-      <NewsletterSection />
     </div>
   </div>
 

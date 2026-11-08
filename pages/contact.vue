@@ -25,7 +25,7 @@
         <!-- Contact Form (7 cols) -->
         <div class="md:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm">
           <div v-if="contactConfig.formEnabled === false" class="py-8 text-center text-gray-500 text-sm">
-            The contact form is currently taking a scheduled break. Please reach our direct desks via email on the right.
+            The contact form is currently taking a scheduled break. Please reach our direct team at <a href="mailto:support@headlinecentral.co.za" class="text-[#EE5102] underline">support@headlinecentral.co.za</a>.
           </div>
 
           <form v-else @submit.prevent="handleSubmit" class="space-y-4">
@@ -112,42 +112,11 @@
             </h3>
 
             <div class="space-y-3.5 text-xs">
-              <div v-if="contactConfig.pitchesEmail">
-                <span class="font-bold text-gray-900 block">Editorial Pitches:</span>
-                <a :href="`mailto:${contactConfig.pitchesEmail}`" class="text-[#EE5102] hover:underline">
-                  {{ contactConfig.pitchesEmail }}
+              <div>
+                <span class="font-bold text-gray-900 block">Email Inquiries &amp; Support:</span>
+                <a href="mailto:support@headlinecentral.co.za" class="text-[#EE5102] hover:underline font-medium">
+                  support@headlinecentral.co.za
                 </a>
-              </div>
-
-              <div v-if="contactConfig.correctionsEmail">
-                <span class="font-bold text-gray-900 block">Corrections Desk:</span>
-                <a :href="`mailto:${contactConfig.correctionsEmail}`" class="text-[#EE5102] hover:underline">
-                  {{ contactConfig.correctionsEmail }}
-                </a>
-              </div>
-
-              <div v-if="contactConfig.advertisingEmail">
-                <span class="font-bold text-gray-900 block">Advertising &amp; Partnerships:</span>
-                <a :href="`mailto:${contactConfig.advertisingEmail}`" class="text-[#EE5102] hover:underline">
-                  {{ contactConfig.advertisingEmail }}
-                </a>
-              </div>
-
-              <div v-if="contactConfig.generalEmail">
-                <span class="font-bold text-gray-900 block">General Inquiries:</span>
-                <a :href="`mailto:${contactConfig.generalEmail}`" class="text-[#EE5102] hover:underline">
-                  {{ contactConfig.generalEmail }}
-                </a>
-              </div>
-
-              <div v-if="contactConfig.phone" class="pt-2 border-t border-gray-100">
-                <span class="font-bold text-gray-900 block">Newsroom Phone:</span>
-                <span class="text-gray-600">{{ contactConfig.phone }}</span>
-              </div>
-
-              <div v-if="contactConfig.address" class="pt-2 border-t border-gray-100">
-                <span class="font-bold text-gray-900 block">Physical Bureau:</span>
-                <span class="text-gray-600 leading-relaxed">{{ contactConfig.address }}</span>
               </div>
             </div>
           </div>

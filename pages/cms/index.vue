@@ -128,6 +128,29 @@
             <span v-if="!isSidebarCollapsed">Categories</span>
           </button>
 
+          <!-- Banners (Landing Page Hero Section) -->
+          <button
+            v-if="hasPermission('canManageSettings') || hasPermission('canManageBlogs') || isMasterAdmin"
+            @click="activeTab = 'banners'"
+            type="button"
+            :class="[
+              activeTab === 'banners'
+                ? 'bg-[#EE5102] text-white'
+                : 'text-gray-900 hover:bg-gray-100',
+              isSidebarCollapsed ? 'justify-center px-2' : 'px-4'
+            ]"
+            class="w-full flex items-center gap-3 py-2.5 rounded-full text-[13px] font-normal transition-colors"
+          >
+            <svg class="w-[18px] h-[18px] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+              <circle cx="8" cy="8" r="1.5" />
+              <path d="M21 14l-5-5L5 17" />
+            </svg>
+            <span v-if="!isSidebarCollapsed">Banners</span>
+          </button>
+
           <!-- SEO & Analytics (GTM / GA4 / Meta Pixel) -->
           <button
             v-if="hasPermission('canManageSettings') || hasPermission('canManageBlogs')"
@@ -2873,15 +2896,6 @@
                 />
               </div>
 
-              <div>
-                <label class="block font-medium text-gray-700 mb-1">Footer Phone Number</label>
-                <input
-                  v-model="headerFooterConfig.footer.contactPhone"
-                  type="text"
-                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
-                />
-              </div>
-
               <div class="md:col-span-2">
                 <label class="block font-medium text-gray-700 mb-1">Copyright Line</label>
                 <input
@@ -3034,75 +3048,25 @@
           <!-- Section 2: Direct Desks Email Inboxes -->
           <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-4 max-w-5xl shadow-sm">
             <div class="border-b border-gray-100 pb-3">
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Editorial Inboxes</span>
-              <h3 class="text-base font-semibold text-gray-900">Direct Desks Email Addresses</h3>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Primary Inbox</span>
+              <h3 class="text-base font-semibold text-gray-900">Official Contact &amp; Support Email</h3>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div class="max-w-md text-xs">
               <div>
-                <label class="block font-medium text-gray-700 mb-1">Editorial Pitches Email</label>
+                <label class="block font-medium text-gray-700 mb-1">Official Support &amp; Inquiries Email</label>
                 <input
-                  v-model="contactPageConfig.pitchesEmail"
+                  v-model="contactPageConfig.supportEmail"
                   type="email"
                   class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
                 />
-              </div>
-              <div>
-                <label class="block font-medium text-gray-700 mb-1">Corrections Desk Email</label>
-                <input
-                  v-model="contactPageConfig.correctionsEmail"
-                  type="email"
-                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
-                />
-              </div>
-              <div>
-                <label class="block font-medium text-gray-700 mb-1">Advertising &amp; Sponsorship Email</label>
-                <input
-                  v-model="contactPageConfig.advertisingEmail"
-                  type="email"
-                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
-                />
-              </div>
-              <div>
-                <label class="block font-medium text-gray-700 mb-1">General Inquiries Email</label>
-                <input
-                  v-model="contactPageConfig.generalEmail"
-                  type="email"
-                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
-                />
+                <p class="text-[11px] text-gray-400 mt-1">Unified official email displayed across all public contact channels.</p>
               </div>
             </div>
           </div>
 
-          <!-- Section 3: Newsroom Phone, Bureau Address & Response Commitment -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl">
-            <!-- Physical Location & Phone -->
-            <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-4 shadow-sm">
-              <div class="border-b border-gray-100 pb-3">
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Location</span>
-                <h3 class="text-sm font-semibold text-gray-900">Bureau &amp; Phone Line</h3>
-              </div>
-              <div class="space-y-3 text-xs">
-                <div>
-                  <label class="block font-medium text-gray-700 mb-1">Newsroom Phone Line</label>
-                  <input
-                    v-model="contactPageConfig.phone"
-                    type="text"
-                    placeholder="e.g. +27 11 000 0000"
-                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
-                  />
-                </div>
-                <div>
-                  <label class="block font-medium text-gray-700 mb-1">Physical / Postal Bureau Address</label>
-                  <textarea
-                    v-model="contactPageConfig.address"
-                    rows="3"
-                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
-                  ></textarea>
-                </div>
-              </div>
-            </div>
-
+          <!-- Section 3: Response Commitment -->
+          <div class="max-w-2xl">
             <!-- Response Commitment Card -->
             <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-4 shadow-sm">
               <div class="border-b border-gray-100 pb-3">
@@ -3201,6 +3165,11 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- TAB: HERO BANNERS -->
+        <div v-else-if="activeTab === 'banners'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
+          <BannersManagement />
         </div>
 
         <!-- TAB 6: SETTINGS -->
@@ -3388,6 +3357,7 @@ import {
 } from '~/composables/useFirebase'
 import { sanitizeHtml } from '~/composables/useMarkdown'
 import { useCmsGateway, type SecurityBlockedRecord } from '~/composables/useCmsGateway'
+import BannersManagement from '~/components/cms/BannersManagement.vue'
 
 definePageMeta({
   layout: false
@@ -3687,7 +3657,7 @@ const handleSavePageSeo = (key: string) => {
 }
 
 const isSidebarCollapsed = ref(false)
-const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'seo' | 'trending' | 'header-footer' | 'contact-page' | 'users' | 'settings'>('dashboard')
+const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'banners' | 'seo' | 'trending' | 'header-footer' | 'contact-page' | 'users' | 'settings'>('dashboard')
 const cmsSearch = ref('')
 const liveVisitors = ref(12)
 const isPreviewMode = ref(false)

@@ -16,14 +16,10 @@
           </p>
 
           <!-- Direct Contact details if configured -->
-          <div v-if="footer.contactEmail || footer.contactPhone" class="text-xs text-gray-500 space-y-1 pt-1">
+          <div v-if="footer.contactEmail" class="text-xs text-gray-500 space-y-1 pt-1">
             <p v-if="footer.contactEmail">
               <span class="font-medium text-gray-700">Email:</span>
               <a :href="`mailto:${footer.contactEmail}`" class="ml-1 text-[#EE5102] hover:underline">{{ footer.contactEmail }}</a>
-            </p>
-            <p v-if="footer.contactPhone">
-              <span class="font-medium text-gray-700">Newsroom:</span>
-              <span class="ml-1 text-gray-600">{{ footer.contactPhone }}</span>
             </p>
           </div>
 
@@ -121,7 +117,7 @@
 
       <!-- Bottom Bar -->
       <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 space-y-4 sm:space-y-0">
-        <p>{{ footer.copyright || '© 2026 Headline Central Media Group. All rights reserved.' }}</p>
+        <p>{{ footer.copyright || '© 2026 Headline Central. All rights reserved.' }}</p>
         <p class="text-gray-400">
           Essential Stories &amp; Investigative Digital Journalism.
         </p>

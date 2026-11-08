@@ -22,7 +22,7 @@
             Editorial Policy, Ethics &amp; Correction Standards
           </h1>
           <p class="text-xs text-gray-500">
-            Published by Headline Central Media Group &bull; Last Revised: November 2026 &bull; Adhering to the South African Press Code
+            Published by Headline Central &bull; Last Revised: November 2026 &bull; Adhering to the South African Press Code
           </p>
         </header>
 
@@ -59,7 +59,7 @@
           <ul class="list-disc pl-5 text-xs sm:text-sm text-gray-700 space-y-1.5 leading-relaxed">
             <li><strong>Correction Notes:</strong> Substantive corrections are marked with a prominent note at the top of the article detailing the error, what was amended, and the precise timestamp.</li>
             <li><strong>No Stealth Edits:</strong> We do not silently rewrite articles to mask journalistic mistakes. Minor typographical updates that do not alter factual meaning are corrected immediately.</li>
-            <li><strong>Reporting Errors:</strong> If you believe an article contains a factual error, email our dedicated desk at <a href="mailto:corrections@headlinecentral.co.za" class="text-[#EE5102] underline">corrections@headlinecentral.co.za</a> with the article URL and supporting evidence.</li>
+            <li><strong>Reporting Errors:</strong> If you believe an article contains a factual error, email our dedicated desk at <a href="mailto:support@headlinecentral.co.za" class="text-[#EE5102] underline">support@headlinecentral.co.za</a> with the article URL and supporting evidence.</li>
           </ul>
         </section>
 
@@ -104,10 +104,7 @@
             For news tips, syndicate licensing, or editorial oversight inquiries:
           </p>
           <div class="text-sm text-gray-700 space-y-1">
-            <p><strong>Editorial Bureau:</strong> Rosebank, Johannesburg, Gauteng, South Africa</p>
-            <p><strong>Story Pitches:</strong> <a href="mailto:pitches@headlinecentral.co.za" class="text-[#EE5102] underline">pitches@headlinecentral.co.za</a></p>
-            <p><strong>Corrections Desk:</strong> <a href="mailto:corrections@headlinecentral.co.za" class="text-[#EE5102] underline">corrections@headlinecentral.co.za</a></p>
-            <p><strong>Newsroom Phone:</strong> +27 11 000 0000</p>
+            <p><strong>Newsroom &amp; Editorial Inquiries:</strong> <a href="mailto:support@headlinecentral.co.za" class="text-[#EE5102] underline">support@headlinecentral.co.za</a></p>
           </div>
         </section>
       </article>

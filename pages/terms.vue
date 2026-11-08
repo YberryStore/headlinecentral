@@ -22,7 +22,7 @@
             Terms &amp; Conditions of Digital Service
           </h1>
           <p class="text-xs text-gray-500">
-            Effective Date: November 1, 2026 &bull; Published by Headline Central Media Group &bull; Governed by the Laws of the Republic of South Africa
+            Effective Date: November 1, 2026 &bull; Published by Headline Central &bull; Governed by the Laws of the Republic of South Africa
           </p>
         </header>
 
@@ -47,7 +47,7 @@
           <h2 class="text-xl font-semibold text-gray-950">2. Intellectual Property, Copyright &amp; Fair Quotation</h2>
           <div class="space-y-3 text-sm text-gray-700 leading-relaxed">
             <p>
-              <strong>A. Proprietary Rights:</strong> All original news reports, technical architectural diagrams, high-resolution media banners, photo galleries, brand marks, and underlying codebase comprising Headline Central are the exclusive property of Headline Central Media Group, protected under South African Copyright Act (Act 98 of 1978), the Berne Convention, and international intellectual property treaties.
+              <strong>A. Proprietary Rights:</strong> All original news reports, technical architectural diagrams, high-resolution media banners, photo galleries, brand marks, and underlying codebase comprising Headline Central are the exclusive property of Headline Central, protected under South African Copyright Act (Act 98 of 1978), the Berne Convention, and international intellectual property treaties.
             </p>
             <p>
               <strong>B. Fair Use Quotation:</strong> Editorial publications and independent journalists may quote up to seventy-five (75) consecutive words of an article, provided that clear verbal attribution is rendered and an active, clickable hyperlink is provided directly to the source article on Headline Central.
@@ -113,7 +113,7 @@
             To the maximum extent permitted under South African law and applicable international jurisdictions, Headline Central is provided on an <strong>"as is"</strong> and <strong>"as available"</strong> basis, without express or implied warranties of any kind.
           </p>
           <p class="text-sm text-gray-700 leading-relaxed">
-            In no event shall Headline Central Media Group, its directors, editors, writers, or affiliates be liable for indirect, punitive, incidental, or consequential damages resulting from your access to, or inability to access, the website or reliance on editorial content.
+            In no event shall Headline Central, its directors, editors, writers, or affiliates be liable for indirect, punitive, incidental, or consequential damages resulting from your access to, or inability to access, the website or reliance on editorial content.
           </p>
         </section>
 
@@ -121,7 +121,7 @@
         <section class="space-y-3">
           <h2 class="text-xl font-semibold text-gray-950">8. Indemnification</h2>
           <p class="text-sm text-gray-700 leading-relaxed">
-            You agree to defend, indemnify, and hold harmless Headline Central Media Group, its editorial staff, contractors, and agents from any claims, liabilities, damages, or costs (including legal fees) arising from your violation of these Terms or unauthorized exploitation of platform assets.
+            You agree to defend, indemnify, and hold harmless Headline Central, its editorial staff, contractors, and agents from any claims, liabilities, damages, or costs (including legal fees) arising from your violation of these Terms or unauthorized exploitation of platform assets.
           </p>
         </section>
 
@@ -129,7 +129,7 @@
         <section class="space-y-3 bg-gray-50/80 p-6 rounded-2xl border border-gray-200">
           <h2 class="text-lg font-bold text-gray-950">9. Governing Law &amp; Jurisdiction</h2>
           <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
-            These Terms and Conditions are governed by and construed in accordance with the substantive laws of the <strong>Republic of South Africa</strong>, without regard to conflict-of-law principles. Any legal disputes arising in connection with Headline Central shall be subject to the exclusive jurisdiction of the <strong>High Court of South Africa (Gauteng Local Division, Johannesburg)</strong>.
+            These Terms and Conditions are governed by and construed in accordance with the substantive laws of the <strong>Republic of South Africa</strong>, without regard to conflict-of-law principles. Any legal disputes arising in connection with Headline Central shall be subject to the exclusive jurisdiction of the competent courts of the <strong>Republic of South Africa</strong>.
           </p>
         </section>
 
@@ -140,7 +140,7 @@
             We reserve the right to revise these Terms periodically to mirror evolving digital media laws. Continued usage following publication constitutes acceptance of updated terms.
           </p>
           <div class="text-sm text-gray-700 space-y-1 pt-2">
-            <p><strong>Legal &amp; Syndication Inquiries:</strong> <a href="mailto:legal@headlinecentral.co.za" class="text-[#EE5102] underline">legal@headlinecentral.co.za</a></p>
+            <p><strong>Legal &amp; Syndication Inquiries:</strong> <a href="mailto:support@headlinecentral.co.za" class="text-[#EE5102] underline">support@headlinecentral.co.za</a></p>
             <p><strong>Newsroom Desk:</strong> <NuxtLink to="/contact" class="text-[#EE5102] underline">Contact Editorial Bureau</NuxtLink></p>
           </div>
         </section>

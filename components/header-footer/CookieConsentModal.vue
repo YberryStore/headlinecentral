@@ -20,10 +20,10 @@
             <div class="space-y-2 flex-1">
               <div class="flex items-center gap-2">
                 <span class="inline-block w-2 h-2 rounded-full bg-[#EE5102]"></span>
-                <span class="text-xs font-semibold uppercase tracking-wider text-gray-900">Privacy &amp; Cookie Compliance</span>
+                <span class="text-xs font-semibold uppercase tracking-wider text-gray-900">POPIA Act &amp; Cookie Compliance</span>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed">
-                Headline Central respects your privacy rights in accordance with the <strong>South African POPIA</strong>, the <strong>EU &amp; UK GDPR</strong>, <strong>US State Privacy Laws (CCPA/CPRA)</strong>, and <strong>Asia-Pacific frameworks</strong>. We use cookies and local storage to guarantee secure navigation, measure performance, and deliver relevant editorial experiences.
+                Headline Central is committed to protecting your personal information in strict compliance with the <strong>South African Protection of Personal Information Act (POPIA Act No. 4 of 2013)</strong> and our privacy policies. We use cookies and local storage to guarantee secure navigation, measure performance, and deliver quality editorial content.
               </p>
               <div class="flex items-center gap-4 text-[11px] text-gray-500 pt-0.5">
                 <NuxtLink to="/privacy" class="text-gray-700 underline hover:text-[#EE5102] transition-colors">Privacy Policy</NuxtLink>
@@ -63,7 +63,7 @@
       </div>
     </Transition>
 
-    <!-- 2. Detailed Cookie Preferences Modal (Granular toggle options compliant with POPIA, GDPR, CCPA, APAC) -->
+    <!-- 2. Detailed Cookie Preferences Modal (POPIA & Policy Compliance) -->
     <Transition
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="opacity-0"
@@ -84,12 +84,12 @@
           <!-- Header -->
           <div class="flex items-start justify-between border-b border-gray-100 pb-4">
             <div>
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Multi-Regional Legal Compliance</span>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">POPIA Act Compliance</span>
               <h2 id="cookie-modal-title" class="text-xl font-bold text-gray-950 mt-0.5">
-                Cookie &amp; Tracking Consent Preferences
+                Cookie Consent &amp; Privacy Preferences
               </h2>
               <p class="text-xs text-gray-500 mt-1">
-                Customize which categories of cookies and telemetry technologies you authorize Headline Central to utilize.
+                Customize which categories of cookies you authorize Headline Central to utilize on your device.
               </p>
             </div>
             <button
@@ -98,28 +98,16 @@
               aria-label="Close dialog"
               class="text-gray-400 hover:text-gray-700 p-1 rounded-lg transition-colors"
             >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
 
-          <!-- Regional Framework Badges (Clean badges, not pill buttons) -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[10px] font-medium text-gray-600">
-            <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-2">
-              <span class="block font-semibold text-gray-900">South Africa</span>
-              <span>POPIA &amp; PAIA</span>
-            </div>
-            <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-2">
-              <span class="block font-semibold text-gray-900">European Union</span>
-              <span>GDPR / ePrivacy</span>
-            </div>
-            <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-2">
-              <span class="block font-semibold text-gray-900">United States</span>
-              <span>CCPA / CPRA</span>
-            </div>
-            <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-2">
-              <span class="block font-semibold text-gray-900">Asia-Pacific</span>
-              <span>PDPA &amp; APPI</span>
-            </div>
+          <!-- POPIA Compliance Assurance Card -->
+          <div class="bg-gray-50 border border-gray-200/80 rounded-2xl p-4 text-xs text-gray-700 space-y-1">
+            <span class="font-bold text-gray-950 block">Protection of Personal Information Act (POPIA Act No. 4 of 2013)</span>
+            <p class="text-[11px] text-gray-600 leading-relaxed">
+              In accordance with Section 11 of POPIA and our editorial standards, you hold full authority over non-essential cookies and analytics telemetry. Toggle your preferences below and save.
+            </p>
           </div>
 
           <!-- Category Toggles List -->
@@ -137,7 +125,7 @@
                 </div>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed">
-                Essential for core navigation, authentication security, network firewall diagnostics, and rate-limit defenses. Under Section 11 of the South African POPIA and Article 5(3) of the EU ePrivacy Directive, these cookies do not require prior consent because the platform cannot function without them.
+                Essential for core navigation, authentication security, network firewall diagnostics, and rate-limit defenses. Under Section 11 of the South African POPIA, these essential cookies operate to deliver requested services.
               </p>
               <div class="text-[10px] font-mono text-gray-500">
                 Examples: Session tokens, terminal lockout prevention, CSRF verification.
@@ -161,7 +149,7 @@
                 </label>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed">
-                Allows us to aggregate readership metrics, identify popular investigative reports, diagnose site speed, and evaluate bounce rates. All IP addresses are anonymized before storage.
+                Allows Headline Central to aggregate readership metrics, assess reading duration across investigative pieces, and identify infrastructure bottlenecks with anonymized IP addresses.
               </p>
             </div>
 
@@ -186,15 +174,12 @@
               </p>
             </div>
 
-            <!-- 4. Targeting & Advertising Cookies (Toggleable, CCPA opt-out compliant) -->
+            <!-- 4. Targeting & Advertising Cookies (Toggleable) -->
             <div class="p-4 rounded-2xl border border-gray-200 bg-white space-y-2 hover:border-gray-300 transition-colors">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="flex items-center gap-2">
-                    <h3 class="text-sm font-semibold text-gray-900">4. Targeting &amp; Advertising Cookies</h3>
-                    <span class="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">US CCPA Opt-Out</span>
-                  </div>
-                  <p class="text-[11px] text-gray-500">Meta Pixel, Google AdSense &amp; partner display units</p>
+                  <h3 class="text-sm font-semibold text-gray-900">4. Targeting &amp; Advertising Cookies</h3>
+                  <p class="text-[11px] text-gray-500">Google AdSense, Meta Pixel &amp; partner display units</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input
@@ -206,7 +191,7 @@
                 </label>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed">
-                Used to deliver relevant advertising campaigns, verify sponsored editorial engagement, and prevent ad fatigue. Disabling this toggle activates your <strong>"Do Not Sell or Share My Personal Information"</strong> right under the California Consumer Privacy Act (CCPA/CPRA).
+                Used to deliver relevant advertising campaigns and verify sponsored editorial engagement without personal profiling. Disabling this toggle turns off non-essential advertising and marketing cookies.
               </p>
             </div>
           </div>
@@ -299,4 +284,3 @@ onMounted(() => {
   initConsent()
 })
 </script>
-

@@ -19,10 +19,10 @@
             </span>
           </div>
           <h1 class="text-3xl sm:text-4xl lg:text-[42px] font-medium text-gray-950 font-sans tracking-tight mb-3">
-            Global Privacy Policy &amp; Data Protection Statement
+            Privacy Policy &amp; POPIA Act Compliance Statement
           </h1>
           <p class="text-xs text-gray-500">
-            Effective Date: November 1, 2026 &bull; Last Revised: November 2026 &bull; Published by Headline Central Media Group
+            Effective Date: November 1, 2026 &bull; Last Revised: November 2026 &bull; Published by Headline Central
           </p>
         </header>
 
@@ -30,7 +30,7 @@
         <div class="bg-gray-50 border-l-4 border-[#EE5102] p-5 rounded-r-2xl space-y-2">
           <h2 class="text-xs uppercase tracking-wider font-bold text-gray-950">Executive Commitment</h2>
           <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
-            Headline Central is committed to safeguarding personal information across all digital touchpoints. This policy outlines how we collect, store, process, and protect your data in strict compliance with the <strong>South African Protection of Personal Information Act (POPIA)</strong>, the <strong>European Union &amp; UK General Data Protection Regulation (GDPR)</strong>, the <strong>California Consumer Privacy Act as amended (CCPA/CPRA)</strong>, and applicable <strong>Asia-Pacific Privacy Laws</strong> (including Singapore PDPA and Japan APPI).
+            Headline Central is committed to safeguarding personal information across all digital touchpoints. This policy outlines how we collect, store, process, and protect your data in strict compliance with the <strong>South African Protection of Personal Information Act (POPIA Act No. 4 of 2013)</strong>, the <strong>Promotion of Access to Information Act (PAIA)</strong>, and digital privacy standards.
           </p>
         </div>
 
@@ -38,13 +38,11 @@
         <section class="space-y-3">
           <h2 class="text-xl font-semibold text-gray-950">1. Data Controller / Responsible Party</h2>
           <p class="text-sm text-gray-700 leading-relaxed">
-            The responsible party and data controller determining the purposes and means of processing personal data on this platform is:
+            The responsible party determining the purposes and means of processing personal data on this platform is:
           </p>
           <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/80 text-xs sm:text-sm text-gray-800 space-y-1">
-            <p class="font-bold text-gray-950">Headline Central Media Group</p>
-            <p>Editorial Bureau: Rosebank / Sandton, Gauteng, Republic of South Africa</p>
-            <p>Information Officer: <a href="mailto:privacy@headlinecentral.co.za" class="text-[#EE5102] underline">privacy@headlinecentral.co.za</a></p>
-            <p>General Inquiries: <a href="mailto:info@headlinecentral.co.za" class="text-[#EE5102] underline">info@headlinecentral.co.za</a></p>
+            <p class="font-bold text-gray-950">Headline Central</p>
+            <p>Support &amp; Inquiries: <a href="mailto:support@headlinecentral.co.za" class="text-[#EE5102] underline">support@headlinecentral.co.za</a></p>
           </div>
         </section>
 
@@ -53,7 +51,7 @@
           <h2 class="text-xl font-semibold text-gray-950">2. Categories of Information We Collect</h2>
           <div class="space-y-3 text-sm text-gray-700 leading-relaxed">
             <p>
-              <strong>A. Voluntarily Disclosed Data:</strong> When you subscribe to our daily news briefing, submit an investigative pitch, contact our bureau, or apply for credentials, you may provide your full name, email address, corporate affiliation, and telephone number.
+              <strong>A. Voluntarily Disclosed Data:</strong> When you subscribe to our daily news briefing, submit an investigative pitch, contact our bureau, or apply for credentials, you may provide your full name, email address, and professional affiliation.
             </p>
             <p>
               <strong>B. Automated Technical Telemetry:</strong> When navigating our publications, our edge servers automatically register non-personally identifiable diagnostic headers: masked IP addresses (anonymized at transmission), operating system, browser user-agent, referring URLs, time spent per investigative article, and interaction timestamps.
@@ -68,7 +66,7 @@
         <section class="space-y-3">
           <h2 class="text-xl font-semibold text-gray-950">3. Legal Bases for Data Processing</h2>
           <p class="text-sm text-gray-700 leading-relaxed">
-            Under Article 6 of the EU/UK GDPR and Section 11 of the South African POPIA, we process personal information strictly under the following lawful conditions:
+            Under Section 11 of the South African Protection of Personal Information Act (POPIA) and established digital privacy standards, we process personal information strictly under the following lawful conditions:
           </p>
           <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1.5 leading-relaxed">
             <li><strong>Consent:</strong> When you affirmatively subscribe to newsletters or opt in to performance cookies.</li>
@@ -91,62 +89,13 @@
             <li><strong>Right of Access &amp; Correction:</strong> You may request confirmation of personal records held by Headline Central and demand rectification of outdated or inaccurate information.</li>
             <li><strong>Right to Object &amp; Erasure:</strong> You may object to the processing of personal information on reasonable grounds relating to your particular situation and demand deletion.</li>
             <li><strong>Transborder Information Flows:</strong> Cross-border hosting via Google Firebase/Firestore adheres strictly to Section 72 of POPIA, ensuring recipient jurisdictions maintain equivalent data privacy laws.</li>
-            <li><strong>Regulatory Recourse:</strong> Should you believe your data has been handled contrary to POPIA, you have the right to lodge a complaint directly with the <strong>Information Regulator of South Africa</strong> (JD House, 27 Stiemens Street, Braamfontein, Johannesburg | <a href="mailto:POPIAComplaints@inforegulator.org.za" class="text-[#EE5102] underline">POPIAComplaints@inforegulator.org.za</a>).</li>
+            <li><strong>Regulatory Recourse:</strong> Should you believe your data has been handled contrary to POPIA, you have the right to lodge a complaint directly with the <strong>Information Regulator of South Africa</strong> (<a href="mailto:POPIAComplaints@inforegulator.org.za" class="text-[#EE5102] underline">POPIAComplaints@inforegulator.org.za</a>).</li>
           </ul>
         </section>
 
-        <!-- Section 5: European Union & UK GDPR -->
-        <section class="space-y-3 bg-gray-50/80 p-6 rounded-2xl border border-gray-200">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="w-2.5 h-2.5 rounded-full bg-[#EE5102]"></span>
-            <h2 class="text-lg font-bold text-gray-950">5. European Union &amp; UK Readers: GDPR Framework</h2>
-          </div>
-          <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
-            If you access Headline Central from the European Economic Area (EEA) or the United Kingdom, Regulation (EU) 2016/679 grants you enforceable data rights:
-          </p>
-          <ul class="list-disc pl-5 text-xs sm:text-sm text-gray-700 space-y-1.5 leading-relaxed">
-            <li><strong>Right to Erasure ("Right to be Forgotten"):</strong> Demand total purge of stored records where retention is no longer legally justified.</li>
-            <li><strong>Prior Consent for Tracking:</strong> Non-essential analytics and marketing beacons are blocked by default until you grant explicit consent via our cookie interface.</li>
-            <li><strong>International Transfers:</strong> All transfers outside the EEA are governed by the European Commission's approved Standard Contractual Clauses (SCCs).</li>
-            <li><strong>Supervisory Complaints:</strong> You may submit complaints to your national Data Protection Authority (such as the CNIL in France, BfDI in Germany, or the UK Information Commissioner’s Office).</li>
-          </ul>
-        </section>
-
-        <!-- Section 6: United States CCPA / CPRA -->
-        <section class="space-y-3 bg-gray-50/80 p-6 rounded-2xl border border-gray-200">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="w-2.5 h-2.5 rounded-full bg-[#EE5102]"></span>
-            <h2 class="text-lg font-bold text-gray-950">6. United States Readers: CCPA / CPRA Notice</h2>
-          </div>
-          <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
-            Under the <strong>California Consumer Privacy Act (CCPA)</strong> as amended by the <strong>California Privacy Rights Act (CPRA)</strong> and similar statutes across Virginia (VCDPA), Colorado (CPA), and Connecticut (CTDPA):
-          </p>
-          <ul class="list-disc pl-5 text-xs sm:text-sm text-gray-700 space-y-1.5 leading-relaxed">
-            <li><strong>"Do Not Sell or Share My Personal Information":</strong> Headline Central does not sell personal records for monetary consideration. However, cross-context behavioral advertising (such as Meta Pixel beacons) may be classified as "sharing". You have the absolute right to opt out by disabling Targeting &amp; Advertising cookies via our <NuxtLink to="/cookies" class="text-[#EE5102] underline">Cookie Preferences</NuxtLink>.</li>
-            <li><strong>Non-Discrimination Guarantee:</strong> We do not alter content access, degrade page performance, or penalize consumers who exercise privacy rights.</li>
-            <li><strong>Verifiable Consumer Requests:</strong> Submit requests directly via <a href="mailto:privacy@headlinecentral.co.za" class="text-[#EE5102] underline">privacy@headlinecentral.co.za</a> with the subject line <em>"CCPA Consumer Request"</em>.</li>
-          </ul>
-        </section>
-
-        <!-- Section 7: Asia-Pacific Compliance -->
-        <section class="space-y-3 bg-gray-50/80 p-6 rounded-2xl border border-gray-200">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="w-2.5 h-2.5 rounded-full bg-[#EE5102]"></span>
-            <h2 class="text-lg font-bold text-gray-950">7. Asia-Pacific Regional Privacy Frameworks</h2>
-          </div>
-          <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
-            For readers visiting from Singapore, Japan, Australia, and surrounding Asia-Pacific economies, we uphold the <strong>Singapore Personal Data Protection Act (PDPA 2012)</strong>, the <strong>Japanese Act on the Protection of Personal Information (APPI)</strong>, and the <strong>Australian Privacy Principles (APPs)</strong>:
-          </p>
-          <ul class="list-disc pl-5 text-xs sm:text-sm text-gray-700 space-y-1.5 leading-relaxed">
-            <li>Clear notification of processing purposes prior to collecting personal details.</li>
-            <li>Stringent security measures ensuring customer data is never repurposed for unauthorized direct telemarketing.</li>
-            <li>Accessible mechanisms for updating records or withdrawing consent.</li>
-          </ul>
-        </section>
-
-        <!-- Section 8: Advertising & Editorial Independence -->
+        <!-- Section 5: Advertising & Editorial Independence -->
         <section class="space-y-3">
-          <h2 class="text-xl font-semibold text-gray-950">8. Advertising Disclosures, Google AdSense &amp; Affiliate Transparency</h2>
+          <h2 class="text-xl font-semibold text-gray-950">5. Advertising Disclosures, Google AdSense &amp; Affiliate Transparency</h2>
           <p class="text-sm text-gray-700 leading-relaxed">
             Headline Central sustains independent investigative journalism through vetted brand sponsorships, programmatic display units, and Google AdSense:
           </p>
@@ -166,31 +115,30 @@
           </ul>
         </section>
 
-        <!-- Section 9: Cookies & Telemetry -->
+        <!-- Section 6: Cookies & Telemetry -->
         <section class="space-y-3">
-          <h2 class="text-xl font-semibold text-gray-950">9. Cookie Governance &amp; Preference Controls</h2>
+          <h2 class="text-xl font-semibold text-gray-950">6. Cookie Governance &amp; Preference Controls</h2>
           <p class="text-sm text-gray-700 leading-relaxed">
             We categorize cookies into Strictly Necessary, Analytics &amp; Performance, Functional, and Targeting &amp; Advertising. You can adjust your consent choices at any time through our interactive <NuxtLink to="/cookies" class="text-[#EE5102] underline font-medium">Cookie Policy &amp; Consent Center</NuxtLink>.
           </p>
         </section>
 
-        <!-- Section 10: Retention & Security -->
+        <!-- Section 7: Retention & Security -->
         <section class="space-y-3">
-          <h2 class="text-xl font-semibold text-gray-950">10. Data Retention &amp; Cryptographic Security</h2>
+          <h2 class="text-xl font-semibold text-gray-950">7. Data Retention &amp; Cryptographic Security</h2>
           <p class="text-sm text-gray-700 leading-relaxed">
             All personal information is stored on SOC-2 and ISO 27001 certified Google Cloud Firestore infrastructure utilizing AES-256 encryption at rest and TLS 1.3 encryption in transit. Diagnostic server logs are purged after 90 days, while newsletter records are maintained only until you initiate unsubscription.
           </p>
         </section>
 
-        <!-- Section 11: Contact DPO -->
+        <!-- Section 8: Contact Information Officer -->
         <section class="space-y-3 border-t border-gray-100 pt-8">
-          <h2 class="text-xl font-semibold text-gray-950">11. Contact Our Data Protection Officer</h2>
+          <h2 class="text-xl font-semibold text-gray-950">8. Contact Our Information Officer</h2>
           <p class="text-sm text-gray-700 leading-relaxed">
-            For any queries regarding this Privacy Policy or to exercise your statutory rights under POPIA, GDPR, CCPA, or APAC regulations, contact our Compliance Bureau:
+            For any queries regarding this Privacy Policy or to exercise your statutory rights under the POPIA Act, contact our Compliance Bureau:
           </p>
           <div class="text-sm text-gray-700 space-y-1">
-            <p><strong>Email:</strong> <a href="mailto:privacy@headlinecentral.co.za" class="text-[#EE5102] underline">privacy@headlinecentral.co.za</a></p>
-            <p><strong>Bureau Address:</strong> Headline Central Media Group, Sandton / Rosebank Bureau, Gauteng, South Africa</p>
+            <p><strong>Email:</strong> <a href="mailto:support@headlinecentral.co.za" class="text-[#EE5102] underline">support@headlinecentral.co.za</a></p>
             <p><strong>Response Commitment:</strong> Written acknowledgment within 48 hours; full resolution within 30 days.</p>
           </div>
         </section>
