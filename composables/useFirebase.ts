@@ -392,11 +392,21 @@ export const useFirebase = () => {
             u => u.uid === ru.uid || u.email.toLowerCase() === ru.email.toLowerCase()
           )
           if (existingIdx !== -1) {
-            if (!managedUsers[existingIdx].isMaster) {
-              managedUsers[existingIdx] = {
-                ...managedUsers[existingIdx],
-                ...ru
+            const localUser = managedUsers[existingIdx]
+            if (!localUser.isMaster) {
+              const isLocallyApproved = localUser.status === 'active' && Boolean(localUser.approvedAt)
+              const mergedUser: ManagedCmsUser = {
+                ...localUser,
+                ...ru,
+                status: isLocallyApproved ? 'active' : (ru.status || localUser.status),
+                active: isLocallyApproved ? true : (ru.active ?? localUser.active),
+                approvedAt: localUser.approvedAt || ru.approvedAt,
+                approvedBy: localUser.approvedBy || ru.approvedBy,
+                roleKey: isLocallyApproved ? (localUser.roleKey || ru.roleKey) : (ru.roleKey || localUser.roleKey),
+                role: isLocallyApproved ? (localUser.role || ru.role) : (ru.role || localUser.role),
+                permissions: isLocallyApproved ? (localUser.permissions || ru.permissions) : (ru.permissions || localUser.permissions)
               }
+              managedUsers.splice(existingIdx, 1, mergedUser)
             }
           } else {
             managedUsers.push({
@@ -796,22 +806,26 @@ export const useFirebase = () => {
     const target = managedUsers[idx]
     const assignedRoleKey = options?.roleKey || (target.roleKey === 'author' ? 'editor' : target.roleKey) || 'editor'
 
-    target.status = 'active'
-    target.active = true
-    target.roleKey = assignedRoleKey
-    target.role = ROLE_LABELS[assignedRoleKey]
-    target.permissions = options?.permissions || getDefaultPermissionsForRole(assignedRoleKey)
-    target.approvedAt = new Date().toISOString()
-    target.approvedBy = currentUser.value?.email || 'Administrator'
+    const updatedUser: ManagedCmsUser = {
+      ...target,
+      status: 'active',
+      active: true,
+      roleKey: assignedRoleKey,
+      role: ROLE_LABELS[assignedRoleKey],
+      permissions: options?.permissions || getDefaultPermissionsForRole(assignedRoleKey),
+      approvedAt: target.approvedAt || new Date().toISOString(),
+      approvedBy: currentUser.value?.email || 'Administrator'
+    }
 
+    managedUsers.splice(idx, 1, updatedUser)
     persistManagedUsers()
-    await syncUserRecord(target)
+    await syncUserRecord(updatedUser)
 
-    const notif = await dispatchAccountActivationEmail(target)
+    const notif = await dispatchAccountActivationEmail(updatedUser)
 
     return {
       ok: true,
-      message: `Account for ${target.displayName} (${target.email}) approved! Activation push email sent.`,
+      message: `Account for ${updatedUser.displayName} (${updatedUser.email}) approved! Activation push email sent.`,
       notification: notif
     }
   }
@@ -905,9 +919,21 @@ export const useFirebase = () => {
           ? getFirestore(firebaseApp, cfg.databaseId)
           : getFirestore(firebaseApp)
       } catch {
-        firestoreDb = getFirestore(firebaseApp)
+        try {
+          firestoreDb = getFirestore(firebaseApp)
+        } catch {
+          // Firestore fallback
+        }
       }
-      firebaseStorage = getStorage(firebaseApp, `gs://${cfg.storageBucket}`)
+      try {
+        firebaseStorage = getStorage(firebaseApp, `gs://${cfg.storageBucket}`)
+      } catch {
+        try {
+          firebaseStorage = getStorage(firebaseApp)
+        } catch {
+          // Storage fallback
+        }
+      }
 
       // Sync cloud-managed users in the background (non-blocking)
       syncUsersFromCloud().catch(() => {})
@@ -1024,8 +1050,12 @@ export const useFirebase = () => {
     initFirebase()
     syncUsersFromCloud().catch(() => {})
 
+    if (!firebaseAuth) {
+      initFirebase()
+    }
+
     if (!firebaseAuth || !isAuthServiceConfigured.value) {
-      authError.value = 'Google Sign-In requires a live authentication connection. Please sign in with your Email & Password.'
+      authError.value = 'Google Sign-In connection is not initialized. Please ensure your Firebase Authentication is configured and refresh the page.'
       return false
     }
 
