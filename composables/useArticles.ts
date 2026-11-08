@@ -91,6 +91,7 @@ export interface Article {
   galleryCaption?: string
   content?: string
   tags: string[]
+  updatedAt?: string
 }
 
 const sharedArticles = reactive<Article[]>([])
@@ -389,8 +390,14 @@ export const useArticles = () => {
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('hc_cms_custom_articles', JSON.stringify(sharedArticles))
-      } catch (e) {
-        // Ignore storage errors
+      } catch (e: any) {
+        console.warn('[Storage] Warning saving articles to localStorage:', e?.message || e)
+        try {
+          localStorage.removeItem('hc_saved_article_draft')
+          localStorage.setItem('hc_cms_custom_articles', JSON.stringify(sharedArticles))
+        } catch {
+          // Ignore secondary storage error
+        }
       }
     }
   }
@@ -403,46 +410,88 @@ export const useArticles = () => {
       const { fetchFirestoreArticles, saveFirestoreArticle } = useFirebase()
       const remote = await fetchFirestoreArticles()
       if (remote && remote.length > 0) {
-        sharedArticles.splice(0, sharedArticles.length, ...remote)
+        // Intelligently merge remote articles with local articles without overwriting newer local edits
+        for (const rArt of remote) {
+          const localIdx = sharedArticles.findIndex(a => a.id === rArt.id || a.slug === rArt.slug)
+          if (localIdx !== -1) {
+            const localArt = sharedArticles[localIdx]
+            const localTime = new Date(localArt.updatedAt || localArt.publishedAt || 0).getTime()
+            const remoteTime = new Date(rArt.updatedAt || rArt.publishedAt || 0).getTime()
+
+            if (localTime > remoteTime) {
+              // Local version is newer (user updated images/content locally); push local state to cloud
+              await saveFirestoreArticle(localArt).catch(() => {})
+            } else {
+              // Remote version is newer or equal; update local state
+              sharedArticles.splice(localIdx, 1, { ...localArt, ...rArt })
+            }
+          } else {
+            // New remote article not found locally; add it
+            sharedArticles.push(rArt)
+          }
+        }
+
+        // Push any newly created local articles that don't exist in remote yet
+        for (const lArt of sharedArticles) {
+          const existsInRemote = remote.some(r => r.id === lArt.id || r.slug === lArt.slug)
+          if (!existsInRemote) {
+            await saveFirestoreArticle(lArt).catch(() => {})
+          }
+        }
+
         persistArticles()
       } else if (remote && remote.length === 0 && sharedArticles.length > 0) {
-        // Seed initial article into Firestore DB "headline-central"
-        await saveFirestoreArticle(sharedArticles[0])
+        // Seed initial articles into Firestore DB "headline-central"
+        for (const art of sharedArticles) {
+          await saveFirestoreArticle(art).catch(() => {})
+        }
       }
     } catch {
       // Ignore if Firestore is offline or unconfigured
     }
   }
 
-  const addArticle = async (newArticle: Article) => {
-    sharedArticles.unshift(newArticle)
+  const addArticle = async (newArticle: Article): Promise<Article> => {
+    const stampedArticle: Article = {
+      ...newArticle,
+      updatedAt: newArticle.updatedAt || new Date().toISOString()
+    }
+    sharedArticles.unshift(stampedArticle)
     persistArticles()
     if (typeof window !== 'undefined') {
       const { saveFirestoreArticle } = useFirebase()
-      await saveFirestoreArticle(newArticle)
+      await saveFirestoreArticle(stampedArticle).catch(() => {})
     }
+    return stampedArticle
   }
 
-  const updateArticle = async (id: string, updated: Partial<Article>) => {
-    const idx = sharedArticles.findIndex(a => a.id === id)
+  const updateArticle = async (id: string, updated: Partial<Article>): Promise<Article | undefined> => {
+    const idx = sharedArticles.findIndex(a => a.id === id || a.slug === id)
     if (idx !== -1) {
-      sharedArticles[idx] = { ...sharedArticles[idx], ...updated }
+      const merged: Article = {
+        ...sharedArticles[idx],
+        ...updated,
+        updatedAt: new Date().toISOString()
+      }
+      sharedArticles.splice(idx, 1, merged)
       persistArticles()
       if (typeof window !== 'undefined') {
         const { saveFirestoreArticle } = useFirebase()
-        await saveFirestoreArticle(sharedArticles[idx])
+        await saveFirestoreArticle(merged).catch(() => {})
       }
+      return merged
     }
+    return undefined
   }
 
   const deleteArticle = async (id: string) => {
-    const idx = sharedArticles.findIndex(a => a.id === id)
+    const idx = sharedArticles.findIndex(a => a.id === id || a.slug === id)
     if (idx !== -1) {
       sharedArticles.splice(idx, 1)
       persistArticles()
       if (typeof window !== 'undefined') {
         const { deleteFirestoreArticle } = useFirebase()
-        await deleteFirestoreArticle(id)
+        await deleteFirestoreArticle(id).catch(() => {})
       }
     }
   }

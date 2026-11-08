@@ -112,8 +112,8 @@ const props = withDefaults(
 const normalizedImages = computed<GalleryItem[]>(() =>
   props.images.slice(0, 12).map((item, idx) =>
     typeof item === 'string'
-      ? { src: item, alt: `Gallery image ${idx + 1}` }
-      : { src: item.src, alt: item.alt || `Gallery image ${idx + 1}` }
+      ? { src: useAsset(item), alt: `Gallery image ${idx + 1}` }
+      : { src: useAsset(item.src), alt: item.alt || `Gallery image ${idx + 1}` }
   )
 )
 

@@ -24,7 +24,7 @@
         <div>
           <NuxtLink :to="`/blog/${item.slug}`" class="block aspect-[16/10] overflow-hidden bg-gray-100">
             <img
-              :src="item.featuredImage"
+              :src="useAsset(item.featuredImage)"
               :alt="item.title"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />

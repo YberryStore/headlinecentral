@@ -67,7 +67,7 @@
           <div>
             <div class="relative aspect-[16/10] overflow-hidden bg-gray-100">
               <img
-                :src="article.featuredImage"
+                :src="useAsset(article.featuredImage)"
                 :alt="article.title"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
               />

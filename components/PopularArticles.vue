@@ -35,7 +35,7 @@
           <!-- Thumbnail -->
           <NuxtLink :to="`/blog/${item.slug}`" class="block aspect-video rounded-xl overflow-hidden mb-3.5 bg-gray-100">
             <img
-              :src="item.featuredImage"
+              :src="useAsset(item.featuredImage)"
               :alt="item.title"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />

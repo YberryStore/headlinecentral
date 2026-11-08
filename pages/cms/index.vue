@@ -293,6 +293,19 @@
 
       <!-- Main White Canvas Container -->
       <main class="flex-1 bg-white rounded-[28px] overflow-hidden flex flex-col min-h-[calc(100vh-7.5rem)]">
+        <!-- Global Feedback / Status Banner -->
+        <div
+          v-if="userFeedbackMessage"
+          class="m-6 sm:m-8 mb-0 px-4 py-3 rounded-2xl text-xs font-medium flex items-center justify-between shadow-sm animate-fade-in"
+          :class="userFeedbackType === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'"
+        >
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full" :class="userFeedbackType === 'error' ? 'bg-red-500' : 'bg-emerald-500'"></span>
+            <span>{{ userFeedbackMessage }}</span>
+          </div>
+          <button @click="userFeedbackMessage = ''" type="button" class="text-current font-bold ml-4 hover:opacity-75">&times;</button>
+        </div>
+
         <!-- TAB 1: DASHBOARD (Matches reference clean white canvas) -->
         <div v-if="activeTab === 'dashboard'" class="flex-1 p-6 sm:p-8">
           <!-- Clean canvas matching reference design -->
@@ -325,7 +338,7 @@
             >
               <div class="flex items-start sm:items-center gap-4 min-w-0">
                 <img
-                  :src="item.bannerImage || item.featuredImage"
+                  :src="resolvePreviewUrl(item.bannerImage || item.featuredImage)"
                   :alt="item.bannerAlt || item.title"
                   class="w-24 h-14 rounded-xl object-cover flex-shrink-0 bg-gray-100"
                 />
@@ -2908,19 +2921,34 @@ const slugify = (text: string) =>
 
 const resolvePreviewUrl = (url: string) => {
   if (!url) return ''
-  if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
-    return url
+  const trimmed = url.trim()
+  if (
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://')
+  ) {
+    return trimmed
   }
-  return useAsset(url)
+  return useAsset(trimmed)
 }
 
 const handleFileUpload = async (event: Event, onLoaded: (url: string) => void) => {
   const input = event.target as HTMLInputElement
   const file = input?.files?.[0]
   if (!file) return
-  const uploadedUrl = await uploadFileToStorage(file, 'blogs')
-  if (uploadedUrl) {
-    onLoaded(uploadedUrl)
+  try {
+    const uploadedUrl = await uploadFileToStorage(file, 'blogs')
+    if (uploadedUrl) {
+      onLoaded(uploadedUrl)
+      userFeedbackType.value = 'success'
+      userFeedbackMessage.value = `Image "${file.name}" uploaded and attached successfully!`
+    }
+  } catch (err: any) {
+    userFeedbackType.value = 'error'
+    userFeedbackMessage.value = `Upload failed: ${err?.message || 'Unsupported format or file too large.'}`
+  } finally {
+    if (input) input.value = ''
   }
 }
 
@@ -2928,12 +2956,21 @@ const handleMediaLibraryUpload = async (event: Event) => {
   const input = event.target as HTMLInputElement
   const file = input?.files?.[0]
   if (!file) return
-  const uploadedUrl = await uploadFileToStorage(file, 'blogs')
-  if (uploadedUrl) {
-    cloudMediaAssets.value.unshift({
-      name: file.name,
-      path: uploadedUrl
-    })
+  try {
+    const uploadedUrl = await uploadFileToStorage(file, 'blogs')
+    if (uploadedUrl) {
+      cloudMediaAssets.value.unshift({
+        name: file.name,
+        path: uploadedUrl
+      })
+      userFeedbackType.value = 'success'
+      userFeedbackMessage.value = `Media item "${file.name}" uploaded to cloud library!`
+    }
+  } catch (err: any) {
+    userFeedbackType.value = 'error'
+    userFeedbackMessage.value = `Media upload failed: ${err?.message || 'Unsupported file type.'}`
+  } finally {
+    if (input) input.value = ''
   }
 }
 
@@ -3043,8 +3080,11 @@ const previewArticleObject = computed<Article>(() => {
   const matchedSub = matchedCat?.subCategories?.find(s => s.name === subName)
   const subSlug = matchedSub?.slug || (subName ? slugify(subName) : undefined)
 
-  const desktopBanner = resolvePreviewUrl(editorForm.bannerImage)
-  const mobileBanner = resolvePreviewUrl(editorForm.bannerImageMobile || editorForm.bannerImage)
+  const cleanBannerDesktop = (editorForm.bannerImage || '').trim()
+  const cleanBannerMobile = (editorForm.bannerImageMobile || editorForm.bannerImage || '').trim()
+
+  const desktopBanner = resolvePreviewUrl(cleanBannerDesktop)
+  const mobileBanner = resolvePreviewUrl(cleanBannerMobile)
 
   const builtSections: ArticleSection[] = editorForm.sections.map((sec, idx) => {
     const sectionObj: ArticleSection = {
@@ -3052,12 +3092,15 @@ const previewArticleObject = computed<Article>(() => {
       title: sec.title || `Section ${idx + 1}`,
       content: sec.content
     }
-    if (sec.hasImage && (sec.imageSrc || sec.imageMobileSrc)) {
+    const cleanImgSrc = (sec.imageSrc || '').trim()
+    const cleanImgMobileSrc = (sec.imageMobileSrc || '').trim()
+
+    if (sec.hasImage && (cleanImgSrc || cleanImgMobileSrc)) {
       sectionObj.image = {
-        src: resolvePreviewUrl(sec.imageSrc || sec.imageMobileSrc),
-        mobileSrc: resolvePreviewUrl(sec.imageMobileSrc || sec.imageSrc),
-        alt: sec.imageAlt || sec.title || 'Section image',
-        caption: sec.imageCaption || ''
+        src: resolvePreviewUrl(cleanImgSrc || cleanImgMobileSrc),
+        mobileSrc: resolvePreviewUrl(cleanImgMobileSrc || cleanImgSrc),
+        alt: (sec.imageAlt || sec.title || 'Section image').trim(),
+        caption: (sec.imageCaption || '').trim()
       }
     }
     if (sec.includeHtml && sec.htmlContent) {
@@ -3071,10 +3114,10 @@ const previewArticleObject = computed<Article>(() => {
 
   const builtGallery: GalleryItem[] = editorForm.galleryItems
     .slice(0, 12)
-    .filter(g => Boolean(g.src))
+    .filter(g => Boolean(g.src && g.src.trim()))
     .map((g, idx) => ({
-      src: resolvePreviewUrl(g.src),
-      alt: g.alt || `Gallery image ${idx + 1}`
+      src: resolvePreviewUrl(g.src.trim()),
+      alt: (g.alt || `Gallery image ${idx + 1}`).trim()
     }))
 
   return {
@@ -3093,8 +3136,8 @@ const previewArticleObject = computed<Article>(() => {
     featuredImage: mobileBanner || desktopBanner,
     bannerImage: desktopBanner,
     bannerImageMobile: mobileBanner,
-    bannerAlt: editorForm.bannerAlt || editorForm.title || 'Blog Hero Banner',
-    imageCaption: editorForm.imageCaption || '',
+    bannerAlt: (editorForm.bannerAlt || editorForm.title || 'Blog Hero Banner').trim(),
+    imageCaption: (editorForm.imageCaption || '').trim(),
     publishedAt: editorForm.publishedAt || '2026 November 7',
     readTime: editorForm.readTime || '5 min read',
     views: 1,
@@ -3103,7 +3146,7 @@ const previewArticleObject = computed<Article>(() => {
     author: authors.marcus,
     sections: builtSections,
     galleryItems: builtGallery,
-    galleryCaption: editorForm.galleryCaption || '',
+    galleryCaption: (editorForm.galleryCaption || '').trim(),
     tags: editorForm.tagsInput
       .split(',')
       .map(t => t.trim())
@@ -3221,38 +3264,51 @@ const editBlog = (article: Article) => {
   activeTab.value = 'editor'
 }
 
-const saveBlogPost = () => {
+const saveBlogPost = async () => {
   const built = previewArticleObject.value
-  if (editingArticleId.value) {
-    updateArticle(editingArticleId.value, {
-      title: built.title,
-      titleHighlight: built.titleHighlight,
-      excerpt: built.excerpt,
-      seoTitle: built.seoTitle,
-      metaDescription: built.metaDescription,
-      category: built.category,
-      categorySlug: built.categorySlug,
-      subCategory: built.subCategory,
-      subCategorySlug: built.subCategorySlug,
-      featuredImage: built.featuredImage,
-      bannerImage: built.bannerImage,
-      bannerImageMobile: built.bannerImageMobile,
-      bannerAlt: built.bannerAlt,
-      imageCaption: built.imageCaption,
-      publishedAt: built.publishedAt,
-      readTime: built.readTime,
-      sections: built.sections,
-      galleryItems: built.galleryItems,
-      galleryCaption: built.galleryCaption,
-      tags: built.tags
-    })
-  } else {
-    addArticle({
-      ...built,
-      id: `art-${Date.now()}`
-    })
+  const cleanTitle = (built.title || 'Untitled Blog Post').trim()
+
+  try {
+    if (editingArticleId.value) {
+      await updateArticle(editingArticleId.value, {
+        title: cleanTitle,
+        titleHighlight: built.titleHighlight,
+        excerpt: built.excerpt,
+        seoTitle: built.seoTitle,
+        metaDescription: built.metaDescription,
+        category: built.category,
+        categorySlug: built.categorySlug,
+        subCategory: built.subCategory,
+        subCategorySlug: built.subCategorySlug,
+        featuredImage: built.featuredImage,
+        bannerImage: built.bannerImage,
+        bannerImageMobile: built.bannerImageMobile,
+        bannerAlt: built.bannerAlt,
+        imageCaption: built.imageCaption,
+        publishedAt: built.publishedAt,
+        readTime: built.readTime,
+        sections: built.sections,
+        galleryItems: built.galleryItems,
+        galleryCaption: built.galleryCaption,
+        tags: built.tags
+      })
+      userFeedbackType.value = 'success'
+      userFeedbackMessage.value = `Blog article "${cleanTitle}" and updated image URLs saved successfully!`
+    } else {
+      const newId = `art-${Date.now()}`
+      await addArticle({
+        ...built,
+        id: newId,
+        title: cleanTitle
+      })
+      userFeedbackType.value = 'success'
+      userFeedbackMessage.value = `New blog article "${cleanTitle}" created and saved successfully!`
+    }
+    activeTab.value = 'blogs'
+  } catch (err: any) {
+    userFeedbackType.value = 'error'
+    userFeedbackMessage.value = `Error saving blog: ${err?.message || 'Storage write failed'}`
   }
-  activeTab.value = 'blogs'
 }
 
 const handleDeleteBlog = (id: string) => {

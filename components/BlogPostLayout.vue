@@ -41,10 +41,10 @@
           <source
             v-if="article.bannerImageMobile"
             media="(max-width: 639px)"
-            :srcset="article.bannerImageMobile"
+            :srcset="useAsset(article.bannerImageMobile)"
           />
           <img
-            :src="article.bannerImage || article.featuredImage || article.bannerImageMobile"
+            :src="useAsset(article.bannerImage || article.featuredImage || article.bannerImageMobile)"
             :alt="article.bannerAlt || article.title"
             class="w-full h-auto aspect-[2/1] object-cover object-center"
           />
@@ -95,10 +95,10 @@
                   <source
                     v-if="section.image.mobileSrc"
                     media="(max-width: 639px)"
-                    :srcset="section.image.mobileSrc"
+                    :srcset="useAsset(section.image.mobileSrc)"
                   />
                   <img
-                    :src="section.image.src || section.image.mobileSrc"
+                    :src="useAsset(section.image.src || section.image.mobileSrc)"
                     :alt="section.image.alt || section.title"
                     class="w-full h-auto object-cover"
                   />
