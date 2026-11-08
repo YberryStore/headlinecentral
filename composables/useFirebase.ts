@@ -22,7 +22,9 @@ import {
   deleteDoc,
   query,
   orderBy,
-  type Firestore
+  onSnapshot,
+  type Firestore,
+  type Unsubscribe
 } from 'firebase/firestore'
 import {
   getStorage,
@@ -190,6 +192,7 @@ let firebaseAuth: Auth | null = null
 let firestoreDb: Firestore | null = null
 let firebaseStorage: FirebaseStorage | null = null
 let authListenerInitialized = false
+let usersSnapshotUnsubscribe: Unsubscribe | null = null
 
 export const useFirebase = () => {
   const runtimeConfig = useRuntimeConfig()
@@ -371,8 +374,60 @@ export const useFirebase = () => {
     try {
       const userDocRef = doc(firestoreDb, 'users', user.uid)
       await setDoc(userDocRef, JSON.parse(JSON.stringify(user)), { merge: true })
-    } catch {
-      // Do not expose internal errors
+      console.log('[Firestore] Synced user record to cloud:', user.email, user.uid)
+    } catch (err: any) {
+      console.warn('[Firestore] Failed to sync user record to cloud:', err?.message || err)
+    }
+  }
+
+  /**
+   * Real-time listener for Firestore `users` collection.
+   * Ensures newly registered Google/Email users immediately appear in the admin queue in real time.
+   */
+  const startUsersRealtimeListener = () => {
+    if (typeof window === 'undefined' || !firestoreDb || !isAuthServiceConfigured.value) return
+    if (usersSnapshotUnsubscribe) return
+
+    try {
+      const usersCol = collection(firestoreDb, 'users')
+      usersSnapshotUnsubscribe = onSnapshot(usersCol, (snap) => {
+        if (snap.empty) return
+        const remoteUsers = snap.docs.map(d => d.data() as ManagedCmsUser)
+        for (const ru of remoteUsers) {
+          if (!ru.email) continue
+          const existingIdx = managedUsers.findIndex(
+            u => u.uid === ru.uid || u.email.toLowerCase() === ru.email.toLowerCase()
+          )
+          if (existingIdx !== -1) {
+            const localUser = managedUsers[existingIdx]
+            if (!localUser.isMaster) {
+              const isLocallyApproved = localUser.status === 'active' && Boolean(localUser.approvedAt)
+              const mergedUser: ManagedCmsUser = {
+                ...localUser,
+                ...ru,
+                status: isLocallyApproved ? 'active' : (ru.status || localUser.status),
+                active: isLocallyApproved ? true : (ru.active ?? localUser.active),
+                approvedAt: localUser.approvedAt || ru.approvedAt,
+                approvedBy: localUser.approvedBy || ru.approvedBy,
+                roleKey: isLocallyApproved ? (localUser.roleKey || ru.roleKey) : (ru.roleKey || localUser.roleKey),
+                role: isLocallyApproved ? (localUser.role || ru.role) : (ru.role || localUser.role),
+                permissions: isLocallyApproved ? (localUser.permissions || ru.permissions) : (ru.permissions || localUser.permissions)
+              }
+              managedUsers.splice(existingIdx, 1, mergedUser)
+            }
+          } else {
+            managedUsers.push({
+              ...ru,
+              environment: ru.environment || 'live'
+            })
+          }
+        }
+        persistManagedUsers()
+      }, (err) => {
+        console.warn('[Firestore] Users real-time listener notice:', err.message)
+      })
+    } catch (err) {
+      console.warn('[Firestore] Failed to attach users snapshot listener:', err)
     }
   }
 
@@ -417,8 +472,8 @@ export const useFirebase = () => {
         }
         persistManagedUsers()
       }
-    } catch {
-      // Ignore offline/permission errors silently
+    } catch (err: any) {
+      console.warn('[Firestore] syncUsersFromCloud error:', err?.message || err)
     }
   }
 
@@ -935,8 +990,9 @@ export const useFirebase = () => {
         }
       }
 
-      // Sync cloud-managed users in the background (non-blocking)
+      // Sync cloud-managed users and attach real-time listener
       syncUsersFromCloud().catch(() => {})
+      startUsersRealtimeListener()
 
       const validateGoogleAuthenticatedUser = (fbUser: FirebaseUser): { allowed: boolean; error?: string } => {
         const isGoogle = fbUser.providerData?.some(p => p.providerId === 'google.com')
@@ -1096,6 +1152,17 @@ export const useFirebase = () => {
 
       // If NOT yet approved by an administrator
       if (matchedManaged && (matchedManaged.status !== 'active' || !matchedManaged.approvedAt || matchedManaged.active === false)) {
+        matchedManaged.uid = cred.user.uid
+        matchedManaged.provider = 'google'
+        if (cred.user.photoURL) matchedManaged.photoURL = cred.user.photoURL
+        if (cred.user.displayName && (!matchedManaged.displayName || matchedManaged.displayName === 'YBerry User')) {
+          matchedManaged.displayName = cred.user.displayName
+        }
+        matchedManaged.status = 'pending'
+        matchedManaged.active = false
+        persistManagedUsers()
+        await syncUserRecord(matchedManaged)
+
         pendingApprovalInfo.value = {
           email: emailLower,
           displayName: matchedManaged.displayName,
