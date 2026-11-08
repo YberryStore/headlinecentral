@@ -32,6 +32,10 @@ export default defineNuxtConfig({
         gtmId: process.env.NUXT_PUBLIC_GTM_ID || '',
         ga4Id: process.env.NUXT_PUBLIC_GA4_ID || 'G-TD8S7EFPLV',
         metaPixelId: process.env.NUXT_PUBLIC_META_PIXEL_ID || ''
+      },
+      gateway: {
+        username: process.env.NUXT_PUBLIC_CMS_GATEWAY_USERNAME || '@Dm1n902@6!',
+        password: process.env.NUXT_PUBLIC_CMS_GATEWAY_PASSWORD || 'CMsL@g!n2@26!'
       }
     }
   },

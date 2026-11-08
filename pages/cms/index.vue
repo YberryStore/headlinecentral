@@ -1390,6 +1390,94 @@
             <button @click="userFeedbackMessage = ''" type="button" class="text-current font-bold ml-4">&times;</button>
           </div>
 
+          <!-- GATEKEEPER SECURITY INCIDENTS & BLOCKED TERMINAL REQUESTS -->
+          <div
+            v-if="hasPermission('canManageUsers') && blockedRecords.length > 0"
+            class="p-5 sm:p-6 rounded-2xl border-2 border-red-300 bg-red-50/60 space-y-4 max-w-4xl shadow-sm"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-red-200/80 pb-3.5">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-red-200 text-red-950 flex items-center justify-center font-bold text-sm">
+                  {{ blockedRecords.filter(r => r.status === 'blocked').length }}
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold text-gray-950 flex items-center gap-2">
+                    Security Gateway Lockouts &amp; Rescue Requests
+                    <span
+                      v-if="blockedRecords.some(r => r.status === 'blocked')"
+                      class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-200 text-red-900 animate-pulse"
+                    >
+                      Action Required
+                    </span>
+                  </h3>
+                  <p class="text-xs text-gray-600 mt-0.5">
+                    Terminal lockout events triggered after 3 failed attempts and post-cooldown authentication failure.
+                  </p>
+                </div>
+              </div>
+              <button
+                @click="handleResetAllTerminalLocks"
+                type="button"
+                class="px-3 py-1.5 rounded-xl border border-red-300 text-xs font-semibold text-red-950 bg-red-100 hover:bg-red-200 transition-colors"
+                title="Emergency master reset of all client lockouts"
+              >
+                Reset All Terminal Locks
+              </button>
+            </div>
+
+            <!-- List of Blocked Incident Cards -->
+            <div class="space-y-3">
+              <div
+                v-for="rec in blockedRecords"
+                :key="rec.id"
+                class="p-4 rounded-xl border border-red-200 bg-white shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs"
+              >
+                <div class="space-y-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-bold text-gray-950">{{ rec.rescueEmail }}</span>
+                    <span
+                      class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                      :class="rec.status === 'blocked' ? 'bg-red-100 text-red-800 border border-red-200' : rec.status === 'whitelisted' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'"
+                    >
+                      {{ rec.status }}
+                    </span>
+                    <span class="text-[11px] text-gray-400">Date: {{ rec.timestamp ? rec.timestamp.split('T')[0] : 'Today' }}</span>
+                  </div>
+                  <div class="text-[11px] text-gray-500 font-mono flex flex-wrap items-center gap-3">
+                    <span>IP: <strong>{{ rec.clientIp }}</strong></span>
+                    <span>Attempted User: {{ rec.attemptedUsername }}</span>
+                    <span>URL: {{ rec.websiteUrl }}</span>
+                  </div>
+                  <p v-if="rec.rescueNotes" class="text-[11px] text-gray-700 italic bg-gray-50 p-2 rounded-lg border border-gray-100">
+                    Rescue Note: &ldquo;{{ rec.rescueNotes }}&rdquo;
+                  </p>
+                  <p v-if="rec.unblockedAt" class="text-[10px] text-emerald-700 font-medium">
+                    Cleared on {{ rec.unblockedAt.split('T')[0] }} by {{ rec.unblockedBy || 'Administrator' }}
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    v-if="rec.status === 'blocked'"
+                    @click="handleAdminUnblock(rec)"
+                    type="button"
+                    class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors shadow-sm"
+                  >
+                    Unblock Email
+                  </button>
+                  <button
+                    v-if="rec.status !== 'whitelisted'"
+                    @click="handleAdminWhitelist(rec)"
+                    type="button"
+                    class="px-3.5 py-1.5 rounded-lg border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-800 font-semibold transition-colors"
+                  >
+                    Whitelist IP
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- PENDING ACCOUNT APPROVALS QUEUE (Google & Email Registration Requests) -->
           <div
             v-if="hasPermission('canManageUsers') && pendingUsers.length > 0"
@@ -2200,18 +2288,31 @@
                     Signed in as {{ currentUser?.email }}
                   </p>
                 </div>
-                <button
-                  @click="handleLogout"
-                  type="button"
-                  class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium transition-colors shadow-sm"
-                >
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                  <span>Sign Out</span>
-                </button>
+                <div class="flex flex-wrap items-center gap-2">
+                  <button
+                    @click="handleLogout({ lockGateway: true })"
+                    type="button"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 text-xs font-medium transition-colors shadow-sm"
+                    title="Sign out and re-arm Layer 1 Security Gateway"
+                  >
+                    <svg class="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>Lock Gateway</span>
+                  </button>
+                  <button
+                    @click="handleLogout()"
+                    type="button"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium transition-colors shadow-sm"
+                  >
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2326,6 +2427,7 @@ import {
   type NotificationLog
 } from '~/composables/useFirebase'
 import { sanitizeHtml } from '~/composables/useMarkdown'
+import { useCmsGateway, type SecurityBlockedRecord } from '~/composables/useCmsGateway'
 
 definePageMeta({
   layout: false
@@ -2353,6 +2455,34 @@ interface EditableSectionForm {
 }
 
 const router = useRouter()
+const {
+  checkGatewayAuth,
+  lockGateway,
+  blockedRecords,
+  whitelistedIps,
+  unblockedEmails,
+  adminUnblockEmail,
+  adminWhitelistIp,
+  adminResetTerminalLock
+} = useCmsGateway()
+
+const handleAdminUnblock = async (rec: SecurityBlockedRecord) => {
+  await adminUnblockEmail(rec.id, rec.rescueEmail)
+  userFeedbackType.value = 'success'
+  userFeedbackMessage.value = `Terminal access restored: ${rec.rescueEmail} has been unblocked.`
+}
+
+const handleAdminWhitelist = async (rec: SecurityBlockedRecord) => {
+  await adminWhitelistIp(rec.id, rec.clientIp)
+  userFeedbackType.value = 'success'
+  userFeedbackMessage.value = `Client IP ${rec.clientIp} has been whitelisted for ${rec.rescueEmail}.`
+}
+
+const handleResetAllTerminalLocks = () => {
+  adminResetTerminalLock()
+  userFeedbackType.value = 'success'
+  userFeedbackMessage.value = 'All terminal lockouts and attempt counters have been reset by Master Admin.'
+}
 const {
   articles,
   categories,
@@ -2695,6 +2825,11 @@ const handleRemoveUser = async (u: ManagedCmsUser) => {
 }
 
 onMounted(async () => {
+  if (!checkGatewayAuth()) {
+    router.replace('/cms/login')
+    return
+  }
+
   initFirebase()
 
   if (
@@ -2731,8 +2866,11 @@ const handleConnectGoogleAccount = async () => {
   }
 }
 
-const handleLogout = async () => {
+const handleLogout = async (options?: { lockGateway?: boolean }) => {
   await logoutUser()
+  if (options?.lockGateway) {
+    lockGateway()
+  }
   router.replace('/cms/login')
 }
 
