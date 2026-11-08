@@ -61,6 +61,8 @@ export interface CategoryMeta {
   subCategories?: SubCategoryMeta[]
 }
 
+export type ArticleStatus = 'published' | 'draft'
+
 export interface Article {
   id: string
   slug: string
@@ -83,6 +85,8 @@ export interface Article {
   publishedAt: string
   readTime: string
   views: number
+  status?: ArticleStatus // 'published' | 'draft' (default 'published')
+  isPublished?: boolean
   isFeatured?: boolean
   isPopular?: boolean
   author: Author
@@ -373,21 +377,35 @@ export const useArticles = () => {
   }
 
   const getArticlesByCategory = (categorySlug: string) => {
-    return articles.filter(a => a.categorySlug === categorySlug)
+    return articles.filter(a => a.categorySlug === categorySlug && a.status !== 'draft')
   }
 
   const getPopularArticles = (): Article[] => {
-    const popular = articles.filter(a => a.isPopular).sort((a, b) => (b.views || 0) - (a.views || 0))
+    const published = articles.filter(a => a.status !== 'draft')
+    const popular = published.filter(a => a.isPopular).sort((a, b) => (b.views || 0) - (a.views || 0))
     if (popular.length > 0) return popular
-    return [...articles].sort((a, b) => (b.views || 0) - (a.views || 0))
+    return [...published].sort((a, b) => (b.views || 0) - (a.views || 0))
   }
 
   const getFeaturedArticle = (): Article | undefined => {
-    return articles.find(a => a.isFeatured) || articles[0] || undefined
+    const published = articles.filter(a => a.status !== 'draft')
+    return published.find(a => a.isFeatured) || published[0] || undefined
   }
 
   const getLatestArticles = (limit = 6) => {
-    return [...articles].slice(0, limit)
+    const published = articles.filter(a => a.status !== 'draft')
+    return [...published].slice(0, limit)
+  }
+
+  const toggleArticleStatus = async (id: string): Promise<Article | undefined> => {
+    const art = sharedArticles.find(a => a.id === id || a.slug === id)
+    if (!art) return undefined
+    const isCurrentlyDraft = art.status === 'draft'
+    const newStatus: ArticleStatus = isCurrentlyDraft ? 'published' : 'draft'
+    return updateArticle(art.id, {
+      status: newStatus,
+      isPublished: newStatus === 'published'
+    })
   }
 
   const getCategoryMeta = (slug: string): CategoryMeta | undefined => {
@@ -493,7 +511,8 @@ export const useArticles = () => {
     getPopularArticles,
     getFeaturedArticle,
     getLatestArticles,
-    getCategoryMeta
+    getCategoryMeta,
+    toggleArticleStatus
   }
 }
 

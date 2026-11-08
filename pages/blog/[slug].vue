@@ -1,5 +1,15 @@
 <template>
   <div>
+    <!-- Draft Preview Notice Banner -->
+    <div
+      v-if="article && article.status === 'draft'"
+      class="bg-amber-500 text-white px-4 py-2 text-center text-xs font-semibold tracking-wide flex items-center justify-center gap-2 shadow-sm sticky top-0 z-50"
+    >
+      <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+      <span>DRAFT PREVIEW MODE — This article is saved as a draft and is not visible to public readers.</span>
+      <NuxtLink to="/cms" class="underline text-white font-bold ml-2">Open CMS Editor</NuxtLink>
+    </div>
+
     <!-- Unified Dynamic Blog Layout Component -->
     <BlogPostLayout v-if="article" :article="article" />
 

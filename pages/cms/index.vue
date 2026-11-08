@@ -397,9 +397,40 @@
         <div v-else-if="activeTab === 'blogs'" class="flex-1 p-6 sm:p-8 overflow-y-auto">
           <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-100">
             <div>
-              <h2 class="text-xl font-semibold text-gray-900">Published Blogs ({{ filteredCmsArticles.length }})</h2>
-              <p class="text-xs text-gray-400 mt-0.5">
-                Click Edit to manage Hero Banners (Desktop &amp; Mobile), Content Sections, and the 12-Image Gallery.
+              <div class="flex flex-wrap items-center gap-3">
+                <h2 class="text-xl font-semibold text-gray-900">Articles &amp; Blogs ({{ articles.length }})</h2>
+                <!-- Filter Pills: All / Published / Drafts -->
+                <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-full text-xs">
+                  <button
+                    @click="blogStatusFilter = 'all'"
+                    type="button"
+                    :class="blogStatusFilter === 'all' ? 'bg-white text-gray-900 font-semibold shadow-xs' : 'text-gray-500 hover:text-gray-900'"
+                    class="px-3 py-1 rounded-full transition-all"
+                  >
+                    All ({{ articles.length }})
+                  </button>
+                  <button
+                    @click="blogStatusFilter = 'published'"
+                    type="button"
+                    :class="blogStatusFilter === 'published' ? 'bg-white text-emerald-700 font-semibold shadow-xs' : 'text-gray-500 hover:text-gray-900'"
+                    class="px-3 py-1 rounded-full transition-all flex items-center gap-1.5"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Published ({{ publishedBlogsCount }})</span>
+                  </button>
+                  <button
+                    @click="blogStatusFilter = 'draft'"
+                    type="button"
+                    :class="blogStatusFilter === 'draft' ? 'bg-white text-amber-700 font-semibold shadow-xs' : 'text-gray-500 hover:text-gray-900'"
+                    class="px-3 py-1 rounded-full transition-all flex items-center gap-1.5"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    <span>Drafts ({{ draftBlogsCount }})</span>
+                  </button>
+                </div>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">
+                Use the toggle switch on any blog to publish it to the live site or save it as an internal draft.
               </p>
             </div>
             <button
@@ -448,13 +479,32 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-2 flex-shrink-0">
+              <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
+                <!-- Draft / Publish Toggle Switch -->
+                <div class="flex items-center gap-2 bg-gray-50 border border-gray-200/80 px-3 py-1.5 rounded-full">
+                  <label class="relative inline-flex items-center cursor-pointer" :title="item.status === 'draft' ? 'Click to Publish' : 'Click to save as Draft'">
+                    <input
+                      type="checkbox"
+                      :checked="item.status !== 'draft'"
+                      @change="handleToggleArticlePublish(item.id)"
+                      class="sr-only peer"
+                    />
+                    <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#EE5102]"></div>
+                  </label>
+                  <span
+                    :class="item.status === 'draft' ? 'text-amber-700 font-semibold' : 'text-emerald-700 font-semibold'"
+                    class="text-[11px] select-none"
+                  >
+                    {{ item.status === 'draft' ? 'Draft' : 'Published' }}
+                  </span>
+                </div>
+
                 <NuxtLink
                   :to="`/blog/${item.slug}`"
                   target="_blank"
                   class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
                 >
-                  View Live
+                  {{ item.status === 'draft' ? 'Preview' : 'View Live' }}
                 </NuxtLink>
                 <button
                   v-if="hasPermission('canManageBlogs')"
@@ -499,6 +549,25 @@
               </p>
             </div>
             <div class="flex items-center gap-2.5">
+              <!-- Publication Status Toggle -->
+              <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3.5 py-1.5 rounded-full">
+                <label class="relative inline-flex items-center cursor-pointer" :title="editorForm.status === 'draft' ? 'Switch to Published' : 'Switch to Draft'">
+                  <input
+                    type="checkbox"
+                    :checked="editorForm.status !== 'draft'"
+                    @change="editorForm.status = editorForm.status === 'draft' ? 'published' : 'draft'"
+                    class="sr-only peer"
+                  />
+                  <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#EE5102]"></div>
+                </label>
+                <span
+                  :class="editorForm.status === 'draft' ? 'text-amber-700 font-semibold' : 'text-emerald-700 font-semibold'"
+                  class="text-xs select-none"
+                >
+                  {{ editorForm.status === 'draft' ? 'Draft Mode' : 'Live / Published' }}
+                </span>
+              </div>
+
               <button
                 @click="isPreviewMode = !isPreviewMode"
                 type="button"
@@ -511,7 +580,7 @@
                 type="button"
                 class="px-5 py-2 rounded-full text-xs font-medium bg-[#EE5102] hover:bg-[#d84802] text-white transition-colors shadow-sm"
               >
-                {{ editingArticleId ? 'Update Blog' : 'Publish Blog' }}
+                {{ editorForm.status === 'draft' ? (editingArticleId ? 'Save Draft' : 'Create Draft') : (editingArticleId ? 'Update & Publish' : 'Publish Blog') }}
               </button>
             </div>
           </div>
@@ -3425,7 +3494,8 @@ const {
   updateCategory,
   deleteCategory,
   addSubCategory,
-  removeSubCategory
+  removeSubCategory,
+  toggleArticleStatus
 } = useArticles()
 
 const {
@@ -3968,6 +4038,7 @@ const editorForm = reactive({
   publishedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
   readTime: '4 min read',
   excerpt: '',
+  status: 'published' as 'published' | 'draft',
   bannerImage: '',
   bannerImageMobile: '',
   bannerAlt: '',
@@ -3977,6 +4048,18 @@ const editorForm = reactive({
   galleryCaption: '',
   tagsInput: ''
 })
+
+const blogStatusFilter = ref<'all' | 'published' | 'draft'>('all')
+const publishedBlogsCount = computed(() => articles.filter(a => a.status !== 'draft').length)
+const draftBlogsCount = computed(() => articles.filter(a => a.status === 'draft').length)
+
+const handleToggleArticlePublish = async (id: string) => {
+  const updated = await toggleArticleStatus(id)
+  if (updated) {
+    userFeedbackType.value = 'success'
+    userFeedbackMessage.value = `Article "${updated.title}" changed to ${updated.status === 'draft' ? 'Draft' : 'Published'}.`
+  }
+}
 
 const availableSubCategoriesForEditor = computed(() => {
   const found = categories.find(c => c.name === editorForm.category)
@@ -4047,12 +4130,16 @@ const handleMediaLibraryUpload = async (event: Event) => {
 
 const filteredCmsArticles = computed(() => {
   const q = cmsSearch.value.trim().toLowerCase()
-  if (!q) return articles
-  return articles.filter(a =>
-    a.title.toLowerCase().includes(q) ||
-    a.excerpt.toLowerCase().includes(q) ||
-    a.category.toLowerCase().includes(q)
-  )
+  return articles.filter(a => {
+    if (blogStatusFilter.value === 'published' && a.status === 'draft') return false
+    if (blogStatusFilter.value === 'draft' && a.status !== 'draft') return false
+    if (!q) return true
+    return (
+      a.title.toLowerCase().includes(q) ||
+      a.excerpt.toLowerCase().includes(q) ||
+      a.category.toLowerCase().includes(q)
+    )
+  })
 })
 
 const defaultComparisonTableHtml = `<div class="my-8 overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
@@ -4212,6 +4299,8 @@ const previewArticleObject = computed<Article>(() => {
     publishedAt: editorForm.publishedAt || '2026 November 7',
     readTime: editorForm.readTime || '5 min read',
     views: 1,
+    status: editorForm.status,
+    isPublished: editorForm.status === 'published',
     isFeatured: true,
     isPopular: true,
     author: authors.marcus,
@@ -4237,6 +4326,7 @@ const startNewBlog = () => {
   editorForm.publishedAt = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
   editorForm.readTime = '4 min read'
   editorForm.excerpt = ''
+  editorForm.status = 'published'
   editorForm.bannerImage = ''
   editorForm.bannerImageMobile = ''
   editorForm.bannerAlt = ''
@@ -4273,6 +4363,7 @@ const editBlog = (article: Article) => {
   editorForm.publishedAt = article.publishedAt
   editorForm.readTime = article.readTime
   editorForm.excerpt = article.excerpt
+  editorForm.status = article.status || 'published'
   editorForm.bannerImage = article.bannerImage || article.featuredImage
   editorForm.bannerImageMobile = article.bannerImageMobile || article.featuredImage
   editorForm.bannerAlt = article.bannerAlt || article.title
@@ -4345,6 +4436,8 @@ const saveBlogPost = async () => {
         title: cleanTitle,
         titleHighlight: built.titleHighlight,
         excerpt: built.excerpt,
+        status: editorForm.status,
+        isPublished: editorForm.status === 'published',
         seoTitle: built.seoTitle,
         metaDescription: built.metaDescription,
         category: built.category,
@@ -4364,16 +4457,18 @@ const saveBlogPost = async () => {
         tags: built.tags
       })
       userFeedbackType.value = 'success'
-      userFeedbackMessage.value = `Blog article "${cleanTitle}" and updated image URLs saved successfully!`
+      userFeedbackMessage.value = `Blog article "${cleanTitle}" saved successfully as ${editorForm.status === 'draft' ? 'Draft' : 'Published'}!`
     } else {
       const newId = `art-${Date.now()}`
       await addArticle({
         ...built,
         id: newId,
-        title: cleanTitle
+        title: cleanTitle,
+        status: editorForm.status,
+        isPublished: editorForm.status === 'published'
       })
       userFeedbackType.value = 'success'
-      userFeedbackMessage.value = `New blog article "${cleanTitle}" created and saved successfully!`
+      userFeedbackMessage.value = `New blog article "${cleanTitle}" created as ${editorForm.status === 'draft' ? 'Draft' : 'Published'}!`
     }
     activeTab.value = 'blogs'
   } catch (err: any) {

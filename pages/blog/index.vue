@@ -30,7 +30,7 @@
             class="px-4 py-2 rounded-full text-xs font-semibold transition-colors"
             :class="selectedCategory === 'all' ? 'bg-yberry-1000 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
           >
-            All ({{ articles.length }})
+            All ({{ publishedCount }})
           </button>
           <button
             v-for="cat in categories"
@@ -159,8 +159,10 @@ onMounted(async () => {
 })
 
 const countCategory = (slug: string) => {
-  return articles.filter(a => a.categorySlug === slug).length
+  return articles.filter(a => a.categorySlug === slug && a.status !== 'draft').length
 }
+
+const publishedCount = computed(() => articles.filter(a => a.status !== 'draft').length)
 
 const resetFilters = () => {
   selectedCategory.value = 'all'
@@ -169,6 +171,7 @@ const resetFilters = () => {
 
 const filteredList = computed(() => {
   return articles.filter(a => {
+    if (a.status === 'draft') return false
     const matchesCat = selectedCategory.value === 'all' || a.categorySlug === selectedCategory.value
     const matchesQuery = !query.value.trim() || 
       a.title.toLowerCase().includes(query.value.toLowerCase()) ||
