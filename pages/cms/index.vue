@@ -2222,7 +2222,7 @@
               </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
               <!-- Google Tag Manager (GTM) -->
               <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
                 <div class="flex items-center justify-between">
@@ -2289,6 +2289,29 @@
                 />
                 <p class="text-[11px] text-gray-400">
                   Initializes <code class="text-gray-600">fbevents.js</code> and fires <code class="text-gray-600">fbq('track', 'PageView')</code> on every page visit.
+                </p>
+              </div>
+
+              <!-- Google AdSense -->
+              <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="text-xs font-semibold text-gray-900 block">Google AdSense</span>
+                    <span class="text-[11px] text-gray-400">Publisher ID (ca-pub-...)</span>
+                  </div>
+                  <label class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 cursor-pointer">
+                    <input v-model="trackingConfig.enableAdsense" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                    <span>Active</span>
+                  </label>
+                </div>
+                <input
+                  v-model="trackingConfig.adsensePublisherId"
+                  type="text"
+                  placeholder="ca-pub-1234567890123456"
+                  class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#EE5102]"
+                />
+                <p class="text-[11px] text-gray-400">
+                  Injects verification script &amp; <code class="text-gray-600">&lt;meta name="google-adsense-account"&gt;</code> into <code class="text-gray-600">&lt;head&gt;</code> for approval.
                 </p>
               </div>
             </div>
@@ -3638,9 +3661,11 @@ const handleSaveTrackingConfig = () => {
     ga4Id: trackingConfig.ga4Id.trim(),
     enableGa4: trackingConfig.enableGa4,
     metaPixelId: trackingConfig.metaPixelId.trim(),
-    enableMetaPixel: trackingConfig.enableMetaPixel
+    enableMetaPixel: trackingConfig.enableMetaPixel,
+    adsensePublisherId: (trackingConfig.adsensePublisherId || '').trim(),
+    enableAdsense: trackingConfig.enableAdsense !== false
   })
-  seoSavedMessage.value = 'Tracking & Pixel IDs saved!'
+  seoSavedMessage.value = 'Tracking & AdSense settings saved!'
   setTimeout(() => {
     seoSavedMessage.value = ''
   }, 2500)

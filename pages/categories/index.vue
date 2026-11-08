@@ -41,7 +41,7 @@
                 {{ cat.description }}
               </p>
               <div class="pt-2">
-                <NuxtLink :to="`/categories/${cat.slug}`" class="btn-primary !py-2.5 !px-6 text-xs">
+                <NuxtLink :to="`/categories/${cat.slug}`" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-[#EE5102] hover:bg-[#d84802] transition-colors shadow-sm">
                   Browse All {{ cat.name }} Articles &rarr;
                 </NuxtLink>
               </div>
@@ -54,12 +54,12 @@
                   v-for="art in getArticlesByCategory(cat.slug).slice(0, 2)"
                   :key="art.id"
                   :to="`/blog/${art.slug}`"
-                  class="group p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:bg-yberry-100/50 hover:border-yberry-300 transition-all flex flex-col justify-between"
+                  class="group p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:bg-orange-50/20 hover:border-orange-200 transition-all flex flex-col justify-between"
                 >
                   <img
-                    :src="art.featuredImage"
+                    :src="useAsset(art.featuredImage || art.bannerImage)"
                     :alt="art.title"
-                    class="w-full aspect-video rounded-xl object-cover mb-3 group-hover:scale-102 transition-transform"
+                    class="w-full aspect-video rounded-xl object-cover mb-3 group-hover:scale-102 transition-transform bg-gray-100"
                   />
                   <div>
                     <h3 class="text-sm font-semibold text-gray-900 group-hover:text-yberry-1000 transition-colors line-clamp-2 leading-snug mb-2 font-sans">

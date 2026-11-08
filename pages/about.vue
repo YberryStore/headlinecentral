@@ -82,7 +82,7 @@
       <div class="text-center py-10 bg-yberry-100/60 rounded-3xl border border-yberry-300">
         <h3 class="text-xl font-bold text-gray-900 font-sans mb-2">Have a Story Pitch or Question?</h3>
         <p class="text-sm text-gray-600 mb-6 max-w-md mx-auto">Our editors review independent tips, research submissions, and corrections daily.</p>
-        <NuxtLink to="/contact" class="btn-primary">
+        <NuxtLink to="/contact" class="inline-flex items-center justify-center px-6 py-3 rounded-xl font-medium text-sm text-white bg-[#EE5102] hover:bg-[#d84802] transition-colors shadow-sm">
           Contact Our Editorial Desk
         </NuxtLink>
       </div>

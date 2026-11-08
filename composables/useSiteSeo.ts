@@ -17,6 +17,8 @@ export interface SiteTrackingConfig {
   enableGa4: boolean
   metaPixelId: string
   enableMetaPixel: boolean
+  adsensePublisherId: string
+  enableAdsense: boolean
 }
 
 const SEO_STORAGE_KEY = 'hc_cms_page_seo_v1'
@@ -94,6 +96,15 @@ const defaultPagesSeo: Record<string, PageSeoEntry> = {
     description: 'Terms and conditions governing the use of Headline Central’s digital publication and content archive.',
     keywords: 'terms of service, user agreement, copyright, Headline Central',
     ogImage: '/images/tech-hero.jpg'
+  },
+  cookies: {
+    key: 'cookies',
+    label: 'Cookie Policy Page',
+    path: '/cookies',
+    title: 'Cookie Policy & Consent Settings — Headline Central',
+    description: 'Manage cookie preferences and learn about tracking technology governance across POPIA, GDPR, CCPA, and APAC regulations.',
+    keywords: 'cookie policy, cookie preferences, POPIA, GDPR, CCPA, Headline Central',
+    ogImage: '/images/tech-hero.jpg'
   }
 }
 
@@ -104,7 +115,9 @@ const sharedTracking = reactive<SiteTrackingConfig>({
   ga4Id: '',
   enableGa4: true,
   metaPixelId: '',
-  enableMetaPixel: true
+  enableMetaPixel: true,
+  adsensePublisherId: '',
+  enableAdsense: true
 })
 
 let isSeoInitialized = false
@@ -123,6 +136,14 @@ export const sanitizeGa4Id = (val: string): string => {
 export const sanitizeMetaPixelId = (val: string): string => {
   const clean = (val || '').trim()
   return /^\d{8,20}$/.test(clean) ? clean : ''
+}
+
+export const sanitizeAdsenseId = (val: string): string => {
+  const clean = (val || '').trim()
+  if (!clean) return ''
+  // Accept pub-1234567890123456 or ca-pub-1234567890123456
+  const matched = clean.match(/^(?:ca-)?(pub-\d{10,20})$/i)
+  return matched ? `ca-${matched[1].toLowerCase()}` : ''
 }
 
 export const useSiteSeo = () => {
@@ -172,6 +193,8 @@ export const useSiteSeo = () => {
             if (typeof parsedTracking.enableGtm === 'boolean') sharedTracking.enableGtm = parsedTracking.enableGtm
             if (typeof parsedTracking.enableGa4 === 'boolean') sharedTracking.enableGa4 = parsedTracking.enableGa4
             if (typeof parsedTracking.enableMetaPixel === 'boolean') sharedTracking.enableMetaPixel = parsedTracking.enableMetaPixel
+            if (typeof parsedTracking.adsensePublisherId === 'string') sharedTracking.adsensePublisherId = parsedTracking.adsensePublisherId.trim()
+            if (typeof parsedTracking.enableAdsense === 'boolean') sharedTracking.enableAdsense = parsedTracking.enableAdsense
           }
         }
       } catch {

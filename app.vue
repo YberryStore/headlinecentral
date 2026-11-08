@@ -1,7 +1,7 @@
 <template>
   <div>
-    <!-- Google Tag Manager (noscript) fallback for public pages -->
-    <noscript v-if="!isCmsRoute && validGtmId && trackingConfig.enableGtm">
+    <!-- Google Tag Manager (noscript) fallback for public pages (only active when analytics consent is granted) -->
+    <noscript v-if="!isCmsRoute && validGtmId && trackingConfig.enableGtm && allowsAnalytics">
       <iframe
         :src="`https://www.googletagmanager.com/ns.html?id=${validGtmId}`"
         height="0"
@@ -10,8 +10,8 @@
       ></iframe>
     </noscript>
 
-    <!-- Meta Pixel (noscript) fallback for public pages -->
-    <noscript v-if="!isCmsRoute && validMetaPixelId && trackingConfig.enableMetaPixel">
+    <!-- Meta Pixel (noscript) fallback for public pages (only active when advertising consent is granted) -->
+    <noscript v-if="!isCmsRoute && validMetaPixelId && trackingConfig.enableMetaPixel && allowsAdvertising">
       <img
         height="1"
         width="1"
@@ -28,17 +28,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   useSiteSeo,
   sanitizeGtmId,
   sanitizeGa4Id,
-  sanitizeMetaPixelId
+  sanitizeMetaPixelId,
+  sanitizeAdsenseId
 } from '~/composables/useSiteSeo'
+import { useCookieConsent } from '~/composables/useCookieConsent'
 
 const route = useRoute()
 const { trackingConfig } = useSiteSeo()
+const { allowsAnalytics, allowsAdvertising, initConsent } = useCookieConsent()
+
+onMounted(() => {
+  initConsent()
+})
 
 const isCmsRoute = computed(() =>
   route.path.startsWith('/cms') || route.path.startsWith('/admin')
@@ -47,6 +54,7 @@ const isCmsRoute = computed(() =>
 const validGtmId = computed(() => sanitizeGtmId(trackingConfig.gtmId))
 const validGa4Id = computed(() => sanitizeGa4Id(trackingConfig.ga4Id))
 const validMetaPixelId = computed(() => sanitizeMetaPixelId(trackingConfig.metaPixelId))
+const validAdsenseId = computed(() => sanitizeAdsenseId(trackingConfig.adsensePublisherId))
 
 useHead(() => {
   if (isCmsRoute.value) {
@@ -54,17 +62,18 @@ useHead(() => {
   }
 
   const scripts: any[] = []
+  const metaTags: any[] = []
 
-  // 1. Google Tag Manager (GTM)
-  if (validGtmId.value && trackingConfig.enableGtm) {
+  // 1. Google Tag Manager (GTM) - Requires Analytics consent
+  if (validGtmId.value && trackingConfig.enableGtm && allowsAnalytics.value) {
     scripts.push({
       key: 'gtm-script',
       innerHTML: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${validGtmId.value}');`
     })
   }
 
-  // 2. Google Analytics 4 (GA4 Direct gtag.js)
-  if (validGa4Id.value && trackingConfig.enableGa4) {
+  // 2. Google Analytics 4 (GA4 Direct gtag.js) - Requires Analytics consent
+  if (validGa4Id.value && trackingConfig.enableGa4 && allowsAnalytics.value) {
     scripts.push(
       {
         key: 'ga4-src',
@@ -78,28 +87,43 @@ useHead(() => {
     )
   }
 
-  // 3. Meta Pixel (Facebook Pixel)
-  if (validMetaPixelId.value && trackingConfig.enableMetaPixel) {
+  // 3. Meta Pixel (Facebook Pixel) - Requires Advertising consent
+  if (validMetaPixelId.value && trackingConfig.enableMetaPixel && allowsAdvertising.value) {
     scripts.push({
       key: 'meta-pixel-init',
       innerHTML: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', '${validMetaPixelId.value}');fbq('track', 'PageView');`
     })
   }
 
+  // 4. Google AdSense Verification & Auto-Ads Tag
+  if (validAdsenseId.value && trackingConfig.enableAdsense) {
+    scripts.push({
+      key: 'adsense-script',
+      src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${validAdsenseId.value}`,
+      async: true,
+      crossorigin: 'anonymous'
+    })
+    metaTags.push({
+      name: 'google-adsense-account',
+      content: validAdsenseId.value
+    })
+  }
+
   return {
-    script: scripts
+    script: scripts,
+    meta: metaTags
   }
 })
 
-// SPA Route Change Tracking for GTM, GA4, and Meta Pixel
+// SPA Route Change Tracking for GTM, GA4, and Meta Pixel (Strictly respect cookie consent)
 watch(
   () => route.fullPath,
   (newPath) => {
     if (typeof window === 'undefined' || isCmsRoute.value) return
     const w = window as any
 
-    // Push GTM virtual page_view event
-    if (validGtmId.value && trackingConfig.enableGtm && Array.isArray(w.dataLayer)) {
+    // Push GTM virtual page_view event (if authorized)
+    if (validGtmId.value && trackingConfig.enableGtm && allowsAnalytics.value && Array.isArray(w.dataLayer)) {
       w.dataLayer.push({
         event: 'page_view',
         page_path: newPath,
@@ -107,16 +131,16 @@ watch(
       })
     }
 
-    // Push GA4 config page_path update
-    if (validGa4Id.value && trackingConfig.enableGa4 && typeof w.gtag === 'function') {
+    // Push GA4 config page_path update (if authorized)
+    if (validGa4Id.value && trackingConfig.enableGa4 && allowsAnalytics.value && typeof w.gtag === 'function') {
       w.gtag('config', validGa4Id.value, {
         page_path: newPath,
         page_title: document.title
       })
     }
 
-    // Push Meta Pixel PageView event
-    if (validMetaPixelId.value && trackingConfig.enableMetaPixel && typeof w.fbq === 'function') {
+    // Push Meta Pixel PageView event (if authorized)
+    if (validMetaPixelId.value && trackingConfig.enableMetaPixel && allowsAdvertising.value && typeof w.fbq === 'function') {
       w.fbq('track', 'PageView')
     }
   }

@@ -103,7 +103,17 @@
           </h4>
           <ul class="space-y-2.5 text-sm text-gray-600">
             <li v-for="item in footer.legalLinks" :key="item.label">
-              <NuxtLink :to="item.to" class="hover:text-[#EE5102] transition-colors">{{ item.label }}</NuxtLink>
+              <button
+                v-if="item.to === '#cookie-preferences' || item.label.toLowerCase().includes('cookie preference')"
+                @click="openPreferencesModal"
+                type="button"
+                class="hover:text-[#EE5102] transition-colors text-left cursor-pointer"
+              >
+                {{ item.label }}
+              </button>
+              <NuxtLink v-else :to="item.to" class="hover:text-[#EE5102] transition-colors">
+                {{ item.label }}
+              </NuxtLink>
             </li>
           </ul>
         </div>
@@ -124,9 +134,11 @@
 import { computed } from 'vue'
 import { useArticles } from '~/composables/useArticles'
 import { useSiteContent } from '~/composables/useSiteContent'
+import { useCookieConsent } from '~/composables/useCookieConsent'
 
 const { categories } = useArticles()
 const { headerFooterConfig } = useSiteContent()
+const { openPreferencesModal } = useCookieConsent()
 
 const footer = computed(() => headerFooterConfig.footer)
 const visibleCategories = computed(() => categories.filter(c => c.showInNavbar !== false))

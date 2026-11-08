@@ -1,0 +1,19 @@
+# robots.txt for Headline Central (https://headlinecentral.co.za)
+User-agent: *
+Allow: /
+Disallow: /cms/
+Disallow: /admin/
+
+# Google AdSense Crawler
+User-agent: Mediapartners-Google
+Allow: /
+
+# Googlebot Search Crawler
+User-agent: Googlebot
+Allow: /
+Allow: /blog/
+Allow: /categories/
+
+# Sitemap Location
+Sitemap: https://headlinecentral.co.za/sitemap.xml
+
