@@ -320,13 +320,13 @@ const switchAuthMode = (mode: 'login' | 'register') => {
 
 onMounted(() => {
   initFirebase()
-  if (currentUser.value) {
+  if (currentUser.value && (currentUser.value.isMaster || (currentUser.value.status === 'active' && currentUser.value.approvedAt && currentUser.value.active !== false))) {
     router.replace('/cms')
   }
 })
 
 watch(currentUser, (user) => {
-  if (user) {
+  if (user && (user.isMaster || (user.status === 'active' && user.approvedAt && user.active !== false))) {
     router.replace('/cms')
   }
 })
@@ -337,7 +337,7 @@ const handleEmailLogin = async () => {
   isSubmitting.value = true
   try {
     const ok = await loginWithEmail(email.value, password.value)
-    if (ok && currentUser.value) {
+    if (ok && currentUser.value && (currentUser.value.isMaster || (currentUser.value.status === 'active' && currentUser.value.approvedAt && currentUser.value.active !== false))) {
       await router.push('/cms').catch(() => {
         if (typeof window !== 'undefined') {
           window.location.href = '/cms'
@@ -357,7 +357,7 @@ const handleGoogleLogin = async () => {
   isGoogleSubmitting.value = true
   try {
     const ok = await loginWithGoogle()
-    if (ok && currentUser.value) {
+    if (ok && currentUser.value && (currentUser.value.isMaster || (currentUser.value.status === 'active' && currentUser.value.approvedAt && currentUser.value.active !== false))) {
       await router.push('/cms').catch(() => {
         if (typeof window !== 'undefined') {
           window.location.href = '/cms'

@@ -272,8 +272,8 @@ export const useFirebase = () => {
                   isMaster: true
                 }
               }
-              // If info@yberry.co.za hasn't been explicitly approved yet, keep as pending
-              if (u.email?.toLowerCase() === 'info@yberry.co.za' && !u.approvedAt) {
+              // Non-master users MUST have approvedAt set to be active; otherwise they are pending
+              if (!u.approvedAt) {
                 return {
                   ...u,
                   status: 'pending' as const,
@@ -282,7 +282,8 @@ export const useFirebase = () => {
               }
               return {
                 ...u,
-                status: u.status || (u.active !== false ? 'active' : 'pending')
+                status: (u.status === 'active' && Boolean(u.approvedAt)) ? 'active' : 'pending',
+                active: u.status === 'active' && Boolean(u.approvedAt)
               }
             })
             const hasMaster = sanitized.some(u => u.isMaster)
@@ -926,7 +927,8 @@ export const useFirebase = () => {
           }
         }
 
-        if (!matched || matched.status === 'pending' || (matched.active === false && matched.status !== 'suspended' && matched.status !== 'rejected')) {
+        // If user is not yet approved by an administrator
+        if (!matched || matched.status !== 'active' || !matched.approvedAt || matched.active === false) {
           pendingApprovalInfo.value = {
             email: emailLower,
             displayName: matched?.displayName || fbUser.displayName || emailLower.split('@')[0],
@@ -936,7 +938,7 @@ export const useFirebase = () => {
           }
           return {
             allowed: false,
-            error: `Your Google account (${emailLower}) is awaiting administrator approval. An administrator must assign your user access before you can enter the CMS portal.`
+            error: `Your Google account (${emailLower}) is awaiting administrator approval. You will not have access to the CMS until an administrator assigns your role and approves your registration.`
           }
         }
 
@@ -1062,7 +1064,8 @@ export const useFirebase = () => {
         return false
       }
 
-      if (matchedManaged && (matchedManaged.status === 'pending' || (matchedManaged.active === false && matchedManaged.status !== 'suspended' && matchedManaged.status !== 'rejected'))) {
+      // If NOT yet approved by an administrator
+      if (matchedManaged && (matchedManaged.status !== 'active' || !matchedManaged.approvedAt || matchedManaged.active === false)) {
         pendingApprovalInfo.value = {
           email: emailLower,
           displayName: matchedManaged.displayName,
@@ -1071,7 +1074,8 @@ export const useFirebase = () => {
           registeredAt: matchedManaged.createdAt
         }
         await signOut(firebaseAuth)
-        authError.value = `Your Google account (${emailLower}) has been registered and is pending administrator approval. An administrator will assign your access level before activation.`
+        currentUser.value = null
+        authError.value = `Your Google account (${emailLower}) has been registered and is awaiting administrator approval. You will not have access to the CMS until an administrator assigns your role and approves your registration.`
         return false
       }
 
@@ -1121,7 +1125,8 @@ export const useFirebase = () => {
           registeredAt: pendingGoogleUser.createdAt
         }
         await signOut(firebaseAuth)
-        authError.value = `Welcome, ${pendingGoogleUser.displayName}! Your Google account has been registered and is awaiting administrator approval. An administrator will assign your access permissions before you can sign in.`
+        currentUser.value = null
+        authError.value = `Welcome, ${pendingGoogleUser.displayName}! Your Google account has been registered and is awaiting administrator approval. You will not have access to the CMS until an administrator assigns your role and approves your registration.`
         return false
       } else if (cred.user.photoURL && !matchedManaged.photoURL) {
         matchedManaged.photoURL = cred.user.photoURL

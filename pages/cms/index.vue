@@ -1,5 +1,5 @@
 <template>
-  <div v-if="currentUser" class="min-h-screen bg-[#F2F2F2] p-3 sm:p-4 flex flex-col lg:flex-row gap-4 sm:gap-5 font-sans text-gray-900">
+  <div v-if="currentUser && (currentUser.isMaster || (currentUser.status === 'active' && currentUser.approvedAt && currentUser.active !== false))" class="min-h-screen bg-[#F2F2F2] p-3 sm:p-4 flex flex-col lg:flex-row gap-4 sm:gap-5 font-sans text-gray-900">
     <!-- Left Sidebar Card -->
     <aside
       :class="isSidebarCollapsed ? 'lg:w-[84px]' : 'lg:w-[260px]'"
@@ -2644,7 +2644,11 @@ const handleRemoveUser = async (u: ManagedCmsUser) => {
 onMounted(async () => {
   initFirebase()
 
-  if (!currentUser.value) {
+  if (
+    !currentUser.value ||
+    (!currentUser.value.isMaster && (!currentUser.value.approvedAt || currentUser.value.status !== 'active' || currentUser.value.active === false))
+  ) {
+    await logoutUser()
     router.replace('/cms/login')
     return
   }
