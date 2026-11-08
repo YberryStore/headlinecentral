@@ -46,7 +46,7 @@
 
         <div class="px-5 pb-5 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
           <span>{{ item.readTime }}</span>
-          <span class="font-medium text-gray-600">{{ item.author.name }}</span>
+          <span class="font-medium text-gray-600">{{ item.author?.name || 'Editorial Staff' }}</span>
         </div>
       </article>
     </div>

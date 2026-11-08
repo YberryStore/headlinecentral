@@ -14,70 +14,84 @@
           </NuxtLink>
         </div>
 
-        <!-- Desktop Navigation Categories (with Sub-Category Dropdowns) -->
-        <nav class="hidden lg:flex items-center space-x-7 xl:space-x-8">
-          <div
-            v-for="item in navItems"
-            :key="item.label"
-            class="relative group py-2"
-          >
-            <NuxtLink
-              :to="item.to"
-              class="inline-flex items-center gap-1 text-[15px] font-normal transition-colors"
-              :class="$route.path === item.to ? 'text-[#EE5102] font-medium' : 'text-gray-900 hover:text-[#EE5102]'"
-            >
-              <span>{{ item.label }}</span>
-              <svg
-                v-if="item.subCategories && item.subCategories.length > 0"
-                class="w-3.5 h-3.5 text-gray-400 group-hover:text-[#EE5102] transition-transform group-hover:rotate-180"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </NuxtLink>
-
-            <!-- Sub-Categories Dropdown Menu -->
+          <!-- Dynamic Navigation Items (with Sub-Category Dropdowns) -->
+          <nav class="hidden lg:flex items-center space-x-7 xl:space-x-8">
             <div
-              v-if="item.subCategories && item.subCategories.length > 0"
-              class="absolute left-0 top-full pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-40 min-w-[200px]"
+              v-for="item in visibleNavItems"
+              :key="item.id || item.label"
+              class="relative group py-2"
             >
-              <div class="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 px-1.5 space-y-0.5">
-                <NuxtLink
-                  v-for="sub in item.subCategories"
-                  :key="sub.id"
-                  :to="`${item.to}?sub=${sub.slug}`"
-                  class="block px-3.5 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-[#feeee6] hover:text-[#EE5102] transition-colors"
+              <a
+                v-if="item.isExternal"
+                :href="item.to"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 text-[15px] font-normal transition-colors text-gray-900 hover:text-[#EE5102]"
+              >
+                <span>{{ item.label }}</span>
+                <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+              <NuxtLink
+                v-else
+                :to="item.to"
+                class="inline-flex items-center gap-1 text-[15px] font-normal transition-colors"
+                :class="$route.path === item.to ? 'text-[#EE5102] font-medium' : 'text-gray-900 hover:text-[#EE5102]'"
+              >
+                <span>{{ item.label }}</span>
+                <svg
+                  v-if="item.subCategories && item.subCategories.length > 0"
+                  class="w-3.5 h-3.5 text-gray-400 group-hover:text-[#EE5102] transition-transform group-hover:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  {{ sub.name }}
-                </NuxtLink>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </NuxtLink>
+
+              <!-- Sub-Categories Dropdown Menu -->
+              <div
+                v-if="item.subCategories && item.subCategories.length > 0"
+                class="absolute left-0 top-full pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-40 min-w-[200px]"
+              >
+                <div class="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 px-1.5 space-y-0.5">
+                  <NuxtLink
+                    v-for="sub in item.subCategories"
+                    :key="sub.id || sub.slug"
+                    :to="`${item.to}?sub=${sub.slug}`"
+                    class="block px-3.5 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-[#feeee6] hover:text-[#EE5102] transition-colors"
+                  >
+                    {{ sub.name }}
+                  </NuxtLink>
+                </div>
               </div>
             </div>
+          </nav>
+
+          <!-- Right Side: Search & Header CTA Button -->
+          <div class="hidden sm:flex items-center space-x-5">
+            <!-- Search button trigger -->
+            <button
+              @click="isSearchOpen = true"
+              aria-label="Search articles"
+              class="p-1.5 text-[#768289] hover:text-gray-900 transition-colors"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-5.2-5.2m1.7-4.8a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+
+            <!-- Dynamic Header CTA Button (e.g. Contact Us) -->
+            <NuxtLink
+              v-if="headerFooterConfig.headerCta?.isVisible !== false"
+              :to="headerFooterConfig.headerCta?.to || '/contact'"
+              class="inline-flex items-center justify-center px-6 py-2.5 rounded-full text-sm font-normal text-white bg-[#EE5102] hover:bg-yberry-300 hover:text-gray-900 transition-colors shadow-sm"
+            >
+              {{ headerFooterConfig.headerCta?.label || 'Contact Us' }}
+            </NuxtLink>
           </div>
-        </nav>
-
-        <!-- Right Side: Search & Contact Us CTA -->
-        <div class="hidden sm:flex items-center space-x-5">
-          <!-- Search button trigger -->
-          <button
-            @click="isSearchOpen = true"
-            aria-label="Search articles"
-            class="p-1.5 text-[#768289] hover:text-gray-900 transition-colors"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-5.2-5.2m1.7-4.8a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-
-          <!-- Contact Us Button -->
-          <NuxtLink
-            to="/contact"
-            class="inline-flex items-center justify-center px-6 py-2.5 rounded-full text-sm font-normal text-white bg-[#EE5102] hover:bg-yberry-300 hover:text-gray-900 transition-colors"
-          >
-            Contact Us
-          </NuxtLink>
-        </div>
 
         <!-- Mobile Menu Toggle Button -->
         <div class="flex items-center space-x-2 lg:hidden">
@@ -111,22 +125,37 @@
       v-if="isMobileMenuOpen"
       class="lg:hidden border-t border-gray-100 bg-white px-4 pt-3 pb-6 space-y-1.5 shadow-lg"
     >
-      <NuxtLink
-        v-for="item in navItems"
-        :key="item.label"
-        :to="item.to"
-        @click="isMobileMenuOpen = false"
-        class="block px-3 py-2.5 rounded-lg text-base font-normal text-gray-900 hover:bg-yberry-100 hover:text-[#EE5102]"
-      >
-        {{ item.label }}
-      </NuxtLink>
-      <div class="pt-4 border-t border-gray-100">
+      <template v-for="item in visibleNavItems" :key="item.id || item.label">
+        <a
+          v-if="item.isExternal"
+          :href="item.to"
+          target="_blank"
+          rel="noopener noreferrer"
+          @click="isMobileMenuOpen = false"
+          class="flex items-center justify-between px-3 py-2.5 rounded-lg text-base font-normal text-gray-900 hover:bg-yberry-100 hover:text-[#EE5102]"
+        >
+          <span>{{ item.label }}</span>
+          <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
         <NuxtLink
-          to="/contact"
+          v-else
+          :to="item.to"
+          @click="isMobileMenuOpen = false"
+          class="block px-3 py-2.5 rounded-lg text-base font-normal text-gray-900 hover:bg-yberry-100 hover:text-[#EE5102]"
+        >
+          {{ item.label }}
+        </NuxtLink>
+      </template>
+
+      <div v-if="headerFooterConfig.headerCta?.isVisible !== false" class="pt-4 border-t border-gray-100">
+        <NuxtLink
+          :to="headerFooterConfig.headerCta?.to || '/contact'"
           @click="isMobileMenuOpen = false"
           class="block w-full text-center py-3 rounded-full text-sm font-normal text-white bg-[#EE5102] hover:bg-yberry-300 hover:text-gray-900 transition-colors"
         >
-          Contact Us
+          {{ headerFooterConfig.headerCta?.label || 'Contact Us' }}
         </NuxtLink>
       </div>
     </div>
@@ -198,26 +227,18 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useArticles } from '~/composables/useArticles'
+import { useSiteContent } from '~/composables/useSiteContent'
 
 const isMobileMenuOpen = ref(false)
 const isSearchOpen = ref(false)
 const searchQuery = ref('')
 
-const { articles, categories } = useArticles()
+const { articles } = useArticles()
+const { headerFooterConfig } = useSiteContent()
 
-const navItems = computed(() => {
-  const dynamicCatLinks = categories
-    .filter(c => c.showInNavbar !== false)
-    .map(c => ({
-      label: c.slug === 'technology' ? 'Tech' : c.slug === 'home-and-diy' ? 'Home & DIY' : c.name,
-      to: c.slug === 'news' ? '/blog' : `/categories/${c.slug}`,
-      subCategories: c.subCategories || []
-    }))
-
-  return [
-    ...dynamicCatLinks,
-    { label: 'About', to: '/about', subCategories: [] }
-  ]
+const visibleNavItems = computed(() => {
+  if (!headerFooterConfig.navItems) return []
+  return headerFooterConfig.navItems.filter(item => item.isVisible !== false)
 })
 
 const filteredArticles = computed(() => {

@@ -246,22 +246,7 @@ export const useFirebase = () => {
       createdAt: '2026-11-07'
     }
 
-    const defaultYberryAdmin: ManagedCmsUser = {
-      uid: 'admin-yberry',
-      email: 'info@yberry.co.za',
-      displayName: 'YBerry User',
-      role: 'Contributor / Writer (Pending Approval)',
-      roleKey: 'author',
-      permissions: getDefaultPermissionsForRole('author'),
-      provider: 'google',
-      environment: 'live',
-      active: false,
-      status: 'pending',
-      isMaster: false,
-      createdAt: '2026-11-08'
-    }
-
-    managedUsers.splice(0, managedUsers.length, defaultMaster, defaultYberryAdmin)
+    managedUsers.splice(0, managedUsers.length, defaultMaster)
 
     if (typeof window !== 'undefined') {
       try {
@@ -269,35 +254,35 @@ export const useFirebase = () => {
         if (raw) {
           const parsed: ManagedCmsUser[] = JSON.parse(raw)
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const sanitized = parsed.map((u) => {
-              if (u.isMaster || u.email?.toLowerCase() === 'admin@headlinecentral.co.za') {
+            const sanitized = parsed
+              .filter(u => u.email?.toLowerCase() !== 'info@yberry.co.za' && u.uid !== 'admin-yberry')
+              .map((u) => {
+                if (u.isMaster || u.email?.toLowerCase() === 'admin@headlinecentral.co.za') {
+                  return {
+                    ...u,
+                    provider: 'email' as const,
+                    status: 'active' as const,
+                    active: true,
+                    isMaster: true
+                  }
+                }
+                // Non-master users MUST have approvedAt set to be active; otherwise they are pending
+                if (!u.approvedAt) {
+                  return {
+                    ...u,
+                    status: 'pending' as const,
+                    active: false
+                  }
+                }
                 return {
                   ...u,
-                  provider: 'email' as const,
-                  status: 'active' as const,
-                  active: true,
-                  isMaster: true
+                  status: (u.status === 'active' && Boolean(u.approvedAt)) ? 'active' : 'pending',
+                  active: u.status === 'active' && Boolean(u.approvedAt)
                 }
-              }
-              // Non-master users MUST have approvedAt set to be active; otherwise they are pending
-              if (!u.approvedAt) {
-                return {
-                  ...u,
-                  status: 'pending' as const,
-                  active: false
-                }
-              }
-              return {
-                ...u,
-                status: (u.status === 'active' && Boolean(u.approvedAt)) ? 'active' : 'pending',
-                active: u.status === 'active' && Boolean(u.approvedAt)
-              }
-            })
+              })
             const hasMaster = sanitized.some(u => u.isMaster)
-            const hasYberry = sanitized.some(u => u.email?.toLowerCase() === 'info@yberry.co.za')
             const toPrepend: ManagedCmsUser[] = []
             if (!hasMaster) toPrepend.push(defaultMaster)
-            if (!hasYberry) toPrepend.push(defaultYberryAdmin)
 
             managedUsers.splice(
               0,
@@ -422,6 +407,7 @@ export const useFirebase = () => {
             const localUser = managedUsers[existingIdx]
             if (!localUser.isMaster) {
               const isLocallyApproved = localUser.status === 'active' && Boolean(localUser.approvedAt)
+              const resolvedPermissions = ru.permissions || localUser.permissions || getDefaultPermissionsForRole(ru.roleKey || 'editor')
               const mergedUser: ManagedCmsUser = {
                 ...localUser,
                 ...ru,
@@ -429,11 +415,22 @@ export const useFirebase = () => {
                 active: isLocallyApproved ? true : (ru.active ?? localUser.active),
                 approvedAt: localUser.approvedAt || ru.approvedAt,
                 approvedBy: localUser.approvedBy || ru.approvedBy,
-                roleKey: isLocallyApproved ? (localUser.roleKey || ru.roleKey) : (ru.roleKey || localUser.roleKey),
-                role: isLocallyApproved ? (localUser.role || ru.role) : (ru.role || localUser.role),
-                permissions: isLocallyApproved ? (localUser.permissions || ru.permissions) : (ru.permissions || localUser.permissions)
+                roleKey: ru.roleKey || localUser.roleKey,
+                role: ru.role || localUser.role || ROLE_LABELS[ru.roleKey || 'editor'],
+                permissions: resolvedPermissions
               }
               managedUsers.splice(existingIdx, 1, mergedUser)
+
+              // If currently logged-in user, refresh their session permissions in real-time
+              if (currentUser.value && (currentUser.value.uid === ru.uid || currentUser.value.email.toLowerCase() === ru.email.toLowerCase()) && !currentUser.value.isMaster) {
+                currentUser.value = {
+                  ...currentUser.value,
+                  roleKey: mergedUser.roleKey,
+                  role: mergedUser.role,
+                  permissions: { ...resolvedPermissions },
+                  active: mergedUser.active
+                }
+              }
             }
           } else {
             managedUsers.push({
@@ -470,6 +467,7 @@ export const useFirebase = () => {
             const localUser = managedUsers[existingIdx]
             if (!localUser.isMaster) {
               const isLocallyApproved = localUser.status === 'active' && Boolean(localUser.approvedAt)
+              const resolvedPermissions = ru.permissions || localUser.permissions || getDefaultPermissionsForRole(ru.roleKey || 'editor')
               const mergedUser: ManagedCmsUser = {
                 ...localUser,
                 ...ru,
@@ -477,11 +475,21 @@ export const useFirebase = () => {
                 active: isLocallyApproved ? true : (ru.active ?? localUser.active),
                 approvedAt: localUser.approvedAt || ru.approvedAt,
                 approvedBy: localUser.approvedBy || ru.approvedBy,
-                roleKey: isLocallyApproved ? (localUser.roleKey || ru.roleKey) : (ru.roleKey || localUser.roleKey),
-                role: isLocallyApproved ? (localUser.role || ru.role) : (ru.role || localUser.role),
-                permissions: isLocallyApproved ? (localUser.permissions || ru.permissions) : (ru.permissions || localUser.permissions)
+                roleKey: ru.roleKey || localUser.roleKey,
+                role: ru.role || localUser.role || ROLE_LABELS[ru.roleKey || 'editor'],
+                permissions: resolvedPermissions
               }
               managedUsers.splice(existingIdx, 1, mergedUser)
+
+              if (currentUser.value && (currentUser.value.uid === ru.uid || currentUser.value.email.toLowerCase() === ru.email.toLowerCase()) && !currentUser.value.isMaster) {
+                currentUser.value = {
+                  ...currentUser.value,
+                  roleKey: mergedUser.roleKey,
+                  role: mergedUser.role,
+                  permissions: { ...resolvedPermissions },
+                  active: mergedUser.active
+                }
+              }
             }
           } else {
             managedUsers.push({
@@ -1054,6 +1062,9 @@ export const useFirebase = () => {
           // Firestore fallback
         }
       }
+      if (typeof window !== 'undefined' && firestoreDb) {
+        (window as any).__hc_firestore_instance = firestoreDb
+      }
       try {
         firebaseStorage = getStorage(firebaseApp, `gs://${cfg.storageBucket}`)
       } catch {
@@ -1217,6 +1228,7 @@ export const useFirebase = () => {
         return false
       }
 
+      await syncUsersFromCloud().catch(() => {})
       let matchedManaged = managedUsers.find(u => u.email.toLowerCase() === emailLower)
       if (matchedManaged?.isMaster) {
         await signOut(firebaseAuth)

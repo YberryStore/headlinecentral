@@ -109,12 +109,13 @@
             <div class="px-6 pb-6 pt-4 border-t border-gray-50 flex items-center justify-between">
               <div class="flex items-center space-x-2.5">
                 <img
+                  v-if="article.author?.avatar"
                   :src="article.author.avatar"
-                  :alt="article.author.name"
+                  :alt="article.author?.name || 'Author'"
                   class="w-8 h-8 rounded-full object-cover"
                 />
                 <span class="text-xs font-medium text-gray-700">
-                  {{ article.author.name }}
+                  {{ article.author?.name || 'Editorial Staff' }}
                 </span>
               </div>
 
@@ -153,12 +154,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useArticles } from '~/composables/useArticles'
 
 const route = useRoute()
-const { getCategoryMeta, getArticlesByCategory } = useArticles()
+const { getCategoryMeta, getArticlesByCategory, syncFromFirestore } = useArticles()
+
+onMounted(async () => {
+  await syncFromFirestore().catch(() => {})
+})
 
 const categorySlug = computed(() => route.params.slug as string)
 const categoryMeta = computed(() => getCategoryMeta(categorySlug.value))

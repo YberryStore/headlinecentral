@@ -46,7 +46,7 @@
             class="block w-full lg:w-[900px] lg:h-[500px] aspect-[9/5] lg:aspect-auto rounded-[28px] sm:rounded-[32px] overflow-hidden shadow-sm bg-gray-950 group"
           >
             <img
-              :src="article.featuredImage"
+              :src="useAsset(article.featuredImage || article.bannerImage)"
               :alt="article.title"
               class="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-500"
             />

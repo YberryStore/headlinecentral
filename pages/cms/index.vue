@@ -147,6 +147,65 @@
             </svg>
             <span v-if="!isSidebarCollapsed">SEO &amp; Tracking</span>
           </button>
+
+          <!-- Trending now -->
+          <button
+            v-if="hasPermission('canManageSettings') || hasPermission('canManageBlogs') || isMasterAdmin"
+            @click="activeTab = 'trending'"
+            type="button"
+            :class="[
+              activeTab === 'trending'
+                ? 'bg-[#EE5102] text-white'
+                : 'text-gray-900 hover:bg-gray-100',
+              isSidebarCollapsed ? 'justify-center px-2' : 'px-4'
+            ]"
+            class="w-full flex items-center gap-3 py-2.5 rounded-full text-[13px] font-normal transition-colors"
+          >
+            <svg class="w-[18px] h-[18px] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+              <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+            <span v-if="!isSidebarCollapsed">Trending now</span>
+          </button>
+
+          <!-- Header & Footer Navigation & Content -->
+          <button
+            v-if="hasPermission('canManageSettings') || isMasterAdmin"
+            @click="activeTab = 'header-footer'"
+            type="button"
+            :class="[
+              activeTab === 'header-footer'
+                ? 'bg-[#EE5102] text-white'
+                : 'text-gray-900 hover:bg-gray-100',
+              isSidebarCollapsed ? 'justify-center px-2' : 'px-4'
+            ]"
+            class="w-full flex items-center gap-3 py-2.5 rounded-full text-[13px] font-normal transition-colors"
+          >
+            <svg class="w-[18px] h-[18px] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18M3 15h18" />
+            </svg>
+            <span v-if="!isSidebarCollapsed">Header &amp; Footer</span>
+          </button>
+
+          <!-- Contact Us Page Content -->
+          <button
+            v-if="hasPermission('canManageSettings') || isMasterAdmin"
+            @click="activeTab = 'contact-page'"
+            type="button"
+            :class="[
+              activeTab === 'contact-page'
+                ? 'bg-[#EE5102] text-white'
+                : 'text-gray-900 hover:bg-gray-100',
+              isSidebarCollapsed ? 'justify-center px-2' : 'px-4'
+            ]"
+            class="w-full flex items-center gap-3 py-2.5 rounded-full text-[13px] font-normal transition-colors"
+          >
+            <svg class="w-[18px] h-[18px] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            <span v-if="!isSidebarCollapsed">Contact Us</span>
+          </button>
         </nav>
       </div>
 
@@ -1403,56 +1462,6 @@
             <button @click="userFeedbackMessage = ''" type="button" class="text-current font-bold ml-4">&times;</button>
           </div>
 
-          <!-- MASTER ADMIN EXCLUSIVE: ADMIN USER MANAGEMENT NAVBAR PERMISSION TOGGLE -->
-          <div
-            v-if="isMasterAdmin"
-            class="p-5 rounded-2xl border-2 transition-all shadow-sm"
-            :class="allowAdminUserManagementInNav ? 'border-emerald-300 bg-emerald-50/70' : 'border-amber-300 bg-amber-50/70'"
-          >
-            <div class="flex flex-wrap items-center justify-between gap-4">
-              <div class="space-y-1 max-w-2xl">
-                <div class="flex items-center gap-2">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900 text-white">
-                    Master Admin Control
-                  </span>
-                  <span
-                    class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                    :class="allowAdminUserManagementInNav ? 'bg-emerald-200 text-emerald-950' : 'bg-amber-200 text-amber-950'"
-                  >
-                    {{ allowAdminUserManagementInNav ? 'Navbar Item: Active for Admins' : 'Navbar Item: Hidden from Admins' }}
-                  </span>
-                </div>
-                <h3 class="text-sm font-bold text-gray-950">
-                  Allow Administrators to Access &amp; View "User Management" in Navbar
-                </h3>
-                <p class="text-xs text-gray-600 leading-relaxed">
-                  When enabled, accounts with the <strong>Administrator</strong> role will see the "User Management" tab in their sidebar navigation and have permission to manage users. When disabled, the navbar link is hidden from all non-master admins and access is strictly reserved for the Master Admin.
-                </p>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <button
-                  @click="handleToggleAdminNavAccess"
-                  :disabled="isTogglingAdminNav"
-                  type="button"
-                  class="relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50"
-                  :class="allowAdminUserManagementInNav ? 'bg-[#EE5102]' : 'bg-gray-300'"
-                  role="switch"
-                  :aria-checked="allowAdminUserManagementInNav"
-                >
-                  <span
-                    aria-hidden="true"
-                    class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                    :class="allowAdminUserManagementInNav ? 'translate-x-7' : 'translate-x-0'"
-                  />
-                </button>
-                <span class="text-xs font-semibold" :class="allowAdminUserManagementInNav ? 'text-[#EE5102]' : 'text-gray-500'">
-                  {{ isTogglingAdminNav ? 'Saving...' : (allowAdminUserManagementInNav ? 'Enabled' : 'Disabled') }}
-                </span>
-              </div>
-            </div>
-          </div>
-
           <!-- GATEKEEPER SECURITY INCIDENTS & BLOCKED TERMINAL REQUESTS -->
           <div
             v-if="hasPermission('canManageUsers') && blockedRecords.length > 0"
@@ -2036,6 +2045,55 @@
                 <span v-if="u.permissions?.canManageSettings" class="px-2.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700">Settings</span>
               </div>
 
+              <!-- MASTER ADMIN RADIO TOGGLE: USER MANAGEMENT IN NAVBAR -->
+              <div
+                v-if="isMasterAdmin && !u.isMaster && u.email.toLowerCase() !== 'admin@headlinecentral.co.za'"
+                class="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs bg-slate-50/80 -mx-5 -mb-5 p-4 rounded-b-2xl border-t border-slate-100"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900 text-white">
+                    Master Admin Control
+                  </span>
+                  <span class="font-semibold text-gray-800">User Management Tab in Navbar:</span>
+                </div>
+
+                <div class="inline-flex items-center p-1 rounded-xl bg-white border border-gray-200 shadow-sm">
+                  <label
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all text-xs font-semibold select-none"
+                    :class="u.permissions?.canManageUsers ? 'bg-[#EE5102] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'"
+                  >
+                    <input
+                      type="radio"
+                      :name="'user-nav-' + u.uid"
+                      :value="true"
+                      :checked="Boolean(u.permissions?.canManageUsers)"
+                      :disabled="isUpdatingUserNav === u.uid"
+                      @change="handleSetUserNavAccess(u, true)"
+                      class="sr-only"
+                    />
+                    <span class="w-2 h-2 rounded-full" :class="u.permissions?.canManageUsers ? 'bg-white' : 'bg-gray-400'"></span>
+                    <span>Show in Navbar</span>
+                  </label>
+
+                  <label
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all text-xs font-semibold select-none"
+                    :class="!u.permissions?.canManageUsers ? 'bg-slate-800 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'"
+                  >
+                    <input
+                      type="radio"
+                      :name="'user-nav-' + u.uid"
+                      :value="false"
+                      :checked="!u.permissions?.canManageUsers"
+                      :disabled="isUpdatingUserNav === u.uid"
+                      @change="handleSetUserNavAccess(u, false)"
+                      class="sr-only"
+                    />
+                    <span class="w-2 h-2 rounded-full" :class="!u.permissions?.canManageUsers ? 'bg-white' : 'bg-gray-400'"></span>
+                    <span>Hide from Navbar</span>
+                  </label>
+                </div>
+              </div>
+
               <!-- Inline Edit Role & User Control Access Drawer -->
               <div
                 v-if="editingUserId === u.uid"
@@ -2307,6 +2365,821 @@
           </div>
         </div>
 
+        <!-- TAB 5.5: TRENDING NOW BANNER MANAGEMENT -->
+        <div v-else-if="activeTab === 'trending'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="inline-block w-2 h-2 rounded-full bg-[#EE5102] animate-pulse"></span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Top Announcement Bar</span>
+              </div>
+              <h2 class="text-xl font-semibold text-gray-900">Trending Now Management</h2>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Update the live breaking alert and trending story ticker that appears above the main navigation across the entire website.
+              </p>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <button
+                @click="resetTrendingBarToDefaults"
+                type="button"
+                class="px-3.5 py-2 rounded-full border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                Reset to Defaults
+              </button>
+              <button
+                @click="handleSaveTrending"
+                :disabled="isSavingTrending"
+                type="button"
+                class="px-5 py-2 rounded-full bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-semibold transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+              >
+                <svg v-if="isSavingTrending" class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>{{ isSavingTrending ? 'Saving Changes...' : 'Save Trending Now' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section 1: Live Visual Preview Card -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-3.5 max-w-5xl shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Realtime Preview</span>
+                <h3 class="text-sm font-semibold text-gray-900">Live Website Announcement Banner</h3>
+              </div>
+              <span
+                :class="headerFooterConfig.trendingBar.isVisible !== false ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
+                class="text-[11px] px-3 py-1 rounded-full border font-medium flex items-center gap-1.5"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full"
+                  :class="headerFooterConfig.trendingBar.isVisible !== false ? 'bg-emerald-500' : 'bg-amber-400'"
+                ></span>
+                {{ headerFooterConfig.trendingBar.isVisible !== false ? 'Visible on Public Site' : 'Hidden from Public Site' }}
+              </span>
+            </div>
+
+            <!-- Simulated Browser Bar -->
+            <div class="rounded-xl overflow-hidden border border-gray-300 shadow-inner">
+              <div class="bg-[#2B2A2E] px-4 py-2 border-b border-[#3E3D42] flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex-1 text-center">
+                  <span class="text-[11px] text-gray-400 font-mono">headlinecentral.co.za</span>
+                </div>
+              </div>
+              <!-- Simulated TrendingToolbar.vue -->
+              <div
+                v-if="headerFooterConfig.trendingBar.isVisible !== false"
+                class="bg-[#414045] text-white text-xs py-2.5 px-4 transition-all"
+              >
+                <div class="max-w-[1600px] mx-auto flex items-center justify-center space-x-2 text-center">
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#EE5102] flex-shrink-0 animate-pulse"></span>
+                  <span class="text-[#9ca3af] font-normal">{{ headerFooterConfig.trendingBar.label || 'Trending now:' }}</span>
+                  <a
+                    :href="headerFooterConfig.trendingBar.link || '/blog'"
+                    @click.prevent
+                    class="text-white font-normal hover:text-[#EE5102] transition-colors truncate max-w-xl underline decoration-[#EE5102]/60 hover:decoration-[#EE5102]"
+                  >
+                    {{ headerFooterConfig.trendingBar.text || 'Welcome to Headline Central — Essential Stories & Investigative Digital Journalism.' }}
+                  </a>
+                </div>
+              </div>
+              <div v-else class="bg-gray-100 py-3 text-center text-xs text-gray-500 font-medium">
+                (The Trending Now bar is currently toggled OFF and will not display to website visitors)
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1">
+              <span>Target link destination: <code class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono">{{ headerFooterConfig.trendingBar.link || '/blog' }}</code></span>
+              <span class="text-gray-400">Updates live when saved</span>
+            </div>
+          </div>
+
+          <!-- Section 2: Banner Settings Form -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-5 max-w-5xl shadow-sm">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Configuration</span>
+                <h3 class="text-base font-semibold text-gray-900">Headline, Label &amp; Destination Link</h3>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  v-model="headerFooterConfig.trendingBar.isVisible"
+                  type="checkbox"
+                  class="sr-only peer"
+                />
+                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#EE5102]"></div>
+                <span class="ml-2.5 text-xs font-medium text-gray-700 select-none">
+                  {{ headerFooterConfig.trendingBar.isVisible !== false ? 'Enabled' : 'Disabled' }}
+                </span>
+              </label>
+            </div>
+
+            <!-- Prefix Badge Presets -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium text-gray-700">Quick Badge Presets</label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="preset in ['Trending now:', 'Breaking News:', 'Special Report:', 'Editor’s Pick:', 'Just In:', 'Market Alert:']"
+                  :key="preset"
+                  @click="headerFooterConfig.trendingBar.label = preset"
+                  type="button"
+                  :class="headerFooterConfig.trendingBar.label === preset ? 'bg-[#EE5102] text-white border-[#EE5102]' : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'"
+                  class="px-3 py-1 rounded-full border text-xs font-medium transition-colors"
+                >
+                  {{ preset }}
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div class="md:col-span-1">
+                <label class="block font-medium text-gray-700 mb-1">Prefix Badge Label</label>
+                <input
+                  v-model="headerFooterConfig.trendingBar.label"
+                  type="text"
+                  placeholder="e.g. Trending now:"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#EE5102]"
+                />
+                <p class="text-[10px] text-gray-400 mt-1">Appears in gray before the clickable headline.</p>
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block font-medium text-gray-700 mb-1">Target Link Destination URL</label>
+                <input
+                  v-model="headerFooterConfig.trendingBar.link"
+                  type="text"
+                  placeholder="e.g. /blog or /blog/my-headline-story"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#EE5102]"
+                />
+                <p class="text-[10px] text-gray-400 mt-1">Destination when a reader clicks anywhere on the trending banner.</p>
+              </div>
+
+              <div class="md:col-span-3">
+                <label class="block font-medium text-gray-700 mb-1">
+                  Headline Announcement Text
+                  <span class="text-gray-400 font-normal">({{ (headerFooterConfig.trendingBar.text || '').length }} characters)</span>
+                </label>
+                <textarea
+                  v-model="headerFooterConfig.trendingBar.text"
+                  rows="2"
+                  placeholder="Enter the main headline or breaking news statement..."
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#EE5102]"
+                ></textarea>
+                <p class="text-[10px] text-gray-400 mt-1">Keep headline concise (under 120 characters) for optimal desktop and mobile visibility.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Quick Select from Published Articles -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-4 max-w-5xl shadow-sm">
+            <div class="border-b border-gray-100 pb-3 flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Quick Fill</span>
+                <h3 class="text-base font-semibold text-gray-900">Feature a Published Blog Article</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Click any published blog below to instantly set its title and URL into the Trending banner.</p>
+              </div>
+              <span class="text-xs text-gray-500 font-medium">{{ articles.length }} articles available</span>
+            </div>
+
+            <div v-if="articles && articles.length > 0" class="divide-y divide-gray-100 max-h-72 overflow-y-auto pr-1">
+              <div
+                v-for="art in articles"
+                :key="art.id"
+                class="py-3 flex items-center justify-between gap-3 hover:bg-gray-50/80 px-2 rounded-xl transition-colors"
+              >
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                  <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                    <img
+                      v-if="art.featuredImage"
+                      :src="art.featuredImage"
+                      :alt="art.title"
+                      class="w-full h-full object-cover"
+                      @error="(e: any) => { e.target.style.display = 'none' }"
+                    />
+                    <div v-else class="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold">
+                      HC
+                    </div>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h4 class="text-xs font-medium text-gray-900 truncate">{{ art.title }}</h4>
+                    <div class="flex items-center gap-2 text-[10px] text-gray-400 mt-0.5">
+                      <span class="font-medium text-[#EE5102]">{{ art.category }}</span>
+                      <span>&bull;</span>
+                      <span>{{ art.publishedAt || 'Recent' }}</span>
+                      <span v-if="art.isPopular" class="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-[9px] font-semibold">Popular</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  @click="handleApplyArticleToTrending(art)"
+                  type="button"
+                  class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 hover:text-white hover:bg-[#EE5102] hover:border-[#EE5102] text-xs font-medium transition-colors flex-shrink-0"
+                >
+                  Feature in Trending
+                </button>
+              </div>
+            </div>
+            <div v-else class="text-center py-6 text-xs text-gray-400">
+              No published articles found yet. You can still type custom headline text and destination URL above.
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5.6: HEADER & FOOTER NAVIGATION & CONTENT -->
+        <div v-else-if="activeTab === 'header-footer'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">Header &amp; Footer Management</h2>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Configure main navigation menu links, dropdown categories, trending alert ticker, and global footer branding.
+              </p>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <button
+                @click="resetHeaderFooterToDefaults"
+                type="button"
+                class="px-3.5 py-2 rounded-full border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                Reset to Defaults
+              </button>
+              <button
+                @click="handleSaveHeaderFooter"
+                :disabled="isSavingHeaderFooter"
+                type="button"
+                class="px-5 py-2 rounded-full bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-semibold transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+              >
+                <svg v-if="isSavingHeaderFooter" class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>{{ isSavingHeaderFooter ? 'Saving Changes...' : 'Save Header &amp; Footer' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section 1: Navigation Menu Items -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-5 max-w-5xl shadow-sm">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Header Navigation</span>
+                <h3 class="text-base font-semibold text-gray-900">Navbar Menu Items</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Control the links that appear in the top website header and mobile drawer.</p>
+              </div>
+              <button
+                @click="handleAddNavItem"
+                type="button"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-medium transition-colors shadow-sm"
+              >
+                <span>+ Add Menu Item</span>
+              </button>
+            </div>
+
+            <!-- Items Table/List -->
+            <div class="space-y-3">
+              <div
+                v-for="(item, idx) in headerFooterConfig.navItems"
+                :key="item.id || idx"
+                class="p-4 rounded-xl border border-gray-200/90 bg-gray-50/50 flex flex-wrap items-center justify-between gap-3 hover:border-gray-300 transition-colors"
+              >
+                <div class="flex items-center gap-3 flex-1 min-w-[260px]">
+                  <span class="w-6 h-6 rounded-full bg-gray-200 text-gray-700 font-bold text-[11px] flex items-center justify-center flex-shrink-0">
+                    {{ idx + 1 }}
+                  </span>
+                  <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Label</label>
+                      <input
+                        v-model="item.label"
+                        type="text"
+                        placeholder="e.g. Technology"
+                        class="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#EE5102]"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Target URL</label>
+                      <input
+                        v-model="item.to"
+                        type="text"
+                        placeholder="e.g. /categories/technology"
+                        class="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#EE5102]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <!-- External Link toggle -->
+                  <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                    <input
+                      v-model="item.isExternal"
+                      type="checkbox"
+                      class="accent-[#EE5102] rounded"
+                    />
+                    <span class="text-[11px]">Open New Tab</span>
+                  </label>
+
+                  <!-- Visibility toggle -->
+                  <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                    <input
+                      v-model="item.isVisible"
+                      type="checkbox"
+                      class="accent-[#EE5102] rounded"
+                    />
+                    <span class="text-[11px] font-medium" :class="item.isVisible !== false ? 'text-emerald-700' : 'text-gray-400'">
+                      {{ item.isVisible !== false ? 'Visible' : 'Hidden' }}
+                    </span>
+                  </label>
+
+                  <!-- Move Up / Down -->
+                  <div class="flex items-center rounded-lg border border-gray-200 bg-white overflow-hidden">
+                    <button
+                      @click="handleMoveNavItem(idx, 'up')"
+                      :disabled="idx === 0"
+                      type="button"
+                      class="px-2 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition-colors"
+                      title="Move Up"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      @click="handleMoveNavItem(idx, 'down')"
+                      :disabled="idx === headerFooterConfig.navItems.length - 1"
+                      type="button"
+                      class="px-2 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition-colors border-l border-gray-200"
+                      title="Move Down"
+                    >
+                      ▼
+                    </button>
+                  </div>
+
+                  <!-- Remove item -->
+                  <button
+                    @click="handleRemoveNavItem(idx)"
+                    type="button"
+                    class="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    title="Remove Menu Item"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Header CTA Button & Trending Bar -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl">
+            <!-- Header CTA Button -->
+            <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-4 shadow-sm">
+              <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div>
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Header Button</span>
+                  <h3 class="text-sm font-semibold text-gray-900">Header CTA Action</h3>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    v-model="headerFooterConfig.headerCta.isVisible"
+                    type="checkbox"
+                    class="sr-only peer"
+                  />
+                  <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#EE5102]"></div>
+                </label>
+              </div>
+
+              <div class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Button Label</label>
+                  <input
+                    v-model="headerFooterConfig.headerCta.label"
+                    type="text"
+                    placeholder="e.g. Contact Us"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Target Destination URL</label>
+                  <input
+                    v-model="headerFooterConfig.headerCta.to"
+                    type="text"
+                    placeholder="e.g. /contact"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Trending / Breaking Alert Ticker -->
+            <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-4 shadow-sm">
+              <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div>
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Announcement Bar</span>
+                  <h3 class="text-sm font-semibold text-gray-900">Top Trending Toolbar</h3>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    v-model="headerFooterConfig.trendingBar.isVisible"
+                    type="checkbox"
+                    class="sr-only peer"
+                  />
+                  <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#EE5102]"></div>
+                </label>
+              </div>
+
+              <div class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Prefix Badge Label</label>
+                  <input
+                    v-model="headerFooterConfig.trendingBar.label"
+                    type="text"
+                    placeholder="e.g. Trending now:"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Headline Announcement Text</label>
+                  <input
+                    v-model="headerFooterConfig.trendingBar.text"
+                    type="text"
+                    placeholder="e.g. Welcome to Headline Central..."
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Target Link URL</label>
+                  <input
+                    v-model="headerFooterConfig.trendingBar.link"
+                    type="text"
+                    placeholder="e.g. /blog"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Footer Brand & Contact Information -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-5 max-w-5xl shadow-sm">
+            <div class="border-b border-gray-100 pb-3">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Footer Configuration</span>
+              <h3 class="text-base font-semibold text-gray-900">Brand Description, Contact &amp; Copyright</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+              <div class="md:col-span-2">
+                <label class="block font-medium text-gray-700 mb-1">Brand Description / About Snippet</label>
+                <textarea
+                  v-model="headerFooterConfig.footer.brandDescription"
+                  rows="3"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                ></textarea>
+              </div>
+
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">Footer Contact Email</label>
+                <input
+                  v-model="headerFooterConfig.footer.contactEmail"
+                  type="email"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">Footer Phone Number</label>
+                <input
+                  v-model="headerFooterConfig.footer.contactPhone"
+                  type="text"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block font-medium text-gray-700 mb-1">Copyright Line</label>
+                <input
+                  v-model="headerFooterConfig.footer.copyright"
+                  type="text"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: Social Media Links -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-5 max-w-5xl shadow-sm">
+            <div class="border-b border-gray-100 pb-3">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Social Media</span>
+              <h3 class="text-base font-semibold text-gray-900">Social Profile URLs</h3>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">Twitter / X</label>
+                <input
+                  v-model="headerFooterConfig.footer.socialLinks.twitter"
+                  type="url"
+                  placeholder="https://x.com/headlinecentral"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">LinkedIn</label>
+                <input
+                  v-model="headerFooterConfig.footer.socialLinks.linkedin"
+                  type="url"
+                  placeholder="https://linkedin.com/company/headlinecentral"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">GitHub</label>
+                <input
+                  v-model="headerFooterConfig.footer.socialLinks.github"
+                  type="url"
+                  placeholder="https://github.com/headlinecentral"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">Facebook</label>
+                <input
+                  v-model="headerFooterConfig.footer.socialLinks.facebook"
+                  type="url"
+                  placeholder="https://facebook.com/..."
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">Instagram</label>
+                <input
+                  v-model="headerFooterConfig.footer.socialLinks.instagram"
+                  type="url"
+                  placeholder="https://instagram.com/..."
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">RSS Feed</label>
+                <input
+                  v-model="headerFooterConfig.footer.socialLinks.rss"
+                  type="text"
+                  placeholder="/rss.xml"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5.7: CONTACT US PAGE CONTENT -->
+        <div v-else-if="activeTab === 'contact-page'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">Contact Us Page Content</h2>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Update hero text, direct desk emails, newsroom phone, address, response expectations, and contact form settings.
+              </p>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <button
+                @click="resetContactPageToDefaults"
+                type="button"
+                class="px-3.5 py-2 rounded-full border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                Reset to Defaults
+              </button>
+              <button
+                @click="handleSaveContactPage"
+                :disabled="isSavingContactPage"
+                type="button"
+                class="px-5 py-2 rounded-full bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-semibold transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+              >
+                <svg v-if="isSavingContactPage" class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>{{ isSavingContactPage ? 'Saving Changes...' : 'Save Contact Page' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section 1: Page Header & Hero -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-4 max-w-5xl shadow-sm">
+            <div class="border-b border-gray-100 pb-3">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Hero Banner</span>
+              <h3 class="text-base font-semibold text-gray-900">Page Header &amp; Introduction</h3>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Eyebrow Badge Text</label>
+                  <input
+                    v-model="contactPageConfig.badge"
+                    type="text"
+                    placeholder="e.g. Get in Touch"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Main Heading</label>
+                  <input
+                    v-model="contactPageConfig.title"
+                    type="text"
+                    placeholder="e.g. Contact the Newsroom"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">Introductory Paragraph</label>
+                <textarea
+                  v-model="contactPageConfig.description"
+                  rows="3"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Direct Desks Email Inboxes -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-4 max-w-5xl shadow-sm">
+            <div class="border-b border-gray-100 pb-3">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Editorial Inboxes</span>
+              <h3 class="text-base font-semibold text-gray-900">Direct Desks Email Addresses</h3>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">Editorial Pitches Email</label>
+                <input
+                  v-model="contactPageConfig.pitchesEmail"
+                  type="email"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">Corrections Desk Email</label>
+                <input
+                  v-model="contactPageConfig.correctionsEmail"
+                  type="email"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">Advertising &amp; Sponsorship Email</label>
+                <input
+                  v-model="contactPageConfig.advertisingEmail"
+                  type="email"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">General Inquiries Email</label>
+                <input
+                  v-model="contactPageConfig.generalEmail"
+                  type="email"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Newsroom Phone, Bureau Address & Response Commitment -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl">
+            <!-- Physical Location & Phone -->
+            <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-4 shadow-sm">
+              <div class="border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Location</span>
+                <h3 class="text-sm font-semibold text-gray-900">Bureau &amp; Phone Line</h3>
+              </div>
+              <div class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Newsroom Phone Line</label>
+                  <input
+                    v-model="contactPageConfig.phone"
+                    type="text"
+                    placeholder="e.g. +27 11 000 0000"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Physical / Postal Bureau Address</label>
+                  <textarea
+                    v-model="contactPageConfig.address"
+                    rows="3"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Response Commitment Card -->
+            <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-4 shadow-sm">
+              <div class="border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Assurance</span>
+                <h3 class="text-sm font-semibold text-gray-900">Response Commitment Notice</h3>
+              </div>
+              <div class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Commitment Card Title</label>
+                  <input
+                    v-model="contactPageConfig.responseTitle"
+                    type="text"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Expected Turnaround Time</label>
+                  <input
+                    v-model="contactPageConfig.responseTime"
+                    type="text"
+                    placeholder="e.g. 24 to 48 hours"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+                <div>
+                  <label class="block font-medium text-gray-700 mb-1">Commitment Statement</label>
+                  <textarea
+                    v-model="contactPageConfig.responseCommitment"
+                    rows="2"
+                    class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: Contact Form Settings & Inquiry Topics -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white space-y-5 max-w-5xl shadow-sm">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#EE5102]">Form Settings</span>
+                <h3 class="text-base font-semibold text-gray-900">Transmission Form &amp; Topic Options</h3>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  v-model="contactPageConfig.formEnabled"
+                  type="checkbox"
+                  class="sr-only peer"
+                />
+                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#EE5102]"></div>
+              </label>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <div>
+                <label class="block font-medium text-gray-700 mb-1">Success Feedback Message</label>
+                <input
+                  v-model="contactPageConfig.successMessage"
+                  type="text"
+                  class="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                />
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <label class="block font-medium text-gray-700">Inquiry Topics (Dropdown Options)</label>
+                  <button
+                    @click="handleAddInquiryTopic"
+                    type="button"
+                    class="text-[11px] font-semibold text-[#EE5102] hover:underline"
+                  >
+                    + Add Topic
+                  </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div
+                    v-for="(t, idx) in contactPageConfig.inquiryTopics"
+                    :key="idx"
+                    class="flex items-center gap-2 bg-gray-50 p-2 rounded-xl border border-gray-200"
+                  >
+                    <input
+                      v-model="contactPageConfig.inquiryTopics[idx]"
+                      type="text"
+                      class="flex-1 bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-[#EE5102]"
+                    />
+                    <button
+                      @click="handleRemoveInquiryTopic(idx)"
+                      :disabled="contactPageConfig.inquiryTopics.length <= 1"
+                      type="button"
+                      class="text-gray-400 hover:text-red-600 disabled:opacity-30 p-1"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- TAB 6: SETTINGS -->
         <div v-else-if="activeTab === 'settings'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
           <div class="mb-6 pb-4 border-b border-gray-100">
@@ -2340,55 +3213,6 @@
                 disabled
                 class="w-full rounded-xl border border-gray-200 bg-gray-50 text-gray-500 px-3.5 py-2 text-sm focus:outline-none"
               />
-            </div>
-
-            <!-- Master Admin Governance Settings Card -->
-            <div
-              v-if="isMasterAdmin"
-              class="p-5 rounded-2xl border-2 transition-all shadow-sm space-y-3"
-              :class="allowAdminUserManagementInNav ? 'border-emerald-300 bg-emerald-50/70' : 'border-amber-300 bg-amber-50/70'"
-            >
-              <div class="flex items-center gap-2">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900 text-white">
-                  Master Admin Governance
-                </span>
-                <span
-                  class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                  :class="allowAdminUserManagementInNav ? 'bg-emerald-200 text-emerald-950' : 'bg-amber-200 text-amber-950'"
-                >
-                  {{ allowAdminUserManagementInNav ? 'Navbar Item Enabled' : 'Navbar Item Hidden' }}
-                </span>
-              </div>
-
-              <div>
-                <h3 class="text-sm font-bold text-gray-950">
-                  User Management Tab for Administrators
-                </h3>
-                <p class="text-xs text-gray-600 leading-relaxed mt-1">
-                  Control whether users with the Administrator role can see and access the "User Management" link in the CMS navbar.
-                </p>
-              </div>
-
-              <div class="flex items-center justify-between pt-2 border-t border-gray-200/60">
-                <span class="text-xs font-semibold" :class="allowAdminUserManagementInNav ? 'text-[#EE5102]' : 'text-gray-500'">
-                  {{ isTogglingAdminNav ? 'Updating...' : (allowAdminUserManagementInNav ? 'Enabled for Administrators' : 'Hidden from Administrators') }}
-                </span>
-                <button
-                  @click="handleToggleAdminNavAccess"
-                  :disabled="isTogglingAdminNav"
-                  type="button"
-                  class="relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50"
-                  :class="allowAdminUserManagementInNav ? 'bg-[#EE5102]' : 'bg-gray-300'"
-                  role="switch"
-                  :aria-checked="allowAdminUserManagementInNav"
-                >
-                  <span
-                    aria-hidden="true"
-                    class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                    :class="allowAdminUserManagementInNav ? 'translate-x-7' : 'translate-x-0'"
-                  />
-                </button>
-              </div>
             </div>
 
             <!-- Active Session & Sign Out Card -->
@@ -2529,6 +3353,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useArticles, type Article, type ArticleSection, type GalleryItem, type CategoryMeta } from '~/composables/useArticles'
 import { useSiteSeo } from '~/composables/useSiteSeo'
+import { useSiteContent } from '~/composables/useSiteContent'
 import {
   useFirebase,
   getDefaultPermissionsForRole,
@@ -2631,6 +3456,106 @@ const {
   uploadFileToStorage,
   listStorageMedia
 } = useFirebase()
+
+const {
+  headerFooterConfig,
+  contactPageConfig,
+  saveHeaderFooterConfig,
+  saveContactPageConfig,
+  resetTrendingBarToDefaults,
+  resetHeaderFooterToDefaults,
+  resetContactPageToDefaults,
+  syncSiteContentFromCloud
+} = useSiteContent()
+
+const isSavingTrending = ref(false)
+const isSavingHeaderFooter = ref(false)
+const isSavingContactPage = ref(false)
+
+const handleSaveTrending = async () => {
+  isSavingTrending.value = true
+  try {
+    const ok = await saveHeaderFooterConfig()
+    if (ok) {
+      userFeedbackType.value = 'success'
+      userFeedbackMessage.value = 'Trending now banner updated and saved successfully!'
+    }
+  } catch (err: any) {
+    userFeedbackType.value = 'error'
+    userFeedbackMessage.value = `Failed to save Trending now banner: ${err?.message || 'Write failed'}`
+  } finally {
+    isSavingTrending.value = false
+  }
+}
+
+const handleApplyArticleToTrending = (art: Article) => {
+  headerFooterConfig.trendingBar.text = art.title
+  headerFooterConfig.trendingBar.link = `/blog/${art.slug}`
+  userFeedbackType.value = 'success'
+  userFeedbackMessage.value = `Loaded "${art.title}" into Trending now bar. Remember to click "Save Trending Now".`
+}
+
+const handleSaveHeaderFooter = async () => {
+  isSavingHeaderFooter.value = true
+  try {
+    const ok = await saveHeaderFooterConfig()
+    if (ok) {
+      userFeedbackType.value = 'success'
+      userFeedbackMessage.value = 'Header and Footer configuration saved and updated successfully.'
+    }
+  } catch (err: any) {
+    userFeedbackType.value = 'error'
+    userFeedbackMessage.value = `Failed to save Header & Footer: ${err?.message || 'Write failed'}`
+  } finally {
+    isSavingHeaderFooter.value = false
+  }
+}
+
+const handleSaveContactPage = async () => {
+  isSavingContactPage.value = true
+  try {
+    const ok = await saveContactPageConfig()
+    if (ok) {
+      userFeedbackType.value = 'success'
+      userFeedbackMessage.value = 'Contact Us page content saved and updated successfully.'
+    }
+  } catch (err: any) {
+    userFeedbackType.value = 'error'
+    userFeedbackMessage.value = `Failed to save Contact Page: ${err?.message || 'Write failed'}`
+  } finally {
+    isSavingContactPage.value = false
+  }
+}
+
+const handleAddNavItem = () => {
+  headerFooterConfig.navItems.push({
+    id: `nav-${Date.now()}`,
+    label: 'New Link',
+    to: '/',
+    isVisible: true
+  })
+}
+
+const handleRemoveNavItem = (idx: number) => {
+  headerFooterConfig.navItems.splice(idx, 1)
+}
+
+const handleMoveNavItem = (idx: number, dir: 'up' | 'down') => {
+  const targetIdx = dir === 'up' ? idx - 1 : idx + 1
+  if (targetIdx < 0 || targetIdx >= headerFooterConfig.navItems.length) return
+  const [moved] = headerFooterConfig.navItems.splice(idx, 1)
+  headerFooterConfig.navItems.splice(targetIdx, 0, moved)
+}
+
+const handleAddInquiryTopic = () => {
+  contactPageConfig.inquiryTopics.push('New Topic Option')
+}
+
+const handleRemoveInquiryTopic = (idx: number) => {
+  if (contactPageConfig.inquiryTopics.length > 1) {
+    contactPageConfig.inquiryTopics.splice(idx, 1)
+  }
+}
 
 const isSyncingUsers = ref(false)
 const handleSyncUsers = async () => {
@@ -2737,7 +3662,7 @@ const handleSavePageSeo = (key: string) => {
 }
 
 const isSidebarCollapsed = ref(false)
-const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'seo' | 'users' | 'settings'>('dashboard')
+const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'seo' | 'trending' | 'header-footer' | 'contact-page' | 'users' | 'settings'>('dashboard')
 const cmsSearch = ref('')
 const liveVisitors = ref(12)
 const isPreviewMode = ref(false)
@@ -2759,17 +3684,14 @@ const isMasterAdmin = computed(() => Boolean(
 const canViewUserManagementInNav = computed(() => {
   if (!currentUser.value) return false
   if (isMasterAdmin.value) return true
-  if (currentUser.value.roleKey === 'admin') {
-    return Boolean(allowAdminUserManagementInNav.value)
-  }
-  return Boolean(allowAdminUserManagementInNav.value && hasPermission('canManageUsers'))
+  return Boolean(currentUser.value.permissions?.canManageUsers)
 })
 
 const hasPermission = (perm: keyof CmsUserPermissions): boolean => {
   if (!currentUser.value) return false
   if (isMasterAdmin.value) return true
   if (perm === 'canManageUsers') {
-    return Boolean(allowAdminUserManagementInNav.value && (currentUser.value.roleKey === 'admin' || currentUser.value.permissions?.canManageUsers))
+    return Boolean(currentUser.value.permissions?.canManageUsers)
   }
   if (currentUser.value.roleKey === 'admin') return true
   return currentUser.value.permissions?.[perm] !== false
@@ -2781,21 +3703,31 @@ watch(canViewUserManagementInNav, (canView) => {
   }
 })
 
-const isTogglingAdminNav = ref(false)
-const handleToggleAdminNavAccess = async () => {
+const isUpdatingUserNav = ref<string | null>(null)
+const handleSetUserNavAccess = async (u: ManagedCmsUser, allowed: boolean) => {
   if (!isMasterAdmin.value) return
-  isTogglingAdminNav.value = true
+  if (u.isMaster || u.email.toLowerCase() === 'admin@headlinecentral.co.za') return
+
+  isUpdatingUserNav.value = u.uid
   try {
-    const nextVal = !allowAdminUserManagementInNav.value
-    const ok = await setAllowAdminUserManagementInNav(nextVal)
+    const currentPermissions = u.permissions || getDefaultPermissionsForRole(u.roleKey || 'editor')
+    const updatedPermissions: CmsUserPermissions = {
+      ...currentPermissions,
+      canManageUsers: allowed
+    }
+
+    const ok = await updateManagedUser(u.uid, {
+      permissions: updatedPermissions
+    })
+
     if (ok) {
       userFeedbackType.value = 'success'
-      userFeedbackMessage.value = nextVal
-        ? 'User Management navigation item is now ENABLED for Administrator accounts.'
-        : 'User Management navigation tab is now DISABLED for Administrator accounts (restricted to Master Admin).'
+      userFeedbackMessage.value = allowed
+        ? `User Management navbar access ENABLED for ${u.displayName || u.email}.`
+        : `User Management navbar access HIDDEN for ${u.displayName || u.email}.`
     }
   } finally {
-    isTogglingAdminNav.value = false
+    isUpdatingUserNav.value = null
   }
 }
 
@@ -3007,6 +3939,7 @@ onMounted(async () => {
 
   await syncFromFirestore()
   await syncUsersFromCloud().catch(() => {})
+  await syncSiteContentFromCloud().catch(() => {})
   const remoteMedia = await listStorageMedia('blogs')
   if (remoteMedia.length > 0) {
     cloudMediaAssets.value = remoteMedia
@@ -3037,17 +3970,17 @@ const editorForm = reactive({
   metaDescription: '',
   category: 'Technology',
   subCategory: '',
-  publishedAt: '2026 November 7',
-  readTime: '5 min read',
+  publishedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+  readTime: '4 min read',
   excerpt: '',
-  bannerImage: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp',
-  bannerImageMobile: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp',
+  bannerImage: '',
+  bannerImageMobile: '',
   bannerAlt: '',
   imageCaption: '',
   sections: [] as EditableSectionForm[],
   galleryItems: [] as GalleryItem[],
   galleryCaption: '',
-  tagsInput: 'NVIDIA, GeForce 8800, Retro Tech, Hardware, PC Gaming History'
+  tagsInput: ''
 })
 
 const availableSubCategoriesForEditor = computed(() => {
@@ -3306,11 +4239,11 @@ const startNewBlog = () => {
   editorForm.metaDescription = ''
   editorForm.category = categories[0]?.name || 'Technology'
   editorForm.subCategory = ''
-  editorForm.publishedAt = '2026 November 7'
-  editorForm.readTime = '5 min read'
+  editorForm.publishedAt = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  editorForm.readTime = '4 min read'
   editorForm.excerpt = ''
-  editorForm.bannerImage = '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp'
-  editorForm.bannerImageMobile = '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp'
+  editorForm.bannerImage = ''
+  editorForm.bannerImageMobile = ''
   editorForm.bannerAlt = ''
   editorForm.imageCaption = ''
   editorForm.sections = [
@@ -3318,7 +4251,7 @@ const startNewBlog = () => {
       id: `section-${Date.now()}-1`,
       title: '',
       content: '',
-      hasImage: true,
+      hasImage: false,
       imageSrc: '',
       imageMobileSrc: '',
       imageAlt: '',
@@ -3329,7 +4262,7 @@ const startNewBlog = () => {
   ]
   editorForm.galleryItems = []
   editorForm.galleryCaption = ''
-  editorForm.tagsInput = 'NVIDIA, GeForce 8800, Retro Tech, Hardware, PC Gaming History'
+  editorForm.tagsInput = ''
   activeTab.value = 'editor'
 }
 

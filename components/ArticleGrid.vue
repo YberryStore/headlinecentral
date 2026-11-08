@@ -65,12 +65,13 @@
           <div class="px-6 pb-6 pt-4 border-t border-gray-50 flex items-center justify-between">
             <div class="flex items-center space-x-2.5">
               <img
+                v-if="article.author?.avatar"
                 :src="article.author.avatar"
-                :alt="article.author.name"
+                :alt="article.author?.name || 'Author'"
                 class="w-8 h-8 rounded-full object-cover"
               />
               <span class="text-xs font-medium text-gray-700">
-                {{ article.author.name }}
+                {{ article.author?.name || 'Editorial Staff' }}
               </span>
             </div>
 
