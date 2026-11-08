@@ -1243,9 +1243,15 @@ export const useFirebase = () => {
         authError.value = 'Google Sign-In popup was closed.'
         return false
       }
-      if (err?.code === 'auth/popup-blocked') {
-        authError.value = 'The login window was blocked by your browser. Please allow popups for this site and click again.'
-        return false
+      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
+        // Fallback to full-page redirect if popups are blocked by browser/COOP policy
+        try {
+          await signInWithRedirect(firebaseAuth, provider)
+          return false
+        } catch {
+          authError.value = 'The login popup was blocked by your browser policies. Please enable popups for this site or refresh and retry.'
+          return false
+        }
       }
       if (err?.code === 'auth/unauthorized-domain') {
         authError.value = `Domain "${currentHost}" is not authorized. Please add "${currentHost}" in Firebase Console -> Authentication -> Settings -> Authorized domains.`
@@ -1263,6 +1269,25 @@ export const useFirebase = () => {
       authError.value = err?.message || 'Unable to complete Google Sign-In. Please try again.'
       return false
     }
+  }
+
+  /**
+   * Optional full-page redirect alternative for Google Sign-In
+   * Useful when browser extensions or corporate network policies aggressively block popups.
+   */
+  const loginWithGoogleRedirect = async (): Promise<void> => {
+    authError.value = null
+    initFirebase()
+    if (!firebaseAuth || !isAuthServiceConfigured.value) {
+      authError.value = 'Google Sign-In connection is not initialized. Please ensure your Firebase Authentication is configured.'
+      return
+    }
+    const provider = new GoogleAuthProvider()
+    provider.addScope('profile')
+    provider.addScope('email')
+    provider.setCustomParameters({ prompt: 'select_account' })
+    await signInWithRedirect(firebaseAuth, provider)
+  }
   }
 
   /**
@@ -1549,6 +1574,7 @@ export const useFirebase = () => {
     initFirebase,
     syncUsersFromCloud,
     loginWithGoogle,
+    loginWithGoogleRedirect,
     loginWithEmail,
     registerAccountRequest,
     approveAndActivateUser,
