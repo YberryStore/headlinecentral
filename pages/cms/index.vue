@@ -4278,9 +4278,12 @@ const previewArticleObject = computed<Article>(() => {
       alt: (g.alt || `Gallery image ${idx + 1}`).trim()
     }))
 
+  const fallbackSlug = editingArticleId.value ? `story-${editingArticleId.value.replace(/[^a-z0-9]/gi, '')}` : `story-${Date.now()}`
+  const resolvedSlug = (slugify(editorForm.title || '') || fallbackSlug).trim()
+
   return {
     id: editingArticleId.value || 'preview-article',
-    slug: slugify(editorForm.title || 'untitled-blog'),
+    slug: resolvedSlug,
     title: editorForm.title || 'Untitled Blog Post',
     titleHighlight: editorForm.titleHighlight || undefined,
     excerpt: editorForm.excerpt || '',
@@ -4429,11 +4432,13 @@ const editBlog = (article: Article) => {
 const saveBlogPost = async () => {
   const built = previewArticleObject.value
   const cleanTitle = (built.title || 'Untitled Blog Post').trim()
+  const cleanSlug = (built.slug || slugify(cleanTitle) || `story-${Date.now()}`).trim()
 
   try {
     if (editingArticleId.value) {
       await updateArticle(editingArticleId.value, {
         title: cleanTitle,
+        slug: cleanSlug,
         titleHighlight: built.titleHighlight,
         excerpt: built.excerpt,
         status: editorForm.status,
@@ -4463,6 +4468,7 @@ const saveBlogPost = async () => {
       await addArticle({
         ...built,
         id: newId,
+        slug: cleanSlug,
         title: cleanTitle,
         status: editorForm.status,
         isPublished: editorForm.status === 'published'
@@ -4470,6 +4476,11 @@ const saveBlogPost = async () => {
       userFeedbackType.value = 'success'
       userFeedbackMessage.value = `New blog article "${cleanTitle}" created as ${editorForm.status === 'draft' ? 'Draft' : 'Published'}!`
     }
+    // Guarantee newly created/updated article shows up immediately without being hidden by active filters
+    blogStatusFilter.value = 'all'
+    cmsSearch.value = ''
+    editingArticleId.value = null
+    isPreviewMode.value = false
     activeTab.value = 'blogs'
   } catch (err: any) {
     userFeedbackType.value = 'error'

@@ -327,32 +327,52 @@ export const useArticles = () => {
   }
 
   const addArticle = async (newArticle: Article): Promise<Article> => {
+    const rawSlug = newArticle.slug || (newArticle.title ? slugifyText(newArticle.title) : '') || `story-${Date.now()}`
+    const cleanSlug = normalizeSlug(rawSlug)
+
     const stampedArticle: Article = {
       ...newArticle,
+      slug: cleanSlug,
       updatedAt: newArticle.updatedAt || new Date().toISOString()
     }
-    sharedArticles.unshift(stampedArticle)
+
+    // Instantly update local reactive state
+    const existingIdx = sharedArticles.findIndex(a => a.id === stampedArticle.id || normalizeSlug(a.slug) === cleanSlug)
+    if (existingIdx !== -1) {
+      sharedArticles.splice(existingIdx, 1, stampedArticle)
+    } else {
+      sharedArticles.unshift(stampedArticle)
+    }
     persistArticles()
+
+    // Sync to Firestore in background without blocking UI
     if (typeof window !== 'undefined') {
       const { saveFirestoreArticle } = useFirebase()
-      await saveFirestoreArticle(stampedArticle).catch(() => {})
+      saveFirestoreArticle(stampedArticle).catch(() => {})
     }
     return stampedArticle
   }
 
   const updateArticle = async (id: string, updated: Partial<Article>): Promise<Article | undefined> => {
-    const idx = sharedArticles.findIndex(a => a.id === id || a.slug === id)
+    const target = normalizeSlug(id)
+    const idx = sharedArticles.findIndex(a => normalizeSlug(a.id) === target || normalizeSlug(a.slug) === target)
     if (idx !== -1) {
+      const existing = sharedArticles[idx]
+      const rawSlug = updated.slug || (updated.title ? slugifyText(updated.title) : existing.slug)
+      const cleanSlug = normalizeSlug(rawSlug)
+
       const merged: Article = {
-        ...sharedArticles[idx],
+        ...existing,
         ...updated,
+        slug: cleanSlug,
         updatedAt: new Date().toISOString()
       }
       sharedArticles.splice(idx, 1, merged)
       persistArticles()
+
       if (typeof window !== 'undefined') {
         const { saveFirestoreArticle } = useFirebase()
-        await saveFirestoreArticle(merged).catch(() => {})
+        saveFirestoreArticle(merged).catch(() => {})
       }
       return merged
     }
@@ -360,20 +380,79 @@ export const useArticles = () => {
   }
 
   const deleteArticle = async (id: string) => {
-    const idx = sharedArticles.findIndex(a => a.id === id || a.slug === id)
+    const target = normalizeSlug(id)
+    const idx = sharedArticles.findIndex(a => normalizeSlug(a.id) === target || normalizeSlug(a.slug) === target)
     if (idx !== -1) {
-      sharedArticles.splice(idx, 1)
+      const removed = sharedArticles.splice(idx, 1)[0]
       persistArticles()
       if (typeof window !== 'undefined') {
         const { deleteFirestoreArticle } = useFirebase()
-        await deleteFirestoreArticle(id).catch(() => {})
+        deleteFirestoreArticle(removed.id).catch(() => {})
       }
     }
   }
 
-  const getArticleBySlug = (slug: string): Article | undefined => {
-    if (!slug) return undefined
-    return articles.find(a => a.slug === slug || a.id === slug)
+  const normalizeSlug = (s: string): string => {
+    if (!s) return ''
+    try {
+      return decodeURIComponent(s).toLowerCase().trim().replace(/^\/+|\/+$/g, '')
+    } catch {
+      return s.toLowerCase().trim().replace(/^\/+|\/+$/g, '')
+    }
+  }
+
+  const slugifyText = (text: string): string => {
+    if (!text) return ''
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+  }
+
+  const getArticleBySlug = (rawSlug: string): Article | undefined => {
+    if (!rawSlug) return undefined
+    const target = normalizeSlug(rawSlug)
+    if (!target) return undefined
+
+    // 1. Direct match in reactive state
+    let match = sharedArticles.find(a => {
+      const aSlug = normalizeSlug(a.slug)
+      const aId = normalizeSlug(a.id)
+      const aTitleSlug = normalizeSlug(slugifyText(a.title))
+      return aSlug === target || aId === target || aTitleSlug === target
+    })
+
+    if (match) return match
+
+    // 2. Client-side synchronous fallback to localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('hc_cms_custom_articles')
+        if (saved) {
+          const parsed: Article[] = JSON.parse(saved)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            match = parsed.find(a => {
+              const aSlug = normalizeSlug(a.slug)
+              const aId = normalizeSlug(a.id)
+              const aTitleSlug = normalizeSlug(slugifyText(a.title))
+              return aSlug === target || aId === target || aTitleSlug === target
+            })
+            if (match) {
+              const exists = sharedArticles.some(a => a.id === match!.id || normalizeSlug(a.slug) === normalizeSlug(match!.slug))
+              if (!exists) {
+                sharedArticles.unshift(match)
+              }
+              return match
+            }
+          }
+        }
+      } catch {
+        // Ignore fallback storage parse errors
+      }
+    }
+
+    return undefined
   }
 
   const getArticlesByCategory = (categorySlug: string) => {

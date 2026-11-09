@@ -1582,8 +1582,50 @@ export const useFirebase = () => {
     return new Promise((resolve) => {
       const reader = new FileReader()
       reader.onload = () => {
+        const rawResult = typeof reader.result === 'string' ? reader.result : ''
+        if (typeof window === 'undefined' || !rawResult) {
+          isUploading.value = false
+          resolve(rawResult)
+          return
+        }
+        // Downscale and compress image locally to ensure localStorage quota is never exceeded
+        const img = new Image()
+        img.onload = () => {
+          const maxDim = 1280
+          let w = img.width
+          let h = img.height
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w)
+              w = maxDim
+            } else {
+              w = Math.round((w * maxDim) / h)
+              h = maxDim
+            }
+          }
+          const canvas = document.createElement('canvas')
+          canvas.width = w
+          canvas.height = h
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h)
+            const compressed = canvas.toDataURL('image/webp', 0.82)
+            isUploading.value = false
+            resolve(compressed)
+            return
+          }
+          isUploading.value = false
+          resolve(rawResult)
+        }
+        img.onerror = () => {
+          isUploading.value = false
+          resolve(rawResult)
+        }
+        img.src = rawResult
+      }
+      reader.onerror = () => {
         isUploading.value = false
-        resolve(typeof reader.result === 'string' ? reader.result : '')
+        resolve('')
       }
       reader.readAsDataURL(file)
     })

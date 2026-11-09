@@ -13,6 +13,12 @@
     <!-- Unified Dynamic Blog Layout Component -->
     <BlogPostLayout v-if="article" :article="article" />
 
+    <!-- Hydration / Loading state while resolving article -->
+    <div v-else-if="isLoading" class="max-w-xl mx-auto py-28 text-center px-4">
+      <div class="w-10 h-10 border-3 border-orange-200 border-t-[#EE5102] rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-sm font-medium text-gray-600">Loading story...</p>
+    </div>
+
     <!-- Fallback if slug not found -->
     <div v-else class="max-w-xl mx-auto py-24 text-center px-4">
       <div class="w-14 h-14 rounded-full bg-orange-50 text-[#EE5102] flex items-center justify-center mx-auto mb-4 font-bold">
@@ -22,7 +28,7 @@
       </div>
       <h2 class="text-2xl font-bold text-gray-900 mb-2">Article Not Found</h2>
       <p class="text-sm text-gray-500 mb-6">The story you are looking for has not been published or may have been removed.</p>
-      <NuxtLink to="/blog" class="inline-flex items-center justify-center px-6 py-2.5 rounded-full text-xs font-semibold text-white bg-[#EE5102] hover:bg-[#d84802] transition-colors shadow-sm">
+      <NuxtLink to="/blog" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl text-xs font-semibold text-white bg-[#EE5102] hover:bg-[#d84802] transition-colors shadow-sm">
         Return to All Blogs
       </NuxtLink>
     </div>
@@ -30,17 +36,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useArticles } from '~/composables/useArticles'
 
 const route = useRoute()
 const { getArticleBySlug, syncFromFirestore } = useArticles()
 
-const article = computed(() => getArticleBySlug(route.params.slug as string))
+const isLoading = ref(true)
+
+const article = computed(() => {
+  const paramSlug = Array.isArray(route.params.slug) ? route.params.slug[0] : (route.params.slug as string)
+  return getArticleBySlug(paramSlug)
+})
 
 onMounted(async () => {
-  await syncFromFirestore().catch(() => {})
+  if (!article.value) {
+    await syncFromFirestore().catch(() => {})
+  }
+  isLoading.value = false
 })
 
 useHead(() => {
