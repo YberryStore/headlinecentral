@@ -35,10 +35,29 @@
               />
               <NuxtLink
                 :to="`/categories/${article.categorySlug}`"
-                class="absolute top-4 left-4 badge-category bg-white/90 backdrop-blur-md text-gray-900 border border-white/60 hover:bg-yberry-1000 hover:text-white transition-colors"
+                class="absolute top-4 left-4 badge-category bg-white/90 backdrop-blur-md text-gray-900 border border-white/60 hover:bg-yberry-1000 hover:text-white transition-colors z-10"
               >
                 {{ article.category }}
               </NuxtLink>
+
+              <!-- Video Badge & Quick Play Overlay -->
+              <template v-if="article.videoUrl">
+                <span class="absolute top-4 right-4 z-10 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/80 text-white backdrop-blur-md flex items-center gap-1 shadow-md">
+                  <svg class="w-3 h-3 text-[#EE5102]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  <span>Video</span>
+                </span>
+
+                <button
+                  @click.stop.prevent="openVideoModal(article)"
+                  type="button"
+                  class="absolute inset-0 z-10 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  aria-label="Play video"
+                >
+                  <div class="w-12 h-12 rounded-full bg-[#EE5102] text-white flex items-center justify-center shadow-xl transform group-hover:scale-110 transition-transform">
+                    <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  </div>
+                </button>
+              </template>
             </div>
 
             <!-- Content -->
@@ -75,25 +94,67 @@
               </span>
             </div>
 
-            <NuxtLink
-              :to="`/blog/${article.slug}`"
-              class="text-xs font-semibold text-yberry-1000 group-hover:translate-x-1 transition-transform inline-flex items-center space-x-1"
-            >
-              <span>Read</span>
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </NuxtLink>
+            <div class="flex items-center gap-2">
+              <button
+                v-if="article.videoUrl"
+                @click.prevent="openVideoModal(article)"
+                type="button"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-900 hover:bg-[#EE5102] text-white transition-colors cursor-pointer"
+              >
+                <svg class="w-3 h-3 text-[#EE5102]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <span>Watch</span>
+              </button>
+              <NuxtLink
+                :to="`/blog/${article.slug}`"
+                class="text-xs font-semibold text-yberry-1000 group-hover:translate-x-1 transition-transform inline-flex items-center space-x-1"
+              >
+                <span>Read</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </NuxtLink>
+            </div>
           </div>
         </article>
       </div>
     </div>
+
+    <!-- Video Player Lightbox Modal -->
+    <VideoPlayerModal
+      :is-open="isModalOpen"
+      :video-url="activeVideoUrl"
+      :title="activeVideoTitle"
+      :caption="activeVideoCaption"
+      :slug="activeVideoSlug"
+      @close="closeVideoModal"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { Article } from '~/composables/useArticles'
 
 defineProps<{
   articles: Article[]
 }>()
+
+const isModalOpen = ref(false)
+const activeVideoUrl = ref('')
+const activeVideoTitle = ref('')
+const activeVideoCaption = ref('')
+const activeVideoSlug = ref('')
+
+const openVideoModal = (article: Article) => {
+  if (!article.videoUrl) return
+  activeVideoUrl.value = article.videoUrl
+  activeVideoTitle.value = article.title
+  activeVideoCaption.value = article.videoCaption || ''
+  activeVideoSlug.value = article.slug || ''
+  isModalOpen.value = true
+}
+
+const closeVideoModal = () => {
+  isModalOpen.value = false
+  activeVideoUrl.value = ''
+}
 </script>
 

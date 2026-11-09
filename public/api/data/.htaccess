@@ -1,0 +1,6 @@
+# Prevent direct HTTP access to data storage
+<Files "comments.json">
+    Order allow,deny
+    Deny from all
+</Files>
+

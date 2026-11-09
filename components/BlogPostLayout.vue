@@ -34,11 +34,75 @@
       </div>
     </header>
 
-    <!-- Full-Width Featured Banner (Desktop & Mobile with Alt Tag, Optional Clickable URL & Credit) -->
-    <div v-if="article.bannerImage || article.bannerImageMobile || article.featuredImage" class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
-      <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm bg-gray-950 relative group">
+    <!-- Full-Width Featured Banner or Playable Hero Video (Desktop & Mobile with Alt Tag, Clickable URL, Video Controls & Credit) -->
+    <div v-if="article.bannerImage || article.bannerImageMobile || article.featuredImage || article.videoUrl" class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
+      <!-- Mode 1: Active In-Place Video Player -->
+      <div
+        v-if="article.videoUrl && isPlayingHeroVideo"
+        class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl bg-black relative border border-gray-800"
+      >
+        <div class="aspect-video w-full bg-black relative">
+          <iframe
+            v-if="isEmbedVideo(article.videoUrl)"
+            :src="getEmbedVideoUrl(article.videoUrl, true)"
+            class="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            :title="article.videoCaption || article.title"
+          ></iframe>
+          <video
+            v-else
+            :src="useAsset(article.videoUrl)"
+            controls
+            autoplay
+            playsinline
+            preload="auto"
+            class="w-full h-full object-contain bg-black"
+          ></video>
+        </div>
+
+        <!-- Video Control Bar -->
+        <div class="p-3 sm:p-4 bg-gray-900 border-t border-gray-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2 text-white">
+            <span class="w-2 h-2 rounded-full bg-[#EE5102] animate-pulse"></span>
+            <span class="font-semibold text-gray-200">Playing Blog Video</span>
+            <span v-if="article.videoCaption" class="text-gray-400 italic hidden sm:inline">&mdash; {{ article.videoCaption }}</span>
+          </div>
+
+          <div class="flex items-center gap-2.5">
+            <button
+              v-if="article.bannerImage || article.featuredImage"
+              @click="isPlayingHeroVideo = false"
+              type="button"
+              class="px-3.5 py-1.5 rounded-full bg-gray-800 hover:bg-gray-700 text-white text-xs font-medium transition-colors flex items-center gap-1.5 shadow-xs"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <span>Switch to Photo Banner</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 2: Hero Banner Image with "Play Video" In-Place Overlay -->
+      <div v-else class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm bg-gray-950 relative group">
+        <!-- Interactive Play Video Overlay directly on the blog hero banner -->
+        <button
+          v-if="article.videoUrl"
+          @click="isPlayingHeroVideo = true"
+          type="button"
+          class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/30 hover:bg-black/45 transition-all group/play cursor-pointer"
+          aria-label="Play video directly on blog page"
+        >
+          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/95 text-[#EE5102] flex items-center justify-center shadow-2xl group-hover/play:scale-110 group-hover/play:bg-[#EE5102] group-hover/play:text-white transition-all duration-300">
+            <svg class="w-7 h-7 sm:w-9 sm:h-9 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <span class="mt-3 px-4 py-1.5 rounded-full bg-black/75 backdrop-blur-md text-white text-xs font-semibold shadow-lg group-hover/play:bg-[#EE5102] transition-colors">
+            Play Video on Page
+          </span>
+        </button>
+
         <a
-          v-if="article.bannerLinkUrl"
+          v-if="article.bannerLinkUrl && !article.videoUrl"
           :href="formatLinkUrl(article.bannerLinkUrl)"
           :target="isExternalUrl(article.bannerLinkUrl) ? '_blank' : '_self'"
           :rel="isExternalUrl(article.bannerLinkUrl) ? 'noopener noreferrer' : undefined"
@@ -74,11 +138,12 @@
           />
         </picture>
       </div>
-      <div v-if="article.imageCaption || article.bannerCredit" class="mt-3 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 text-xs text-center">
+
+      <div v-if="article.imageCaption || article.bannerCredit || article.videoUrl" class="mt-3 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 text-xs text-center">
         <p v-if="article.imageCaption" class="text-gray-500 italic">
           {{ article.imageCaption }}
         </p>
-        <span v-if="article.imageCaption && article.bannerCredit" class="hidden sm:inline text-gray-300">•</span>
+        <span v-if="article.imageCaption && (article.bannerCredit || article.videoUrl)" class="hidden sm:inline text-gray-300">•</span>
         <p v-if="article.bannerCredit" class="text-gray-400 font-medium">
           Source / Credit:
           <a
@@ -90,11 +155,15 @@
           >{{ article.bannerCredit }}</a>
           <span v-else class="text-gray-600">{{ article.bannerCredit }}</span>
         </p>
+        <span v-if="article.videoUrl && !isPlayingHeroVideo" class="inline-flex items-center gap-1 text-[#EE5102] font-semibold cursor-pointer hover:underline" @click="isPlayingHeroVideo = true">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <span>Watch Playable Video</span>
+        </span>
       </div>
     </div>
 
-    <!-- Optional Featured Blog Video (YouTube / Vimeo / Direct Video File) -->
-    <div v-if="article.videoUrl" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
+    <!-- Optional Dedicated Blog Video Section (When not playing inside hero banner) -->
+    <div v-if="article.videoUrl && !isPlayingHeroVideo" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
       <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm bg-gray-950 border border-gray-100">
         <div class="aspect-video w-full bg-black relative">
           <iframe
@@ -385,12 +454,22 @@
               </button>
             </div>
 
-            <!-- Comments Badge -->
-            <div class="flex items-center space-x-1.5 text-xs text-[#EE5102] bg-orange-50 px-3.5 py-1.5 rounded-full font-medium border border-[#EE5102]/20">
+            <!-- Comments Badge (clickable jump to discussion) -->
+            <a
+              href="#comments"
+              class="flex items-center space-x-1.5 text-xs text-[#EE5102] bg-orange-50 hover:bg-orange-100 px-3.5 py-1.5 rounded-full font-medium border border-[#EE5102]/20 transition-colors"
+            >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-              <span>0 Comments</span>
-            </div>
+              <span>{{ totalCommentsCount }} {{ totalCommentsCount === 1 ? 'Comment' : 'Comments' }}</span>
+            </a>
           </div>
+
+          <!-- Reader Discussion & Comments Section -->
+          <BlogComments
+            :article-id="article.id"
+            :article-slug="article.slug"
+            :article-title="article.title"
+          />
 
           <!-- Related Stories Section -->
           <RelatedArticles :current-article="article" />
@@ -401,16 +480,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import type { Article } from '~/composables/useArticles'
 import { useMarkdown, type TocItem } from '~/composables/useMarkdown'
+import { useComments } from '~/composables/useComments'
 
 const props = defineProps<{
   article: Article
 }>()
 
 const { extractHeadings, sanitizeHtml } = useMarkdown()
+const { getArticleComments, fetchCommentsForArticle } = useComments()
+
 const copied = ref(false)
+const isPlayingHeroVideo = ref(false)
+
+const commentsList = computed(() => {
+  return getArticleComments(props.article.id || '', props.article.slug || '')
+})
+
+const totalCommentsCount = computed(() => commentsList.value.length)
+
+onMounted(() => {
+  if (props.article.id || props.article.slug) {
+    fetchCommentsForArticle(props.article.id || props.article.slug)
+  }
+})
 
 const formatLinkUrl = (url?: string): string => {
   if (!url) return '#'
@@ -438,30 +533,45 @@ const isEmbedVideo = (url?: string): boolean => {
   return /youtube\.com|youtu\.be|vimeo\.com/i.test(url)
 }
 
-const getEmbedVideoUrl = (url?: string): string => {
+const getEmbedVideoUrl = (url?: string, autoplay = false): string => {
   if (!url) return ''
-  const trimmed = url.trim()
+  let trimmed = url.trim()
+
+  // Extract src if iframe string was pasted
+  if (trimmed.includes('<iframe') && trimmed.includes('src=')) {
+    const match = trimmed.match(/src=["']([^"']+)["']/)
+    if (match && match[1]) {
+      trimmed = match[1]
+    }
+  }
+
+  let finalUrl = trimmed
   if (trimmed.includes('youtube.com/embed/')) {
-    return trimmed
-  }
-  if (trimmed.includes('youtube.com/watch?v=')) {
+    finalUrl = trimmed
+  } else if (trimmed.includes('youtube.com/watch?v=')) {
     const id = trimmed.split('v=')[1]?.split('&')[0]
-    return id ? `https://www.youtube.com/embed/${id}` : trimmed
-  }
-  if (trimmed.includes('youtube.com/shorts/')) {
+    finalUrl = id ? `https://www.youtube.com/embed/${id}` : trimmed
+  } else if (trimmed.includes('youtube.com/shorts/')) {
     const id = trimmed.split('youtube.com/shorts/')[1]?.split('?')[0]?.split('/')[0]
-    return id ? `https://www.youtube.com/embed/${id}` : trimmed
-  }
-  if (trimmed.includes('youtu.be/')) {
+    finalUrl = id ? `https://www.youtube.com/embed/${id}` : trimmed
+  } else if (trimmed.includes('youtu.be/')) {
     const id = trimmed.split('youtu.be/')[1]?.split('?')[0]?.split('/')[0]
-    return id ? `https://www.youtube.com/embed/${id}` : trimmed
+    finalUrl = id ? `https://www.youtube.com/embed/${id}` : trimmed
+  } else if (trimmed.includes('vimeo.com/')) {
+    if (trimmed.includes('player.vimeo.com/video/')) {
+      finalUrl = trimmed
+    } else {
+      const id = trimmed.split('vimeo.com/')[1]?.split('?')[0]?.split('/')[0]
+      finalUrl = id ? `https://player.vimeo.com/video/${id}` : trimmed
+    }
   }
-  if (trimmed.includes('vimeo.com/')) {
-    if (trimmed.includes('player.vimeo.com/video/')) return trimmed
-    const id = trimmed.split('vimeo.com/')[1]?.split('?')[0]?.split('/')[0]
-    return id ? `https://player.vimeo.com/video/${id}` : trimmed
+
+  if (autoplay && finalUrl) {
+    const separator = finalUrl.includes('?') ? '&' : '?'
+    finalUrl = `${finalUrl}${separator}autoplay=1`
   }
-  return trimmed
+
+  return finalUrl
 }
 
 const copyShareLink = () => {

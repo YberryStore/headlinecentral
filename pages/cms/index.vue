@@ -108,6 +108,25 @@
             <span v-if="!isSidebarCollapsed">Blogs</span>
           </button>
 
+          <!-- Reader Comments Moderation -->
+          <button
+            v-if="hasPermission('canManageBlogs') || isMasterAdmin"
+            @click="activeTab = 'comments'"
+            type="button"
+            :class="[
+              activeTab === 'comments'
+                ? 'bg-[#EE5102] text-white'
+                : 'text-gray-900 hover:bg-gray-100',
+              isSidebarCollapsed ? 'justify-center px-2' : 'px-4'
+            ]"
+            class="w-full flex items-center gap-3 py-2.5 rounded-full text-[13px] font-normal transition-colors"
+          >
+            <svg class="w-[18px] h-[18px] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+            <span v-if="!isSidebarCollapsed">Comments</span>
+          </button>
+
           <!-- Categories & Sub-Categories -->
           <button
             v-if="hasPermission('canManageCategories')"
@@ -3010,6 +3029,11 @@
           </div>
         </div>
 
+        <!-- TAB 5.55: READER COMMENTS MODERATION -->
+        <div v-else-if="activeTab === 'comments'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
+          <CommentsManagement />
+        </div>
+
         <!-- TAB 5.6: HEADER & FOOTER NAVIGATION & CONTENT -->
         <div v-else-if="activeTab === 'header-footer'" class="flex-1 p-6 sm:p-8 overflow-y-auto space-y-8">
           <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
@@ -3741,6 +3765,7 @@ import { sanitizeHtml } from '~/composables/useMarkdown'
 import { useCmsGateway, type SecurityBlockedRecord } from '~/composables/useCmsGateway'
 import BannersManagement from '~/components/cms/BannersManagement.vue'
 import MediaPickerModal from '~/components/cms/MediaPickerModal.vue'
+import CommentsManagement from '~/components/cms/CommentsManagement.vue'
 
 definePageMeta({
   layout: false
@@ -4054,7 +4079,7 @@ const handleSavePageSeo = async (key: string) => {
 }
 
 const isSidebarCollapsed = ref(false)
-const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'banners' | 'seo' | 'trending' | 'header-footer' | 'contact-page' | 'users' | 'settings'>('dashboard')
+const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'banners' | 'seo' | 'trending' | 'header-footer' | 'contact-page' | 'users' | 'settings' | 'comments'>('dashboard')
 const cmsSearch = ref('')
 const liveVisitors = ref(14)
 const isPulsing = ref(false)
