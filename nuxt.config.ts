@@ -29,7 +29,7 @@ export default defineNuxtConfig({
         appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID || '1:523616926810:web:257d509d40ed4b39606c63'
       },
       analytics: {
-        gtmId: process.env.NUXT_PUBLIC_GTM_ID || '',
+        gtmId: process.env.NUXT_PUBLIC_GTM_ID || 'GTM-PNT79WT8',
         ga4Id: process.env.NUXT_PUBLIC_GA4_ID || 'G-TD8S7EFPLV',
         metaPixelId: process.env.NUXT_PUBLIC_META_PIXEL_ID || ''
       },

@@ -66,10 +66,17 @@ useHead(() => {
 
   // 1. Google Tag Manager (GTM) - Requires Analytics consent
   if (validGtmId.value && trackingConfig.enableGtm && allowsAnalytics.value) {
-    scripts.push({
-      key: 'gtm-script',
-      innerHTML: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${validGtmId.value}');`
-    })
+    scripts.push(
+      {
+        key: 'gtm-script-src',
+        src: `https://www.googletagmanager.com/gtm.js?id=${validGtmId.value}`,
+        async: true
+      },
+      {
+        key: 'gtm-dataLayer-init',
+        innerHTML: `window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${validGtmId.value}');`
+      }
+    )
   }
 
   // 2. Google Analytics 4 (GA4 Direct gtag.js) - Requires Analytics consent

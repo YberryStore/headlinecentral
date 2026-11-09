@@ -110,9 +110,9 @@ const defaultPagesSeo: Record<string, PageSeoEntry> = {
 
 const sharedPagesSeo = reactive<Record<string, PageSeoEntry>>({})
 const sharedTracking = reactive<SiteTrackingConfig>({
-  gtmId: '',
+  gtmId: 'GTM-PNT79WT8',
   enableGtm: true,
-  ga4Id: '',
+  ga4Id: 'G-TD8S7EFPLV',
   enableGa4: true,
   metaPixelId: '',
   enableMetaPixel: true,
