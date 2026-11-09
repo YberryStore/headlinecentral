@@ -3,7 +3,25 @@
     <!-- Main Image Display Container -->
     <div class="w-full flex justify-center">
       <div class="relative w-full lg:w-[1040px] lg:h-[600px] h-auto rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg bg-gray-950 flex items-center justify-center group">
+        <a
+          v-if="normalizedImages[currentIndex]?.linkUrl"
+          :href="formatLinkUrl(normalizedImages[currentIndex]?.linkUrl)"
+          :target="isExternalUrl(normalizedImages[currentIndex]?.linkUrl) ? '_blank' : '_self'"
+          :rel="isExternalUrl(normalizedImages[currentIndex]?.linkUrl) ? 'noopener noreferrer' : undefined"
+          class="w-full h-full flex items-center justify-center relative"
+        >
+          <img
+            :src="normalizedImages[currentIndex]?.src"
+            :alt="normalizedImages[currentIndex]?.alt || `Gallery image ${currentIndex + 1}`"
+            class="w-full h-auto lg:w-[1040px] lg:h-[600px] object-cover transition-all duration-300"
+          />
+          <span class="absolute bottom-4 left-4 bg-black/75 hover:bg-[#EE5102] backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full font-medium inline-flex items-center gap-1.5 transition-colors shadow-md">
+            <span>Visit Link</span>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </span>
+        </a>
         <img
+          v-else
           :src="normalizedImages[currentIndex]?.src"
           :alt="normalizedImages[currentIndex]?.alt || `Gallery image ${currentIndex + 1}`"
           class="w-full h-auto lg:w-[1040px] lg:h-[600px] object-cover transition-all duration-300"
@@ -86,10 +104,24 @@
       </button>
     </div>
 
-    <!-- Optional Caption Below Gallery -->
-    <p v-if="caption" class="text-xs text-gray-500 text-center mt-3 italic">
-      {{ caption }}
-    </p>
+    <!-- Optional Caption & Image Credit Below Gallery -->
+    <div v-if="caption || normalizedImages[currentIndex]?.credit" class="mt-3 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 text-xs text-center">
+      <p v-if="caption" class="text-gray-500 italic">
+        {{ caption }}
+      </p>
+      <span v-if="caption && normalizedImages[currentIndex]?.credit" class="hidden sm:inline text-gray-300">•</span>
+      <p v-if="normalizedImages[currentIndex]?.credit" class="text-gray-400 font-medium">
+        Source / Credit:
+        <a
+          v-if="normalizedImages[currentIndex]?.linkUrl"
+          :href="formatLinkUrl(normalizedImages[currentIndex]?.linkUrl)"
+          :target="isExternalUrl(normalizedImages[currentIndex]?.linkUrl) ? '_blank' : '_self'"
+          :rel="isExternalUrl(normalizedImages[currentIndex]?.linkUrl) ? 'noopener noreferrer' : undefined"
+          class="text-[#EE5102] hover:underline"
+        >{{ normalizedImages[currentIndex]?.credit }}</a>
+        <span v-else class="text-gray-600">{{ normalizedImages[currentIndex]?.credit }}</span>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -109,11 +141,37 @@ const props = withDefaults(
   }
 )
 
+const formatLinkUrl = (url?: string): string => {
+  if (!url) return '#'
+  const trimmed = url.trim()
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('/') ||
+    trimmed.startsWith('#') ||
+    trimmed.startsWith('mailto:')
+  ) {
+    return trimmed
+  }
+  return `https://${trimmed}`
+}
+
+const isExternalUrl = (url?: string): boolean => {
+  if (!url) return false
+  const formatted = formatLinkUrl(url)
+  return formatted.startsWith('http://') || formatted.startsWith('https://')
+}
+
 const normalizedImages = computed<GalleryItem[]>(() =>
   props.images.slice(0, 12).map((item, idx) =>
     typeof item === 'string'
       ? { src: useAsset(item), alt: `Gallery image ${idx + 1}` }
-      : { src: useAsset(item.src), alt: item.alt || `Gallery image ${idx + 1}` }
+      : {
+          src: useAsset(item.src),
+          alt: item.alt || `Gallery image ${idx + 1}`,
+          credit: item.credit,
+          linkUrl: item.linkUrl
+        }
   )
 )
 

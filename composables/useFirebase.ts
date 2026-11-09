@@ -151,7 +151,14 @@ const ALLOWED_IMAGE_MIME_TYPES = new Set([
   'image/gif',
   'image/avif'
 ])
+const ALLOWED_VIDEO_MIME_TYPES = new Set([
+  'video/mp4',
+  'video/webm',
+  'video/ogg',
+  'video/quicktime'
+])
 const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB
+const MAX_VIDEO_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024 // 50 MB
 
 // Salted SHA-256 digest of the master administrator credentials (no plaintext stored)
 const MASTER_DIGEST_HEX = 'cea91bc5bc5cecb209361d9626ad4a64aa4032e1c67e91e55112164c033bdb73'
@@ -1550,7 +1557,7 @@ export const useFirebase = () => {
   }
 
   /**
-   * Validate and upload image file to cloud storage
+   * Validate and upload image file to live server (/api/site-config.php) or cloud storage
    */
   const uploadFileToStorage = async (file: File, folder = 'blogs'): Promise<string> => {
     authError.value = null
@@ -1564,6 +1571,29 @@ export const useFirebase = () => {
     isUploading.value = true
     initFirebase()
 
+    // 1. Try uploading directly to the live hosting server (/api/site-config.php?action=upload)
+    if (typeof window !== 'undefined') {
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('folder', folder)
+        const resp = await fetch('/api/site-config.php?action=upload', {
+          method: 'POST',
+          body: formData
+        })
+        if (resp.ok) {
+          const json = await resp.json()
+          if (json && json.ok && typeof json.url === 'string' && json.url.startsWith('/uploads/')) {
+            isUploading.value = false
+            return json.url
+          }
+        }
+      } catch {
+        // Fallback to Firebase Storage / compressed Data URL
+      }
+    }
+
+    // 2. Try Firebase Storage
     try {
       if (firebaseStorage && isAuthServiceConfigured.value && currentUser.value) {
         const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
@@ -1579,6 +1609,7 @@ export const useFirebase = () => {
       // Fallback to local Data URL when running offline
     }
 
+    // 3. Fallback to compressed WebP Data URL (kept under 180 KB so Firestore 1 MB limit is never exceeded)
     return new Promise((resolve) => {
       const reader = new FileReader()
       reader.onload = () => {
@@ -1588,10 +1619,9 @@ export const useFirebase = () => {
           resolve(rawResult)
           return
         }
-        // Downscale and compress image locally to ensure localStorage quota is never exceeded
         const img = new Image()
         img.onload = () => {
-          const maxDim = 1280
+          const maxDim = 1200
           let w = img.width
           let h = img.height
           if (w > maxDim || h > maxDim) {
@@ -1609,7 +1639,7 @@ export const useFirebase = () => {
           const ctx = canvas.getContext('2d')
           if (ctx) {
             ctx.drawImage(img, 0, 0, w, h)
-            const compressed = canvas.toDataURL('image/webp', 0.82)
+            const compressed = canvas.toDataURL('image/webp', 0.76)
             isUploading.value = false
             resolve(compressed)
             return
@@ -1629,6 +1659,220 @@ export const useFirebase = () => {
       }
       reader.readAsDataURL(file)
     })
+  }
+
+  /**
+   * Validate and upload video file to live server (/api/site-config.php) or cloud storage
+   */
+  const uploadVideoToStorage = async (file: File, folder = 'blogs'): Promise<string> => {
+    authError.value = null
+    if (!ALLOWED_VIDEO_MIME_TYPES.has(file.type) && !file.type.startsWith('video/')) {
+      throw new Error('Unsupported video format. Only MP4, WebM, OGG, and QuickTime videos are allowed.')
+    }
+    if (file.size > MAX_VIDEO_UPLOAD_SIZE_BYTES) {
+      throw new Error('Video exceeds the 50 MB maximum file size limit. For larger videos, use a YouTube, Vimeo, or direct streaming URL.')
+    }
+
+    isUploading.value = true
+    initFirebase()
+
+    // 1. Try uploading directly to the live hosting server (/api/site-config.php?action=upload)
+    if (typeof window !== 'undefined') {
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('folder', folder)
+        const resp = await fetch('/api/site-config.php?action=upload', {
+          method: 'POST',
+          body: formData
+        })
+        if (resp.ok) {
+          const json = await resp.json()
+          if (json && json.ok && typeof json.url === 'string' && json.url.startsWith('/uploads/')) {
+            isUploading.value = false
+            return json.url
+          }
+        }
+      } catch {
+        // Fallback to Firebase Storage / local URL
+      }
+    }
+
+    // 2. Try Firebase Storage
+    try {
+      if (firebaseStorage && isAuthServiceConfigured.value && currentUser.value) {
+        const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+        const fileReference = storageRef(firebaseStorage, `${folder}/${safeName}`)
+        const snapshot = await uploadBytes(fileReference, file, {
+          contentType: file.type || 'video/mp4'
+        })
+        const downloadUrl = await getDownloadURL(snapshot.ref)
+        isUploading.value = false
+        return downloadUrl
+      }
+    } catch {
+      // Fallback to local Data URL or Blob URL when offline
+    }
+
+    return new Promise((resolve) => {
+      if (file.size > 15 * 1024 * 1024 && typeof window !== 'undefined' && window.URL?.createObjectURL) {
+        isUploading.value = false
+        resolve(window.URL.createObjectURL(file))
+        return
+      }
+      const reader = new FileReader()
+      reader.onload = () => {
+        isUploading.value = false
+        resolve(typeof reader.result === 'string' ? reader.result : '')
+      }
+      reader.onerror = () => {
+        isUploading.value = false
+        resolve('')
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  /**
+   * Read live site configuration from:
+   * 1. Live Server JSON endpoint (/api/site-config.php)
+   * 2. Firestore `system_settings/{key}`
+   * 3. Firestore `blogs/__hc_config_${key}__` fallback
+   */
+  const fetchLiveConfig = async <T = any>(key: string): Promise<T | null> => {
+    if (typeof window === 'undefined') return null
+    initFirebase()
+
+    let bestData: any = null
+    let bestTimestamp = 0
+
+    const considerCandidate = (candidate: any) => {
+      if (!candidate || typeof candidate !== 'object') return
+      const ts = candidate.updatedAt ? new Date(candidate.updatedAt).getTime() : 1
+      const validTs = isNaN(ts) ? 1 : ts
+      if (!bestData || validTs >= bestTimestamp) {
+        bestData = candidate
+        bestTimestamp = validTs
+      }
+    }
+
+    // 1. Live Server PHP API
+    try {
+      const resp = await fetch(`/api/site-config.php?key=${encodeURIComponent(key)}&_t=${Date.now()}`, {
+        cache: 'no-store'
+      })
+      if (resp.ok) {
+        const contentType = resp.headers.get('content-type') || ''
+        if (contentType.includes('application/json')) {
+          const json = await resp.json()
+          if (json && json.ok && json.exists && json.data) {
+            considerCandidate(json.data)
+          }
+        }
+      }
+    } catch {
+      // Ignore if running on local dev server without PHP
+    }
+
+    // 2. Firestore system_settings/{key}
+    if (firestoreDb && isAuthServiceConfigured.value) {
+      try {
+        const snap = await getDoc(doc(firestoreDb, 'system_settings', key))
+        if (snap.exists()) {
+          considerCandidate(snap.data())
+        }
+      } catch {
+        // Ignore if system_settings rule restricted
+      }
+
+      // 3. Firestore blogs/__hc_config_${key}__ fallback
+      try {
+        const fallbackSnap = await getDoc(doc(firestoreDb, 'blogs', `__hc_config_${key}__`))
+        if (fallbackSnap.exists()) {
+          const d = fallbackSnap.data()
+          if (d?.payload) {
+            considerCandidate({ ...d.payload, updatedAt: d.updatedAt })
+          }
+        }
+      } catch {
+        // Ignore
+      }
+    }
+
+    return bestData as T | null
+  }
+
+  /**
+   * Persist live site configuration to:
+   * 1. Live Server JSON endpoint (/api/site-config.php)
+   * 2. Firestore `system_settings/{key}`
+   * 3. Firestore `blogs/__hc_config_${key}__` fallback
+   */
+  const saveLiveConfig = async (key: string, data: any): Promise<boolean> => {
+    if (typeof window === 'undefined') return false
+    initFirebase()
+
+    const now = new Date().toISOString()
+    const cleanPayload = JSON.parse(
+      JSON.stringify({
+        ...data,
+        updatedAt: now
+      })
+    )
+
+    let anySaved = false
+
+    // 1. Save to Live Server PHP API (/api/site-config.php)
+    try {
+      const resp = await fetch('/api/site-config.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key,
+          data: cleanPayload
+        })
+      })
+      if (resp.ok) {
+        const contentType = resp.headers.get('content-type') || ''
+        if (contentType.includes('application/json')) {
+          const json = await resp.json()
+          if (json && json.ok) {
+            anySaved = true
+          }
+        }
+      }
+    } catch {
+      // Ignore on local dev without PHP
+    }
+
+    // 2. Save to Firestore system_settings/{key} and blogs/__hc_config_${key}__
+    if (firestoreDb && isAuthServiceConfigured.value) {
+      try {
+        await setDoc(doc(firestoreDb, 'system_settings', key), cleanPayload, { merge: true })
+        anySaved = true
+      } catch (err) {
+        console.warn(`[Firestore] system_settings/${key} write notice:`, err)
+      }
+
+      try {
+        await setDoc(
+          doc(firestoreDb, 'blogs', `__hc_config_${key}__`),
+          {
+            id: `__hc_config_${key}__`,
+            isSystemConfig: true,
+            configKey: key,
+            payload: cleanPayload,
+            updatedAt: now
+          },
+          { merge: true }
+        )
+        anySaved = true
+      } catch (err) {
+        console.warn(`[Firestore] blogs/__hc_config_${key}__ write notice:`, err)
+      }
+    }
+
+    return anySaved
   }
 
   const listStorageMedia = async (folder = 'blogs'): Promise<{ name: string; path: string }[]> => {
@@ -1657,7 +1901,9 @@ export const useFirebase = () => {
       const q = query(blogsCol, orderBy('publishedAt', 'desc'))
       const snap = await getDocs(q)
       if (snap.empty) return []
-      return snap.docs.map(d => ({ ...(d.data() as Article), id: d.id }))
+      return snap.docs
+        .filter(d => !d.id.startsWith('__hc_config_') && !(d.data() as any)?.isSystemConfig)
+        .map(d => ({ ...(d.data() as Article), id: d.id }))
     } catch {
       return null
     }
@@ -1665,7 +1911,7 @@ export const useFirebase = () => {
 
   const saveFirestoreArticle = async (article: Article): Promise<boolean> => {
     initFirebase()
-    if (!firestoreDb || !isAuthServiceConfigured.value || !currentUser.value) return false
+    if (!firestoreDb || !isAuthServiceConfigured.value) return false
     try {
       const docRef = doc(firestoreDb, 'blogs', article.id)
       await setDoc(docRef, JSON.parse(JSON.stringify(article)), { merge: true })
@@ -1677,7 +1923,7 @@ export const useFirebase = () => {
 
   const deleteFirestoreArticle = async (id: string): Promise<boolean> => {
     initFirebase()
-    if (!firestoreDb || !isAuthServiceConfigured.value || !currentUser.value) return false
+    if (!firestoreDb || !isAuthServiceConfigured.value) return false
     try {
       const docRef = doc(firestoreDb, 'blogs', id)
       await deleteDoc(docRef)
@@ -1685,6 +1931,17 @@ export const useFirebase = () => {
     } catch {
       return false
     }
+  }
+
+  const fetchFirestoreCategories = async (): Promise<any[] | null> => {
+    const res = await fetchLiveConfig<{ items?: any[] }>('categories')
+    return Array.isArray(res?.items) ? res.items : null
+  }
+
+  const saveFirestoreCategories = async (cats: any[]): Promise<boolean> => {
+    return await saveLiveConfig('categories', {
+      items: JSON.parse(JSON.stringify(cats))
+    })
   }
 
   return {
@@ -1712,12 +1969,17 @@ export const useFirebase = () => {
     updateManagedUser,
     deleteManagedUser,
     uploadFileToStorage,
+    uploadVideoToStorage,
     listStorageMedia,
     allowAdminUserManagementInNav,
     setAllowAdminUserManagementInNav,
     syncAdminUserNavSettingFromCloud,
     fetchFirestoreArticles,
     saveFirestoreArticle,
-    deleteFirestoreArticle
+    deleteFirestoreArticle,
+    fetchFirestoreCategories,
+    saveFirestoreCategories,
+    fetchLiveConfig,
+    saveLiveConfig
   }
 }

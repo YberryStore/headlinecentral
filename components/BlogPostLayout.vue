@@ -34,10 +34,34 @@
       </div>
     </header>
 
-    <!-- Full-Width Featured Banner (Desktop & Mobile with Alt Tag) -->
+    <!-- Full-Width Featured Banner (Desktop & Mobile with Alt Tag, Optional Clickable URL & Credit) -->
     <div v-if="article.bannerImage || article.bannerImageMobile || article.featuredImage" class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
-      <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm bg-gray-950">
-        <picture>
+      <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm bg-gray-950 relative group">
+        <a
+          v-if="article.bannerLinkUrl"
+          :href="formatLinkUrl(article.bannerLinkUrl)"
+          :target="isExternalUrl(article.bannerLinkUrl) ? '_blank' : '_self'"
+          :rel="isExternalUrl(article.bannerLinkUrl) ? 'noopener noreferrer' : undefined"
+          class="block relative"
+        >
+          <picture>
+            <source
+              v-if="article.bannerImageMobile"
+              media="(max-width: 639px)"
+              :srcset="useAsset(article.bannerImageMobile)"
+            />
+            <img
+              :src="useAsset(article.bannerImage || article.featuredImage || article.bannerImageMobile)"
+              :alt="article.bannerAlt || article.title"
+              class="w-full h-auto aspect-[2/1] object-cover object-center group-hover:scale-[1.01] transition-transform duration-300"
+            />
+          </picture>
+          <span class="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-black/75 backdrop-blur-sm text-white text-[11px] font-medium inline-flex items-center gap-1.5 opacity-90 group-hover:bg-[#EE5102] transition-colors shadow-sm">
+            <span>Visit Link</span>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </span>
+        </a>
+        <picture v-else>
           <source
             v-if="article.bannerImageMobile"
             media="(max-width: 639px)"
@@ -50,9 +74,52 @@
           />
         </picture>
       </div>
-      <p v-if="article.imageCaption" class="mt-3 text-xs text-gray-400 text-center italic">
-        {{ article.imageCaption }}
-      </p>
+      <div v-if="article.imageCaption || article.bannerCredit" class="mt-3 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 text-xs text-center">
+        <p v-if="article.imageCaption" class="text-gray-500 italic">
+          {{ article.imageCaption }}
+        </p>
+        <span v-if="article.imageCaption && article.bannerCredit" class="hidden sm:inline text-gray-300">•</span>
+        <p v-if="article.bannerCredit" class="text-gray-400 font-medium">
+          Source / Credit:
+          <a
+            v-if="article.bannerLinkUrl"
+            :href="formatLinkUrl(article.bannerLinkUrl)"
+            :target="isExternalUrl(article.bannerLinkUrl) ? '_blank' : '_self'"
+            :rel="isExternalUrl(article.bannerLinkUrl) ? 'noopener noreferrer' : undefined"
+            class="text-[#EE5102] hover:underline"
+          >{{ article.bannerCredit }}</a>
+          <span v-else class="text-gray-600">{{ article.bannerCredit }}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Optional Featured Blog Video (YouTube / Vimeo / Direct Video File) -->
+    <div v-if="article.videoUrl" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
+      <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm bg-gray-950 border border-gray-100">
+        <div class="aspect-video w-full bg-black relative">
+          <iframe
+            v-if="isEmbedVideo(article.videoUrl)"
+            :src="getEmbedVideoUrl(article.videoUrl)"
+            class="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            :title="article.videoCaption || article.title"
+          ></iframe>
+          <video
+            v-else
+            :src="useAsset(article.videoUrl)"
+            controls
+            playsinline
+            preload="metadata"
+            class="w-full h-full object-contain bg-black"
+          ></video>
+        </div>
+        <div v-if="article.videoCaption || article.videoCredit" class="p-3.5 bg-white border-t border-gray-100 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 text-xs text-center">
+          <span v-if="article.videoCaption" class="text-gray-600 italic">{{ article.videoCaption }}</span>
+          <span v-if="article.videoCaption && article.videoCredit" class="hidden sm:inline text-gray-300">•</span>
+          <span v-if="article.videoCredit" class="text-gray-400 font-medium">Video Source / Credit: <strong class="font-medium text-gray-600">{{ article.videoCredit }}</strong></span>
+        </div>
+      </div>
     </div>
 
     <!-- Main Content Layout (Table of Contents LHS + Article Body RHS) -->
@@ -86,12 +153,36 @@
               <!-- Rich Markdown Content -->
               <MarkdownRenderer :content="section.content" />
 
-              <!-- Mid-Article Embedded Image (Desktop & Mobile with Alt Tag) -->
+              <!-- Mid-Article Embedded Image (Desktop & Mobile with Alt Tag, Optional Clickable URL & Credit) -->
               <figure
                 v-if="section.image && (section.image.src || section.image.mobileSrc)"
-                class="my-6 rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-100 shadow-sm bg-gray-950"
+                class="my-6 rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-100 shadow-sm bg-gray-950 group"
               >
-                <picture>
+                <a
+                  v-if="section.image.linkUrl"
+                  :href="formatLinkUrl(section.image.linkUrl)"
+                  :target="isExternalUrl(section.image.linkUrl) ? '_blank' : '_self'"
+                  :rel="isExternalUrl(section.image.linkUrl) ? 'noopener noreferrer' : undefined"
+                  class="block relative overflow-hidden"
+                >
+                  <picture>
+                    <source
+                      v-if="section.image.mobileSrc"
+                      media="(max-width: 639px)"
+                      :srcset="useAsset(section.image.mobileSrc)"
+                    />
+                    <img
+                      :src="useAsset(section.image.src || section.image.mobileSrc)"
+                      :alt="section.image.alt || section.title"
+                      class="w-full h-auto object-cover group-hover:scale-[1.01] transition-transform duration-300"
+                    />
+                  </picture>
+                  <span class="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-black/75 backdrop-blur-sm text-white text-[11px] font-medium inline-flex items-center gap-1.5 opacity-90 group-hover:bg-[#EE5102] transition-colors shadow-sm">
+                    <span>Visit Link</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  </span>
+                </a>
+                <picture v-else>
                   <source
                     v-if="section.image.mobileSrc"
                     media="(max-width: 639px)"
@@ -103,8 +194,63 @@
                     class="w-full h-auto object-cover"
                   />
                 </picture>
-                <figcaption v-if="section.image.caption" class="p-3 text-xs text-gray-500 bg-white border-t border-gray-100 text-center italic">
-                  {{ section.image.caption }}
+                <figcaption
+                  v-if="section.image.caption || section.image.credit"
+                  class="p-3 text-xs bg-white border-t border-gray-100 text-center flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3"
+                >
+                  <span v-if="section.image.caption" class="text-gray-500 italic">
+                    {{ section.image.caption }}
+                  </span>
+                  <span v-if="section.image.caption && section.image.credit" class="hidden sm:inline text-gray-300">•</span>
+                  <span v-if="section.image.credit" class="text-gray-400 font-medium">
+                    Source / Credit:
+                    <a
+                      v-if="section.image.linkUrl"
+                      :href="formatLinkUrl(section.image.linkUrl)"
+                      :target="isExternalUrl(section.image.linkUrl) ? '_blank' : '_self'"
+                      :rel="isExternalUrl(section.image.linkUrl) ? 'noopener noreferrer' : undefined"
+                      class="text-[#EE5102] hover:underline"
+                    >{{ section.image.credit }}</a>
+                    <span v-else class="text-gray-600">{{ section.image.credit }}</span>
+                  </span>
+                </figcaption>
+              </figure>
+
+              <!-- Mid-Article Embedded Section Video (YouTube / Vimeo / Direct Video File) -->
+              <figure
+                v-if="section.video && section.video.src"
+                class="my-6 rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-100 shadow-sm bg-gray-950"
+              >
+                <div class="aspect-video w-full bg-black relative">
+                  <iframe
+                    v-if="isEmbedVideo(section.video.src)"
+                    :src="getEmbedVideoUrl(section.video.src)"
+                    class="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                    :title="section.video.caption || section.title"
+                  ></iframe>
+                  <video
+                    v-else
+                    :src="useAsset(section.video.src)"
+                    :poster="section.video.poster ? useAsset(section.video.poster) : undefined"
+                    controls
+                    playsinline
+                    preload="metadata"
+                    class="w-full h-full object-contain bg-black"
+                  ></video>
+                </div>
+                <figcaption
+                  v-if="section.video.caption || section.video.credit"
+                  class="p-3 text-xs bg-white border-t border-gray-100 text-center flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3"
+                >
+                  <span v-if="section.video.caption" class="text-gray-500 italic">
+                    {{ section.video.caption }}
+                  </span>
+                  <span v-if="section.video.caption && section.video.credit" class="hidden sm:inline text-gray-300">•</span>
+                  <span v-if="section.video.credit" class="text-gray-400 font-medium">
+                    Video Source / Credit: <span class="text-gray-600">{{ section.video.credit }}</span>
+                  </span>
                 </figcaption>
               </figure>
 
@@ -265,6 +411,58 @@ const props = defineProps<{
 
 const { extractHeadings, sanitizeHtml } = useMarkdown()
 const copied = ref(false)
+
+const formatLinkUrl = (url?: string): string => {
+  if (!url) return '#'
+  const trimmed = url.trim()
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('/') ||
+    trimmed.startsWith('#') ||
+    trimmed.startsWith('mailto:')
+  ) {
+    return trimmed
+  }
+  return `https://${trimmed}`
+}
+
+const isExternalUrl = (url?: string): boolean => {
+  if (!url) return false
+  const formatted = formatLinkUrl(url)
+  return formatted.startsWith('http://') || formatted.startsWith('https://')
+}
+
+const isEmbedVideo = (url?: string): boolean => {
+  if (!url) return false
+  return /youtube\.com|youtu\.be|vimeo\.com/i.test(url)
+}
+
+const getEmbedVideoUrl = (url?: string): string => {
+  if (!url) return ''
+  const trimmed = url.trim()
+  if (trimmed.includes('youtube.com/embed/')) {
+    return trimmed
+  }
+  if (trimmed.includes('youtube.com/watch?v=')) {
+    const id = trimmed.split('v=')[1]?.split('&')[0]
+    return id ? `https://www.youtube.com/embed/${id}` : trimmed
+  }
+  if (trimmed.includes('youtube.com/shorts/')) {
+    const id = trimmed.split('youtube.com/shorts/')[1]?.split('?')[0]?.split('/')[0]
+    return id ? `https://www.youtube.com/embed/${id}` : trimmed
+  }
+  if (trimmed.includes('youtu.be/')) {
+    const id = trimmed.split('youtu.be/')[1]?.split('?')[0]?.split('/')[0]
+    return id ? `https://www.youtube.com/embed/${id}` : trimmed
+  }
+  if (trimmed.includes('vimeo.com/')) {
+    if (trimmed.includes('player.vimeo.com/video/')) return trimmed
+    const id = trimmed.split('vimeo.com/')[1]?.split('?')[0]?.split('/')[0]
+    return id ? `https://player.vimeo.com/video/${id}` : trimmed
+  }
+  return trimmed
+}
 
 const copyShareLink = () => {
   if (process.client) {

@@ -16,36 +16,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://headlinecentral.co.za/categories/news</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://headlinecentral.co.za/categories/technology</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://headlinecentral.co.za/categories/fashion</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://headlinecentral.co.za/categories/food</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://headlinecentral.co.za/categories/home-and-diy</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://headlinecentral.co.za/categories/parenting</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://headlinecentral.co.za/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

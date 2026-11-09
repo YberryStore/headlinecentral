@@ -22,9 +22,9 @@ const CONSENT_VERSION = '2026.1'
 
 const defaultCategories: CookiePreferences = {
   necessary: true,   // Always required
-  analytics: false,
-  functional: false,
-  advertising: false
+  analytics: true,   // Enabled by default unless opted out
+  functional: true,
+  advertising: true
 }
 
 const consentState = reactive<CookieConsentRecord>({
@@ -160,9 +160,9 @@ export const useCookieConsent = () => {
     closePreferencesModal,
     resetConsent,
     hasConsented: computed(() => consentState.hasConsented),
-    allowsAnalytics: computed(() => Boolean(consentState.hasConsented && consentState.categories.analytics)),
-    allowsAdvertising: computed(() => Boolean(consentState.hasConsented && consentState.categories.advertising)),
-    allowsFunctional: computed(() => Boolean(consentState.hasConsented && consentState.categories.functional))
+    allowsAnalytics: computed(() => !consentState.hasConsented || Boolean(consentState.categories.analytics)),
+    allowsAdvertising: computed(() => !consentState.hasConsented || Boolean(consentState.categories.advertising)),
+    allowsFunctional: computed(() => !consentState.hasConsented || Boolean(consentState.categories.functional))
   }
 }
 

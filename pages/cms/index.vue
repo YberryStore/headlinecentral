@@ -614,12 +614,22 @@
 
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label class="block text-xs font-medium text-gray-700 mb-1.5">Page Category *</label>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-xs font-medium text-gray-700">Page Category *</label>
+                    <button
+                      @click="activeTab = 'categories'; showNewCategoryForm = true"
+                      type="button"
+                      class="text-[11px] font-medium text-[#EE5102] hover:underline"
+                    >
+                      + Manage Categories
+                    </button>
+                  </div>
                   <select
                     v-model="editorForm.category"
                     @change="editorForm.subCategory = ''"
                     class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:border-[#EE5102]"
                   >
+                    <option v-if="categories.length === 0" value="General">General</option>
                     <option v-for="cat in categories" :key="cat.slug" :value="cat.name">
                       {{ cat.name }}
                     </option>
@@ -791,6 +801,92 @@
                   />
                 </div>
               </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1.5">Image Source / Credit (Optional)</label>
+                  <input
+                    v-model="editorForm.bannerCredit"
+                    type="text"
+                    placeholder="e.g. Reuters / Photographer Name / Getty Images"
+                    class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1.5">Click Destination URL (Optional — Opens when image is clicked)</label>
+                  <input
+                    v-model="editorForm.bannerLinkUrl"
+                    type="text"
+                    placeholder="https://example.com or /categories/..."
+                    class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
+                  />
+                </div>
+              </div>
+
+              <!-- Featured / Hero Blog Video Toggle & Configuration -->
+              <div class="pt-3 border-t border-gray-200/80">
+                <div class="flex items-center justify-between mb-3">
+                  <div>
+                    <span class="text-xs font-semibold text-gray-800 block">Featured Blog Video (Optional)</span>
+                    <span class="text-[11px] text-gray-400">Upload an MP4/WebM video file or paste a YouTube / Vimeo / direct video URL</span>
+                  </div>
+                  <button
+                    @click="editorForm.hasHeroVideo = !editorForm.hasHeroVideo"
+                    type="button"
+                    class="text-xs font-medium px-3.5 py-1.5 rounded-full transition-colors"
+                    :class="editorForm.hasHeroVideo ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-[#feeee6] text-[#EE5102] hover:bg-[#fcdccc]'"
+                  >
+                    {{ editorForm.hasHeroVideo ? 'Remove Featured Video' : '+ Add Featured Video' }}
+                  </button>
+                </div>
+
+                <div v-if="editorForm.hasHeroVideo" class="bg-white p-4 rounded-xl border border-gray-200 space-y-3.5">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <label class="text-xs font-semibold text-gray-800">Video URL (YouTube, Vimeo, or MP4/WebM) *</label>
+                    <div class="flex items-center gap-3">
+                      <button
+                        @click="openMediaPicker('Select Blog Video from Media', item => { editorForm.videoUrl = item.path })"
+                        type="button"
+                        class="text-[11px] font-medium text-gray-600 hover:text-[#EE5102] flex items-center gap-1 hover:underline"
+                      >
+                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        <span>Select Media</span>
+                      </button>
+                      <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
+                        Upload Video File
+                        <input type="file" accept="video/mp4,video/webm,video/ogg,video/quicktime" class="hidden" @change="e => handleVideoUpload(e, url => editorForm.videoUrl = url)" />
+                      </label>
+                    </div>
+                  </div>
+                  <input
+                    v-model="editorForm.videoUrl"
+                    type="text"
+                    placeholder="https://www.youtube.com/watch?v=... or /videos/clip.mp4"
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                  />
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 mb-1">Video Caption (Optional)</label>
+                      <input
+                        v-model="editorForm.videoCaption"
+                        type="text"
+                        placeholder="Caption displayed beneath the video player"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 mb-1">Video Source / Credit (Optional)</label>
+                      <input
+                        v-model="editorForm.videoCredit"
+                        type="text"
+                        placeholder="e.g. Video courtesy of..."
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- ======================================================================= -->
@@ -916,7 +1012,7 @@
                             <label class="text-xs font-medium text-gray-700">Desktop Image *</label>
                             <div class="flex items-center gap-3">
                               <button
-                                @click="openMediaPicker(`Select Section ${secIdx + 1} Desktop Image`, item => { sec.imageSrc = item.path; if (!sec.imageAlt) sec.imageAlt = item.name })"
+                                @click="openMediaPicker(`Select Section ${sIdx + 1} Desktop Image`, item => { sec.imageSrc = item.path; if (!sec.imageAlt) sec.imageAlt = item.name })"
                                 type="button"
                                 class="text-[11px] font-medium text-gray-600 hover:text-[#EE5102] flex items-center gap-1 hover:underline"
                               >
@@ -946,7 +1042,7 @@
                             <label class="text-xs font-medium text-gray-700">Mobile Image</label>
                             <div class="flex items-center gap-3">
                               <button
-                                @click="openMediaPicker(`Select Section ${secIdx + 1} Mobile Image`, item => { sec.imageMobileSrc = item.path })"
+                                @click="openMediaPicker(`Select Section ${sIdx + 1} Mobile Image`, item => { sec.imageMobileSrc = item.path })"
                                 type="button"
                                 class="text-[11px] font-medium text-gray-600 hover:text-[#EE5102] flex items-center gap-1 hover:underline"
                               >
@@ -987,6 +1083,93 @@
                             v-model="sec.imageCaption"
                             type="text"
                             placeholder="Caption shown beneath the section image"
+                            class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label class="block text-xs font-medium text-gray-700 mb-1">Image Source / Credit (Optional)</label>
+                          <input
+                            v-model="sec.imageCredit"
+                            type="text"
+                            placeholder="e.g. Source / Photographer / Agency"
+                            class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                          />
+                        </div>
+                        <div>
+                          <label class="block text-xs font-medium text-gray-700 mb-1">Click Destination URL (Optional — Opens on click)</label>
+                          <input
+                            v-model="sec.imageLinkUrl"
+                            type="text"
+                            placeholder="https://example.com or /blog/..."
+                            class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Section Video Toggle / Block (MP4 / WebM / YouTube / Vimeo) -->
+                  <div class="pt-2 border-t border-gray-100">
+                    <div class="flex items-center justify-between mb-3">
+                      <span class="text-xs font-semibold text-gray-800">
+                        Section Video (YouTube, Vimeo, or Uploaded MP4/WebM)
+                      </span>
+                      <button
+                        @click="sec.hasVideo = !sec.hasVideo"
+                        type="button"
+                        class="text-xs font-medium px-3 py-1 rounded-full transition-colors"
+                        :class="sec.hasVideo ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-[#feeee6] text-[#EE5102] hover:bg-[#fcdccc]'"
+                      >
+                        {{ sec.hasVideo ? 'Remove Section Video' : '+ Add Video to Section' }}
+                      </button>
+                    </div>
+
+                    <div v-if="sec.hasVideo" class="p-4 rounded-xl bg-gray-50 border border-gray-200/80 space-y-4">
+                      <div class="bg-white p-3.5 rounded-xl border border-gray-200 space-y-2.5">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                          <label class="text-xs font-medium text-gray-700">Video URL or Uploaded File *</label>
+                          <div class="flex items-center gap-3">
+                            <button
+                              @click="openMediaPicker(`Select Section ${sIdx + 1} Video`, item => { sec.videoSrc = item.path })"
+                              type="button"
+                              class="text-[11px] font-medium text-gray-600 hover:text-[#EE5102] flex items-center gap-1 hover:underline"
+                            >
+                              <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                              <span>Select Media</span>
+                            </button>
+                            <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
+                              Upload Video File
+                              <input type="file" accept="video/mp4,video/webm,video/ogg,video/quicktime" class="hidden" @change="e => handleVideoUpload(e, url => sec.videoSrc = url)" />
+                            </label>
+                          </div>
+                        </div>
+                        <input
+                          v-model="sec.videoSrc"
+                          type="text"
+                          placeholder="https://www.youtube.com/watch?v=... or /videos/demo.mp4"
+                          class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                        />
+                      </div>
+
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label class="block text-xs font-medium text-gray-700 mb-1">Video Caption (Optional)</label>
+                          <input
+                            v-model="sec.videoCaption"
+                            type="text"
+                            placeholder="Caption shown beneath the section video"
+                            class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
+                          />
+                        </div>
+                        <div>
+                          <label class="block text-xs font-medium text-gray-700 mb-1">Video Source / Credit (Optional)</label>
+                          <input
+                            v-model="sec.videoCredit"
+                            type="text"
+                            placeholder="e.g. Video credit / source..."
                             class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-[#EE5102]"
                           />
                         </div>
@@ -1189,6 +1372,27 @@
                         class="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:border-[#EE5102]"
                       />
                     </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label class="block text-[11px] font-semibold text-gray-700 mb-1">Source / Credit (Optional)</label>
+                        <input
+                          v-model="gItem.credit"
+                          type="text"
+                          placeholder="e.g. Photo credit..."
+                          class="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:border-[#EE5102]"
+                        />
+                      </div>
+                      <div>
+                        <label class="block text-[11px] font-semibold text-gray-700 mb-1">Click URL (Optional)</label>
+                        <input
+                          v-model="gItem.linkUrl"
+                          type="text"
+                          placeholder="https://..."
+                          class="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs focus:outline-none focus:border-[#EE5102]"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1269,12 +1473,12 @@
             <div>
               <h2 class="text-xl font-semibold text-gray-900">Media Library ({{ allMediaAssets.length }})</h2>
               <p class="text-xs text-gray-400 mt-0.5">
-                Click any asset to copy its path for your Hero Banner, Sections, or 12-Image Gallery.
+                Click any image or video asset to copy its path for your Hero Banner, Sections, or 12-Image Gallery.
               </p>
             </div>
             <label class="cursor-pointer inline-flex items-center gap-2 bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-medium px-4 py-2 rounded-full transition-colors shadow-sm">
-              <span>{{ isUploading ? 'Uploading...' : '+ Upload Media' }}</span>
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="hidden" @change="handleMediaLibraryUpload" />
+              <span>{{ isUploading ? 'Uploading...' : '+ Upload Media (Image / Video)' }}</span>
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm,video/ogg,video/quicktime" class="hidden" @change="handleMediaLibraryUpload" />
             </label>
           </div>
 
@@ -1285,8 +1489,27 @@
               @click="copyMediaPath(media.path)"
               class="group cursor-pointer rounded-2xl border border-gray-100 overflow-hidden hover:border-[#EE5102] transition-all"
             >
-              <div class="aspect-video bg-gray-100 overflow-hidden">
-                <img :src="resolvePreviewUrl(media.path)" :alt="media.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+              <div class="aspect-video bg-gray-950 overflow-hidden relative">
+                <video
+                  v-if="isVideoAssetPath(media.path)"
+                  :src="resolvePreviewUrl(media.path)"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  muted
+                  playsinline
+                  preload="metadata"
+                ></video>
+                <img
+                  v-else
+                  :src="resolvePreviewUrl(media.path)"
+                  :alt="media.name"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                />
+                <span
+                  v-if="isVideoAssetPath(media.path)"
+                  class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[9px] font-bold uppercase tracking-wider"
+                >
+                  Video
+                </span>
               </div>
               <div class="p-3">
                 <p class="text-xs font-medium text-gray-800 truncate">{{ media.name }}</p>
@@ -1451,7 +1674,21 @@
           </form>
 
           <!-- Categories & Nested Sub-Categories Cards -->
-          <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          <div v-if="categories.length === 0" class="p-10 rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 text-center space-y-3">
+            <p class="text-sm font-semibold text-gray-800">No Categories Added Yet</p>
+            <p class="text-xs text-gray-500 max-w-md mx-auto">
+              All default pre-loaded categories have been removed. Click below to add your own custom categories and sub-categories.
+            </p>
+            <button
+              @click="showNewCategoryForm = true"
+              type="button"
+              class="inline-flex items-center gap-2 bg-[#EE5102] hover:bg-[#d84802] text-white text-xs font-medium px-4 py-2 rounded-full transition-colors shadow-sm"
+            >
+              <span>+ Add Your First Category</span>
+            </button>
+          </div>
+
+          <div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-5">
             <div
               v-for="cat in categories"
               :key="cat.slug"
@@ -1485,7 +1722,7 @@
 
                   <div class="flex items-center gap-1.5 flex-shrink-0">
                     <NuxtLink
-                      :to="cat.slug === 'news' ? '/blog' : `/categories/${cat.slug}`"
+                      :to="`/categories/${cat.slug}`"
                       target="_blank"
                       class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
                     >
@@ -1499,7 +1736,6 @@
                       Edit
                     </button>
                     <button
-                      v-if="categories.length > 1"
                       @click="deleteCategory(cat.slug)"
                       type="button"
                       class="px-2.5 py-1 rounded-full text-[11px] font-medium text-red-600 hover:bg-red-50 transition-colors"
@@ -2374,10 +2610,11 @@
               </div>
               <button
                 @click="handleSaveTrackingConfig"
+                :disabled="isSavingSeo"
                 type="button"
-                class="px-4 py-2 rounded-full text-xs font-medium bg-[#EE5102] hover:bg-[#d84802] text-white transition-colors shadow-sm"
+                class="px-4 py-2 rounded-full text-xs font-medium bg-[#EE5102] hover:bg-[#d84802] text-white transition-colors shadow-sm disabled:opacity-60"
               >
-                Save Tracking Settings
+                {{ isSavingSeo ? 'Syncing to Live Server...' : 'Save Tracking Settings' }}
               </button>
             </div>
 
@@ -2397,11 +2634,11 @@
                 <input
                   v-model="trackingConfig.gtmId"
                   type="text"
-                  placeholder="GTM-XXXXXXX"
+                  placeholder="GTM-XXXXXXX or paste <script> tag"
                   class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono uppercase focus:outline-none focus:border-[#EE5102]"
                 />
                 <p class="text-[11px] text-gray-400">
-                  Injects GTM head script &amp; noscript container and pushes virtual <code class="text-gray-600">page_view</code> events on route navigation.
+                  Syncs to the live server and injects the GTM head script &amp; noscript container across all public pages.
                 </p>
               </div>
 
@@ -3525,6 +3762,12 @@ interface EditableSectionForm {
   imageMobileSrc: string
   imageAlt: string
   imageCaption: string
+  imageCredit: string
+  imageLinkUrl: string
+  hasVideo: boolean
+  videoSrc: string
+  videoCaption: string
+  videoCredit: string
   includeHtml: boolean
   htmlContent: string
   comparisonTable?: ArticleSection['comparisonTable']
@@ -3594,6 +3837,7 @@ const {
   approveAndActivateUser,
   rejectUserRequest,
   uploadFileToStorage,
+  uploadVideoToStorage,
   listStorageMedia
 } = useFirebase()
 
@@ -3765,14 +4009,16 @@ const handleRejectUser = async (pu: ManagedCmsUser) => {
 const {
   pagesSeo,
   trackingConfig,
+  isSavingSeo,
   updatePageSeo,
-  updateTrackingConfig
+  updateTrackingConfig,
+  syncSeoFromCloud
 } = useSiteSeo()
 
 const seoSavedMessage = ref('')
 
-const handleSaveTrackingConfig = () => {
-  updateTrackingConfig({
+const handleSaveTrackingConfig = async () => {
+  const cloudOk = await updateTrackingConfig({
     gtmId: trackingConfig.gtmId.trim(),
     enableGtm: trackingConfig.enableGtm,
     ga4Id: trackingConfig.ga4Id.trim(),
@@ -3782,25 +4028,29 @@ const handleSaveTrackingConfig = () => {
     adsensePublisherId: (trackingConfig.adsensePublisherId || '').trim(),
     enableAdsense: trackingConfig.enableAdsense !== false
   })
-  seoSavedMessage.value = 'Tracking & AdSense settings saved!'
+  seoSavedMessage.value = cloudOk
+    ? `Live Cloud Synced! Active GTM: ${trackingConfig.gtmId || 'None'}`
+    : 'Tracking & AdSense settings saved locally!'
   setTimeout(() => {
     seoSavedMessage.value = ''
-  }, 2500)
+  }, 3500)
 }
 
-const handleSavePageSeo = (key: string) => {
+const handleSavePageSeo = async (key: string) => {
   const entry = pagesSeo[key]
   if (!entry) return
-  updatePageSeo(key, {
+  const cloudOk = await updatePageSeo(key, {
     title: entry.title,
     description: entry.description,
     keywords: entry.keywords,
     ogImage: entry.ogImage
   })
-  seoSavedMessage.value = `SEO saved for ${entry.label}!`
+  seoSavedMessage.value = cloudOk
+    ? `SEO saved & synced to live cloud for ${entry.label}!`
+    : `SEO saved for ${entry.label}!`
   setTimeout(() => {
     seoSavedMessage.value = ''
-  }, 2500)
+  }, 3500)
 }
 
 const isSidebarCollapsed = ref(false)
@@ -4118,6 +4368,7 @@ onMounted(async () => {
   await syncFromFirestore()
   await syncUsersFromCloud().catch(() => {})
   await syncSiteContentFromCloud().catch(() => {})
+  await syncSeoFromCloud().catch(() => {})
   const remoteMedia = await listStorageMedia('blogs')
   if (remoteMedia.length > 0) {
     cloudMediaAssets.value = remoteMedia
@@ -4159,7 +4410,7 @@ const editorForm = reactive({
   titleHighlight: '',
   seoTitle: '',
   metaDescription: '',
-  category: 'Technology',
+  category: 'General',
   subCategory: '',
   publishedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
   readTime: '4 min read',
@@ -4169,6 +4420,12 @@ const editorForm = reactive({
   bannerImageMobile: '',
   bannerAlt: '',
   imageCaption: '',
+  bannerCredit: '',
+  bannerLinkUrl: '',
+  hasHeroVideo: false,
+  videoUrl: '',
+  videoCaption: '',
+  videoCredit: '',
   sections: [] as EditableSectionForm[],
   galleryItems: [] as GalleryItem[],
   galleryCaption: '',
@@ -4232,19 +4489,62 @@ const handleFileUpload = async (event: Event, onLoaded: (url: string) => void) =
   }
 }
 
+const isVideoAssetPath = (path: string) => {
+  if (!path) return false
+  const lower = path.toLowerCase()
+  return (
+    lower.startsWith('data:video/') ||
+    lower.endsWith('.mp4') ||
+    lower.endsWith('.webm') ||
+    lower.endsWith('.ogg') ||
+    lower.endsWith('.mov') ||
+    lower.includes('.mp4?') ||
+    lower.includes('.webm?') ||
+    lower.includes('.mov?')
+  )
+}
+
+const handleVideoUpload = async (event: Event, onLoaded: (url: string) => void) => {
+  const input = event.target as HTMLInputElement
+  const file = input?.files?.[0]
+  if (!file) return
+  try {
+    const uploadedUrl = await uploadVideoToStorage(file, 'blogs')
+    if (uploadedUrl) {
+      onLoaded(uploadedUrl)
+      if (!cloudMediaAssets.value.some(m => m.path === uploadedUrl)) {
+        cloudMediaAssets.value.unshift({
+          name: file.name,
+          path: uploadedUrl
+        })
+      }
+      userFeedbackType.value = 'success'
+      userFeedbackMessage.value = `Video "${file.name}" uploaded and attached successfully!`
+    }
+  } catch (err: any) {
+    userFeedbackType.value = 'error'
+    userFeedbackMessage.value = `Video upload failed: ${err?.message || 'Unsupported video format or file too large.'}`
+  } finally {
+    if (input) input.value = ''
+  }
+}
+
 const handleMediaLibraryUpload = async (event: Event) => {
   const input = event.target as HTMLInputElement
   const file = input?.files?.[0]
   if (!file) return
   try {
-    const uploadedUrl = await uploadFileToStorage(file, 'blogs')
+    const isVideo = file.type.startsWith('video/')
+    const uploadedUrl = isVideo
+      ? await uploadVideoToStorage(file, 'blogs')
+      : await uploadFileToStorage(file, 'blogs')
     if (uploadedUrl) {
       cloudMediaAssets.value.unshift({
         name: file.name,
         path: uploadedUrl
       })
       userFeedbackType.value = 'success'
-      userFeedbackMessage.value = `Media item "${file.name}" uploaded to cloud library!`
+      userFeedbackMessage.value = `${isVideo ? 'Video' : 'Media item'} "${file.name}" uploaded to cloud library!`
     }
   } catch (err: any) {
     userFeedbackType.value = 'error'
@@ -4324,6 +4624,12 @@ const addSection = () => {
     imageMobileSrc: '',
     imageAlt: '',
     imageCaption: '',
+    imageCredit: '',
+    imageLinkUrl: '',
+    hasVideo: false,
+    videoSrc: '',
+    videoCaption: '',
+    videoCredit: '',
     includeHtml: false,
     htmlContent: ''
   })
@@ -4348,7 +4654,9 @@ const addGalleryItem = () => {
   const nextNum = editorForm.galleryItems.length + 1
   editorForm.galleryItems.push({
     src: `/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-${nextNum}.webp`,
-    alt: `Gallery image ${nextNum}`
+    alt: `Gallery image ${nextNum}`,
+    credit: '',
+    linkUrl: ''
   })
 }
 
@@ -4357,9 +4665,9 @@ const removeGalleryItem = (index: number) => {
 }
 
 const previewArticleObject = computed<Article>(() => {
-  const catName = editorForm.category
+  const catName = editorForm.category || categories[0]?.name || 'General'
   const matchedCat = categories.find(c => c.name === catName)
-  const catSlug = matchedCat?.slug || slugify(catName)
+  const catSlug = matchedCat?.slug || slugify(catName) || 'general'
   const subName = editorForm.subCategory || undefined
   const matchedSub = matchedCat?.subCategories?.find(s => s.name === subName)
   const subSlug = matchedSub?.slug || (subName ? slugify(subName) : undefined)
@@ -4384,9 +4692,21 @@ const previewArticleObject = computed<Article>(() => {
         src: resolvePreviewUrl(cleanImgSrc || cleanImgMobileSrc),
         mobileSrc: resolvePreviewUrl(cleanImgMobileSrc || cleanImgSrc),
         alt: (sec.imageAlt || sec.title || 'Section image').trim(),
-        caption: (sec.imageCaption || '').trim()
+        caption: (sec.imageCaption || '').trim(),
+        credit: (sec.imageCredit || '').trim() || undefined,
+        linkUrl: (sec.imageLinkUrl || '').trim() || undefined
       }
     }
+
+    const cleanVideoSrc = (sec.videoSrc || '').trim()
+    if (sec.hasVideo && cleanVideoSrc) {
+      sectionObj.video = {
+        src: resolvePreviewUrl(cleanVideoSrc),
+        caption: (sec.videoCaption || '').trim() || undefined,
+        credit: (sec.videoCredit || '').trim() || undefined
+      }
+    }
+
     if (sec.includeHtml && sec.htmlContent) {
       sectionObj.includeHtml = true
       sectionObj.htmlContent = sec.htmlContent
@@ -4401,11 +4721,15 @@ const previewArticleObject = computed<Article>(() => {
     .filter(g => Boolean(g.src && g.src.trim()))
     .map((g, idx) => ({
       src: resolvePreviewUrl(g.src.trim()),
-      alt: (g.alt || `Gallery image ${idx + 1}`).trim()
+      alt: (g.alt || `Gallery image ${idx + 1}`).trim(),
+      credit: (g.credit || '').trim() || undefined,
+      linkUrl: (g.linkUrl || '').trim() || undefined
     }))
 
   const fallbackSlug = editingArticleId.value ? `story-${editingArticleId.value.replace(/[^a-z0-9]/gi, '')}` : `story-${Date.now()}`
   const resolvedSlug = (slugify(editorForm.title || '') || fallbackSlug).trim()
+
+  const cleanHeroVideo = editorForm.hasHeroVideo && editorForm.videoUrl ? resolvePreviewUrl(editorForm.videoUrl.trim()) : undefined
 
   return {
     id: editingArticleId.value || 'preview-article',
@@ -4425,6 +4749,11 @@ const previewArticleObject = computed<Article>(() => {
     bannerImageMobile: mobileBanner,
     bannerAlt: (editorForm.bannerAlt || editorForm.title || 'Blog Hero Banner').trim(),
     imageCaption: (editorForm.imageCaption || '').trim(),
+    bannerCredit: (editorForm.bannerCredit || '').trim() || undefined,
+    bannerLinkUrl: (editorForm.bannerLinkUrl || '').trim() || undefined,
+    videoUrl: cleanHeroVideo,
+    videoCaption: cleanHeroVideo ? ((editorForm.videoCaption || '').trim() || undefined) : undefined,
+    videoCredit: cleanHeroVideo ? ((editorForm.videoCredit || '').trim() || undefined) : undefined,
     publishedAt: editorForm.publishedAt || '2026 November 7',
     readTime: editorForm.readTime || '5 min read',
     views: 1,
@@ -4450,7 +4779,7 @@ const startNewBlog = () => {
   editorForm.titleHighlight = ''
   editorForm.seoTitle = ''
   editorForm.metaDescription = ''
-  editorForm.category = categories[0]?.name || 'Technology'
+  editorForm.category = categories[0]?.name || 'General'
   editorForm.subCategory = ''
   editorForm.publishedAt = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
   editorForm.readTime = '4 min read'
@@ -4460,6 +4789,12 @@ const startNewBlog = () => {
   editorForm.bannerImageMobile = ''
   editorForm.bannerAlt = ''
   editorForm.imageCaption = ''
+  editorForm.bannerCredit = ''
+  editorForm.bannerLinkUrl = ''
+  editorForm.hasHeroVideo = false
+  editorForm.videoUrl = ''
+  editorForm.videoCaption = ''
+  editorForm.videoCredit = ''
   editorForm.sections = [
     {
       id: `section-${Date.now()}-1`,
@@ -4470,6 +4805,12 @@ const startNewBlog = () => {
       imageMobileSrc: '',
       imageAlt: '',
       imageCaption: '',
+      imageCredit: '',
+      imageLinkUrl: '',
+      hasVideo: false,
+      videoSrc: '',
+      videoCaption: '',
+      videoCredit: '',
       includeHtml: false,
       htmlContent: ''
     }
@@ -4487,7 +4828,7 @@ const editBlog = (article: Article) => {
   editorForm.titleHighlight = article.titleHighlight || ''
   editorForm.seoTitle = article.seoTitle || ''
   editorForm.metaDescription = article.metaDescription || ''
-  editorForm.category = article.category
+  editorForm.category = article.category || categories[0]?.name || 'General'
   editorForm.subCategory = article.subCategory || ''
   editorForm.publishedAt = article.publishedAt
   editorForm.readTime = article.readTime
@@ -4497,6 +4838,12 @@ const editBlog = (article: Article) => {
   editorForm.bannerImageMobile = article.bannerImageMobile || article.featuredImage
   editorForm.bannerAlt = article.bannerAlt || article.title
   editorForm.imageCaption = article.imageCaption || ''
+  editorForm.bannerCredit = article.bannerCredit || ''
+  editorForm.bannerLinkUrl = article.bannerLinkUrl || ''
+  editorForm.hasHeroVideo = Boolean(article.videoUrl)
+  editorForm.videoUrl = article.videoUrl || ''
+  editorForm.videoCaption = article.videoCaption || ''
+  editorForm.videoCredit = article.videoCredit || ''
   editorForm.tagsInput = article.tags.join(', ')
 
   if (article.sections && article.sections.length > 0) {
@@ -4509,6 +4856,12 @@ const editBlog = (article: Article) => {
       imageMobileSrc: s.image?.mobileSrc || s.image?.src || '',
       imageAlt: s.image?.alt || '',
       imageCaption: s.image?.caption || '',
+      imageCredit: s.image?.credit || '',
+      imageLinkUrl: s.image?.linkUrl || '',
+      hasVideo: Boolean(s.video && s.video.src),
+      videoSrc: s.video?.src || '',
+      videoCaption: s.video?.caption || '',
+      videoCredit: s.video?.credit || '',
       includeHtml: Boolean(s.includeHtml || s.htmlContent || s.comparisonTable),
       htmlContent: s.htmlContent || (s.comparisonTable ? defaultComparisonTableHtml : ''),
       comparisonTable: s.comparisonTable
@@ -4524,17 +4877,25 @@ const editBlog = (article: Article) => {
         imageMobileSrc: '',
         imageAlt: '',
         imageCaption: '',
+        imageCredit: '',
+        imageLinkUrl: '',
+        hasVideo: false,
+        videoSrc: '',
+        videoCaption: '',
+        videoCredit: '',
         includeHtml: false,
         htmlContent: ''
       }
     ]
   }
 
-  // Populate up to 12 gallery items with alt tags
+  // Populate up to 12 gallery items with alt tags, credits, and click URLs
   if (article.galleryItems && article.galleryItems.length > 0) {
     editorForm.galleryItems = article.galleryItems.slice(0, 12).map(g => ({
       src: g.src,
-      alt: g.alt
+      alt: g.alt,
+      credit: g.credit || '',
+      linkUrl: g.linkUrl || ''
     }))
     editorForm.galleryCaption = article.galleryCaption || ''
   } else {
@@ -4542,8 +4903,13 @@ const editBlog = (article: Article) => {
     if (secWithGallery && secWithGallery.gallery) {
       editorForm.galleryItems = secWithGallery.gallery.slice(0, 12).map((item, idx) =>
         typeof item === 'string'
-          ? { src: item, alt: `Gallery image ${idx + 1}` }
-          : { src: item.src, alt: item.alt || `Gallery image ${idx + 1}` }
+          ? { src: item, alt: `Gallery image ${idx + 1}`, credit: '', linkUrl: '' }
+          : {
+              src: item.src,
+              alt: item.alt || `Gallery image ${idx + 1}`,
+              credit: item.credit || '',
+              linkUrl: item.linkUrl || ''
+            }
       )
       editorForm.galleryCaption = secWithGallery.galleryCaption || ''
     } else {
@@ -4580,6 +4946,11 @@ const saveBlogPost = async () => {
         bannerImageMobile: built.bannerImageMobile,
         bannerAlt: built.bannerAlt,
         imageCaption: built.imageCaption,
+        bannerCredit: built.bannerCredit,
+        bannerLinkUrl: built.bannerLinkUrl,
+        videoUrl: built.videoUrl,
+        videoCaption: built.videoCaption,
+        videoCredit: built.videoCredit,
         publishedAt: built.publishedAt,
         readTime: built.readTime,
         sections: built.sections,

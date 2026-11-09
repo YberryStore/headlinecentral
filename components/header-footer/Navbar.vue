@@ -175,7 +175,7 @@
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search articles across News, Tech, Fashion, Food, Home & DIY, Parenting..."
+              placeholder="Search articles, headlines, and topics..."
               class="w-full text-base sm:text-lg focus:outline-none text-gray-900 placeholder-gray-400 font-sans"
               autofocus
             />
@@ -233,12 +233,31 @@ const isMobileMenuOpen = ref(false)
 const isSearchOpen = ref(false)
 const searchQuery = ref('')
 
-const { articles } = useArticles()
+const { articles, categories } = useArticles()
 const { headerFooterConfig } = useSiteContent()
 
 const visibleNavItems = computed(() => {
-  if (!headerFooterConfig.navItems) return []
-  return headerFooterConfig.navItems.filter(item => item.isVisible !== false)
+  const customItems = (headerFooterConfig.navItems || []).filter(item => item.isVisible !== false)
+  const categoryItems = categories
+    .filter(cat => cat.showInNavbar !== false)
+    .map(cat => ({
+      id: `cat-${cat.slug}`,
+      label: cat.name,
+      to: `/categories/${cat.slug}`,
+      isVisible: true,
+      isExternal: false,
+      subCategories: cat.subCategories || []
+    }))
+
+  const seenPaths = new Set(customItems.map(i => i.to))
+  const merged = [...customItems]
+  for (const cItem of categoryItems) {
+    if (!seenPaths.has(cItem.to)) {
+      merged.push(cItem)
+      seenPaths.add(cItem.to)
+    }
+  }
+  return merged
 })
 
 const filteredArticles = computed(() => {

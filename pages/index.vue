@@ -6,8 +6,8 @@
     <!-- Popular Articles (Renders only when blogs are loaded) -->
     <PopularArticles v-if="popularArticles.length > 0" :articles="popularArticles" />
 
-    <!-- Main Content Categories -->
-    <CategoryShowcase :categories="categories" />
+    <!-- Main Content Categories (Renders only when user has added categories) -->
+    <CategoryShowcase v-if="categories.length > 0" :categories="categories" />
 
     <!-- Latest Articles (Renders only when blogs are loaded) -->
     <ArticleGrid v-if="latestArticles.length > 0" :articles="latestArticles" />

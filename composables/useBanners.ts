@@ -82,6 +82,7 @@ const defaultBanners: HeroBanner[] = [
 
 const banners = ref<HeroBanner[]>([])
 const isInitialized = ref(false)
+let isClientBannersInitialized = false
 const isSyncing = ref(false)
 const isSaving = ref(false)
 
@@ -106,30 +107,25 @@ export const isBannerActive = (banner: HeroBanner): boolean => {
 
 export const useBanners = () => {
   const initBanners = () => {
-    if (isInitialized.value) return
+    if (!isInitialized.value) {
+      banners.value = JSON.parse(JSON.stringify(defaultBanners))
+      isInitialized.value = true
+    }
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !isClientBannersInitialized) {
       try {
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
           const parsed = JSON.parse(stored)
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          if (Array.isArray(parsed)) {
             banners.value = parsed
-          } else {
-            banners.value = JSON.parse(JSON.stringify(defaultBanners))
           }
-        } else {
-          banners.value = JSON.parse(JSON.stringify(defaultBanners))
         }
       } catch (err) {
         console.warn('[useBanners] Failed to read from localStorage:', err)
-        banners.value = JSON.parse(JSON.stringify(defaultBanners))
       }
-    } else {
-      banners.value = JSON.parse(JSON.stringify(defaultBanners))
+      isClientBannersInitialized = true
     }
-
-    isInitialized.value = true
   }
 
   initBanners()
@@ -147,19 +143,11 @@ export const useBanners = () => {
     if (typeof window === 'undefined') return
     isSyncing.value = true
     try {
-      const { initFirebase } = useFirebase()
-      initFirebase()
-      // @ts-ignore
-      const db = (window as any).__hc_firestore_instance
-      if (!db) return
-
-      const snap = await getDoc(doc(db, 'system_settings', 'hero_banners'))
-      if (snap.exists()) {
-        const data = snap.data()
-        if (data && Array.isArray(data.banners)) {
-          banners.value = data.banners
-          persistToLocal()
-        }
+      const { fetchLiveConfig } = useFirebase()
+      const data = await fetchLiveConfig<{ banners?: HeroBanner[] }>('hero_banners')
+      if (data && Array.isArray(data.banners)) {
+        banners.value = data.banners
+        persistToLocal()
       }
     } catch (err) {
       console.warn('[useBanners] Firestore sync warning:', err)
@@ -168,24 +156,19 @@ export const useBanners = () => {
     }
   }
 
-  const saveBannersToCloud = async (): Promise<void> => {
+  const saveBannersToCloud = async (): Promise<boolean> => {
     persistToLocal()
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') return false
 
     isSaving.value = true
     try {
-      const { initFirebase } = useFirebase()
-      initFirebase()
-      // @ts-ignore
-      const db = (window as any).__hc_firestore_instance
-      if (!db) return
-
-      await setDoc(doc(db, 'system_settings', 'hero_banners'), {
-        banners: JSON.parse(JSON.stringify(banners.value)),
-        updatedAt: new Date().toISOString()
-      }, { merge: true })
+      const { saveLiveConfig } = useFirebase()
+      return await saveLiveConfig('hero_banners', {
+        banners: JSON.parse(JSON.stringify(banners.value))
+      })
     } catch (err) {
       console.warn('[useBanners] Cloud save warning:', err)
+      return false
     } finally {
       isSaving.value = false
     }

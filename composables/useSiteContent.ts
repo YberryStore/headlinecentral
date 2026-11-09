@@ -65,6 +65,15 @@ export interface ContactPageConfig {
 const HEADER_FOOTER_STORAGE_KEY = 'hc_cms_header_footer_config'
 const CONTACT_PAGE_STORAGE_KEY = 'hc_cms_contact_page_config'
 
+const LEGACY_DEFAULT_NAV_IDS = new Set([
+  'nav-news',
+  'nav-tech',
+  'nav-fashion',
+  'nav-food',
+  'nav-home',
+  'nav-parenting'
+])
+
 const defaultHeaderFooterConfig: HeaderFooterConfig = {
   trendingBar: {
     isVisible: true,
@@ -77,71 +86,9 @@ const defaultHeaderFooterConfig: HeaderFooterConfig = {
     label: 'Contact Us',
     to: '/contact'
   },
-  navItems: [
-    {
-      id: 'nav-news',
-      label: 'News',
-      to: '/blog',
-      isVisible: true,
-      subCategories: [
-        { id: 'sub-news-1', name: 'Global Policy', slug: 'global-policy' },
-        { id: 'sub-news-2', name: 'Industry Briefings', slug: 'industry-briefings' }
-      ]
-    },
-    {
-      id: 'nav-tech',
-      label: 'Tech',
-      to: '/categories/technology',
-      isVisible: true,
-      subCategories: [
-        { id: 'sub-tech-1', name: 'GPUs & Hardware', slug: 'gpus-and-hardware' },
-        { id: 'sub-tech-2', name: 'AI & Architecture', slug: 'ai-and-architecture' },
-        { id: 'sub-tech-3', name: 'Retro Tech', slug: 'retro-tech' }
-      ]
-    },
-    {
-      id: 'nav-fashion',
-      label: 'Fashion',
-      to: '/categories/fashion',
-      isVisible: true,
-      subCategories: [
-        { id: 'sub-fashion-1', name: 'Sustainable Style', slug: 'sustainable-style' },
-        { id: 'sub-fashion-2', name: 'Design Culture', slug: 'design-culture' }
-      ]
-    },
-    {
-      id: 'nav-food',
-      label: 'Food',
-      to: '/categories/food',
-      isVisible: true,
-      subCategories: [
-        { id: 'sub-food-1', name: 'Artisan Baking', slug: 'artisan-baking' },
-        { id: 'sub-food-2', name: 'Seasonal Recipes', slug: 'seasonal-recipes' }
-      ]
-    },
-    {
-      id: 'nav-home',
-      label: 'Home & DIY',
-      to: '/categories/home-and-diy',
-      isVisible: true,
-      subCategories: [
-        { id: 'sub-diy-1', name: 'Woodworking & Craft', slug: 'woodworking-and-craft' },
-        { id: 'sub-diy-2', name: 'Smart Renovations', slug: 'smart-renovations' }
-      ]
-    },
-    {
-      id: 'nav-parenting',
-      label: 'Parenting',
-      to: '/categories/parenting',
-      isVisible: true,
-      subCategories: [
-        { id: 'sub-parenting-1', name: 'Child Development', slug: 'child-development' },
-        { id: 'sub-parenting-2', name: 'Digital Balance', slug: 'digital-balance' }
-      ]
-    }
-  ],
+  navItems: [],
   footer: {
-    brandDescription: 'Essential long-form journalism, rigorous analysis, and practical craft guides across News, Tech, Fashion, Food, Home & DIY, and Mindful Parenting.',
+    brandDescription: 'Essential long-form journalism, rigorous analysis, and investigative digital storytelling.',
     copyright: '© 2026 Headline Central. All rights reserved.',
     contactEmail: 'support@headlinecentral.co.za',
     contactPhone: '',
@@ -209,7 +156,11 @@ export const useSiteContent = () => {
         const storedHf = localStorage.getItem(HEADER_FOOTER_STORAGE_KEY)
         if (storedHf) {
           const parsed = JSON.parse(storedHf)
+          if (Array.isArray(parsed.navItems)) {
+            parsed.navItems = parsed.navItems.filter((item: NavMenuItem) => !LEGACY_DEFAULT_NAV_IDS.has(item.id))
+          }
           Object.assign(sharedHeaderFooter, parsed)
+          localStorage.setItem(HEADER_FOOTER_STORAGE_KEY, JSON.stringify(sharedHeaderFooter))
         }
         const storedContact = localStorage.getItem(CONTACT_PAGE_STORAGE_KEY)
         if (storedContact) {
@@ -229,24 +180,21 @@ export const useSiteContent = () => {
   const syncSiteContentFromCloud = async () => {
     if (typeof window === 'undefined') return
     try {
-      const { initFirebase } = useFirebase()
-      initFirebase()
-      // @ts-ignore
-      const db = (window as any).__hc_firestore_instance
-      if (!db) return
+      const { fetchLiveConfig } = useFirebase()
 
-      const hfSnap = await getDoc(doc(db, 'system_settings', 'header_footer'))
-      if (hfSnap.exists()) {
-        const cloudHf = hfSnap.data() as HeaderFooterConfig
+      const cloudHf = await fetchLiveConfig<HeaderFooterConfig>('header_footer')
+      if (cloudHf && typeof cloudHf === 'object') {
+        if (Array.isArray(cloudHf.navItems)) {
+          cloudHf.navItems = cloudHf.navItems.filter((item: NavMenuItem) => !LEGACY_DEFAULT_NAV_IDS.has(item.id))
+        }
         Object.assign(sharedHeaderFooter, cloudHf)
         try {
           localStorage.setItem(HEADER_FOOTER_STORAGE_KEY, JSON.stringify(sharedHeaderFooter))
         } catch {}
       }
 
-      const contactSnap = await getDoc(doc(db, 'system_settings', 'contact_page'))
-      if (contactSnap.exists()) {
-        const cloudContact = contactSnap.data() as ContactPageConfig
+      const cloudContact = await fetchLiveConfig<ContactPageConfig>('contact_page')
+      if (cloudContact && typeof cloudContact === 'object') {
         Object.assign(sharedContactPage, cloudContact)
         try {
           localStorage.setItem(CONTACT_PAGE_STORAGE_KEY, JSON.stringify(sharedContactPage))
@@ -268,13 +216,8 @@ export const useSiteContent = () => {
         localStorage.setItem(HEADER_FOOTER_STORAGE_KEY, JSON.stringify(sharedHeaderFooter))
       }
 
-      const { initFirebase } = useFirebase()
-      initFirebase()
-      // @ts-ignore
-      const db = (window as any).__hc_firestore_instance
-      if (db) {
-        await setDoc(doc(db, 'system_settings', 'header_footer'), JSON.parse(JSON.stringify(sharedHeaderFooter)), { merge: true })
-      }
+      const { saveLiveConfig } = useFirebase()
+      await saveLiveConfig('header_footer', JSON.parse(JSON.stringify(sharedHeaderFooter)))
       return true
     } catch (err) {
       console.warn('[Site Content] Error saving Header/Footer settings:', err)
@@ -295,13 +238,8 @@ export const useSiteContent = () => {
         localStorage.setItem(CONTACT_PAGE_STORAGE_KEY, JSON.stringify(sharedContactPage))
       }
 
-      const { initFirebase } = useFirebase()
-      initFirebase()
-      // @ts-ignore
-      const db = (window as any).__hc_firestore_instance
-      if (db) {
-        await setDoc(doc(db, 'system_settings', 'contact_page'), JSON.parse(JSON.stringify(sharedContactPage)), { merge: true })
-      }
+      const { saveLiveConfig } = useFirebase()
+      await saveLiveConfig('contact_page', JSON.parse(JSON.stringify(sharedContactPage)))
       return true
     } catch (err) {
       console.warn('[Site Content] Error saving Contact Page settings:', err)

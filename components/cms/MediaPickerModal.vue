@@ -50,12 +50,27 @@
           >
             <!-- Thumbnail preview -->
             <div class="aspect-[16/10] bg-gray-950 overflow-hidden relative">
+              <video
+                v-if="isVideoAsset(item.path)"
+                :src="useAsset(item.path)"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                muted
+                playsinline
+                preload="metadata"
+              ></video>
               <img
+                v-else
                 :src="useAsset(item.path)"
                 :alt="item.name"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
               />
+              <span
+                v-if="isVideoAsset(item.path)"
+                class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[9px] font-bold uppercase tracking-wider"
+              >
+                Video
+              </span>
               <div class="absolute inset-0 bg-[#EE5102]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <span class="px-3 py-1 rounded-full bg-white text-gray-900 text-[11px] font-bold shadow-md">Select</span>
               </div>
@@ -118,6 +133,21 @@ const emit = defineEmits<{
 }>()
 
 const searchQuery = ref('')
+
+const isVideoAsset = (path: string) => {
+  if (!path) return false
+  const lower = path.toLowerCase()
+  return (
+    lower.startsWith('data:video/') ||
+    lower.endsWith('.mp4') ||
+    lower.endsWith('.webm') ||
+    lower.endsWith('.ogg') ||
+    lower.endsWith('.mov') ||
+    lower.includes('.mp4?') ||
+    lower.includes('.webm?') ||
+    lower.includes('.mov?')
+  )
+}
 
 const filteredMedia = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()

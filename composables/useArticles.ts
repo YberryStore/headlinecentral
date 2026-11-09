@@ -13,6 +13,8 @@ export interface Author {
 export interface GalleryItem {
   src: string
   alt: string
+  credit?: string
+  linkUrl?: string
 }
 
 export interface ArticleSection {
@@ -24,6 +26,14 @@ export interface ArticleSection {
     mobileSrc?: string
     alt: string
     caption: string
+    credit?: string
+    linkUrl?: string
+  }
+  video?: {
+    src: string
+    caption?: string
+    credit?: string
+    poster?: string
   }
   callout?: {
     type: 'insight' | 'stat' | 'tip'
@@ -82,6 +92,11 @@ export interface Article {
   bannerImageMobile?: string
   bannerAlt?: string
   imageCaption: string
+  bannerCredit?: string
+  bannerLinkUrl?: string
+  videoUrl?: string
+  videoCaption?: string
+  videoCredit?: string
   publishedAt: string
   readTime: string
   views: number
@@ -96,6 +111,20 @@ export interface Article {
   content?: string
   tags: string[]
   updatedAt?: string
+}
+
+const LEGACY_DEFAULT_CATEGORY_DESCRIPTIONS = new Set([
+  'Breaking developments, global policy analysis, and essential daily reporting.',
+  'Breakthrough developments in AI, autonomous agents, computing hardware, and human-machine interaction.',
+  'Timeless wardrobe curation, sustainable textiles, modern tailoring, and design culture.',
+  'Artisan baking, fermentation science, seasonal culinary techniques, and honest chef-tested recipes.',
+  'Architectural craftsmanship, acoustic styling, woodworking, and smart hands-on renovations for modern living.',
+  'Evidence-based child development, fostering curiosity, screen balance, and mindful family resilience.'
+])
+
+const isLegacyDefaultCategory = (cat: CategoryMeta): boolean => {
+  if (!cat) return true
+  return LEGACY_DEFAULT_CATEGORY_DESCRIPTIONS.has((cat.description || '').trim())
 }
 
 const sharedArticles = reactive<Article[]>([])
@@ -118,111 +147,7 @@ export const useArticles = () => {
     }
   }
 
-  const defaultCategories: CategoryMeta[] = [
-    {
-      name: 'News',
-      slug: 'news',
-      description: 'Breaking developments, global policy analysis, and essential daily reporting.',
-      color: '#ee5102',
-      badgeBg: 'bg-yberry-100 text-yberry-1000 border border-yberry-300',
-      icon: 'Newspaper',
-      image: asset('/images/tech-hero.jpg'),
-      showInNavbar: true,
-      subCategories: [
-        { id: 'sub-news-1', name: 'Global Policy', slug: 'global-policy' },
-        { id: 'sub-news-2', name: 'Industry Briefings', slug: 'industry-briefings' }
-      ]
-    },
-    {
-      name: 'Technology',
-      slug: 'technology',
-      description: 'Breakthrough developments in AI, autonomous agents, computing hardware, and human-machine interaction.',
-      color: '#ee5102',
-      badgeBg: 'bg-yberry-100 text-yberry-1000 border border-yberry-300',
-      icon: 'Cpu',
-      image: asset('/images/tech-hero.jpg'),
-      showInNavbar: true,
-      subCategories: [
-        { id: 'sub-tech-1', name: 'GPUs & Hardware', slug: 'gpus-and-hardware' },
-        { id: 'sub-tech-2', name: 'AI & Architecture', slug: 'ai-and-architecture' },
-        { id: 'sub-tech-3', name: 'Retro Tech', slug: 'retro-tech' }
-      ]
-    },
-    {
-      name: 'Fashion',
-      slug: 'fashion',
-      description: 'Timeless wardrobe curation, sustainable textiles, modern tailoring, and design culture.',
-      color: '#ee5102',
-      badgeBg: 'bg-yberry-100 text-yberry-1000 border border-yberry-300',
-      icon: 'Sparkles',
-      image: asset('/images/diy-hero.jpg'),
-      showInNavbar: true,
-      subCategories: [
-        { id: 'sub-fashion-1', name: 'Sustainable Style', slug: 'sustainable-style' },
-        { id: 'sub-fashion-2', name: 'Design Culture', slug: 'design-culture' }
-      ]
-    },
-    {
-      name: 'Food',
-      slug: 'food',
-      description: 'Artisan baking, fermentation science, seasonal culinary techniques, and honest chef-tested recipes.',
-      color: '#f0631c',
-      badgeBg: 'bg-orange-50 text-orange-900 border border-orange-200',
-      icon: 'Utensils',
-      image: asset('/images/food-hero.jpg'),
-      showInNavbar: true,
-      subCategories: [
-        { id: 'sub-food-1', name: 'Artisan Baking', slug: 'artisan-baking' },
-        { id: 'sub-food-2', name: 'Seasonal Recipes', slug: 'seasonal-recipes' }
-      ]
-    },
-    {
-      name: 'Home and DIY',
-      slug: 'home-and-diy',
-      description: 'Architectural craftsmanship, acoustic styling, woodworking, and smart hands-on renovations for modern living.',
-      color: '#f17435',
-      badgeBg: 'bg-amber-50 text-amber-900 border border-amber-200',
-      icon: 'Home',
-      image: asset('/images/diy-hero.jpg'),
-      showInNavbar: true,
-      subCategories: [
-        { id: 'sub-diy-1', name: 'Woodworking & Craft', slug: 'woodworking-and-craft' },
-        { id: 'sub-diy-2', name: 'Smart Renovations', slug: 'smart-renovations' }
-      ]
-    },
-    {
-      name: 'Parenting',
-      slug: 'parenting',
-      description: 'Evidence-based child development, fostering curiosity, screen balance, and mindful family resilience.',
-      color: '#e88b6b',
-      badgeBg: 'bg-rose-50 text-rose-900 border border-rose-200',
-      icon: 'HeartHandshake',
-      image: asset('/images/parenting-hero.jpg'),
-      showInNavbar: true,
-      subCategories: [
-        { id: 'sub-parenting-1', name: 'Child Development', slug: 'child-development' },
-        { id: 'sub-parenting-2', name: 'Digital Balance', slug: 'digital-balance' }
-      ]
-    }
-  ]
-
-  if (!isCategoriesInitialized) {
-    sharedCategories.splice(0, sharedCategories.length, ...defaultCategories)
-    if (typeof window !== 'undefined') {
-      try {
-        const savedCats = localStorage.getItem('hc_cms_custom_categories')
-        if (savedCats) {
-          const parsedCats: CategoryMeta[] = JSON.parse(savedCats)
-          if (Array.isArray(parsedCats) && parsedCats.length > 0) {
-            sharedCategories.splice(0, sharedCategories.length, ...parsedCats)
-          }
-        }
-      } catch {
-        // Ignore storage errors
-      }
-    }
-    isCategoriesInitialized = true
-  }
+  const defaultCategories: CategoryMeta[] = []
 
   const persistCategories = () => {
     if (typeof window !== 'undefined') {
@@ -231,6 +156,32 @@ export const useArticles = () => {
       } catch {
         // Ignore storage errors
       }
+      try {
+        const { saveFirestoreCategories } = useFirebase()
+        saveFirestoreCategories(sharedCategories).catch(() => {})
+      } catch {
+        // Ignore cloud sync errors
+      }
+    }
+  }
+
+  if (!isCategoriesInitialized) {
+    sharedCategories.splice(0, sharedCategories.length, ...defaultCategories)
+    if (typeof window !== 'undefined') {
+      try {
+        const savedCats = localStorage.getItem('hc_cms_custom_categories')
+        if (savedCats) {
+          const parsedCats: CategoryMeta[] = JSON.parse(savedCats)
+          if (Array.isArray(parsedCats)) {
+            const userAddedCats = parsedCats.filter(c => !isLegacyDefaultCategory(c))
+            sharedCategories.splice(0, sharedCategories.length, ...userAddedCats)
+            localStorage.setItem('hc_cms_custom_categories', JSON.stringify(sharedCategories))
+          }
+        }
+      } catch {
+        // Ignore storage errors
+      }
+      isCategoriesInitialized = true
     }
   }
 
@@ -282,7 +233,23 @@ export const useArticles = () => {
   const syncFromFirestore = async () => {
     if (typeof window === 'undefined') return
     try {
-      const { fetchFirestoreArticles, saveFirestoreArticle } = useFirebase()
+      const { fetchFirestoreArticles, saveFirestoreArticle, fetchFirestoreCategories, saveFirestoreCategories } = useFirebase()
+
+      // Sync custom categories
+      try {
+        const remoteCats = await fetchFirestoreCategories()
+        if (remoteCats && Array.isArray(remoteCats)) {
+          const filteredRemoteCats = remoteCats.filter((c: CategoryMeta) => !isLegacyDefaultCategory(c))
+          sharedCategories.splice(0, sharedCategories.length, ...filteredRemoteCats)
+          localStorage.setItem('hc_cms_custom_categories', JSON.stringify(sharedCategories))
+          if (filteredRemoteCats.length !== remoteCats.length) {
+            await saveFirestoreCategories(sharedCategories).catch(() => {})
+          }
+        }
+      } catch {
+        // Ignore category sync errors
+      }
+
       const remote = await fetchFirestoreArticles()
       if (remote && remote.length > 0) {
         // Intelligently merge remote articles with local articles without overwriting newer local edits
@@ -525,7 +492,7 @@ export const useArticles = () => {
 
   const deleteCategory = (slug: string) => {
     const idx = sharedCategories.findIndex(c => c.slug === slug)
-    if (idx !== -1 && sharedCategories.length > 1) {
+    if (idx !== -1) {
       sharedCategories.splice(idx, 1)
       persistCategories()
       return true

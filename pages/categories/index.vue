@@ -22,7 +22,7 @@
       </div>
 
       <!-- Categories Grid -->
-      <div class="space-y-12">
+      <div v-if="categories.length > 0" class="space-y-12">
         <div
           v-for="cat in categories"
           :key="cat.slug"
@@ -77,6 +77,23 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Empty State When No Categories Added Yet -->
+      <div v-else class="bg-white rounded-3xl p-10 sm:p-14 border border-gray-100 shadow-sm text-center max-w-xl mx-auto">
+        <div class="w-12 h-12 rounded-2xl bg-orange-50 text-[#EE5102] flex items-center justify-center mx-auto mb-4 font-semibold text-sm">
+          HC
+        </div>
+        <h2 class="text-lg font-semibold text-gray-900 mb-2">No Categories Added Yet</h2>
+        <p class="text-xs sm:text-sm text-gray-500 mb-6 leading-relaxed">
+          Categories you create in the CMS will automatically appear here in the subject directory.
+        </p>
+        <NuxtLink
+          to="/blog"
+          class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-[#EE5102] hover:bg-[#d84802] transition-colors shadow-sm"
+        >
+          Browse All Stories &rarr;
+        </NuxtLink>
       </div>
     </div>
   </div>

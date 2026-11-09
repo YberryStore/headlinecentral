@@ -750,10 +750,11 @@ const {
   toggleBannerActive,
   duplicateBanner,
   reorderBanners,
-  syncFromFirestore
+  syncFromFirestore,
+  saveBannersToCloud
 } = useBanners()
 
-const { uploadFileToStorage } = useFirebase()
+const { uploadFileToStorage, uploadVideoToStorage } = useFirebase()
 
 const isModalOpen = ref(false)
 const isSubmitting = ref(false)
@@ -918,23 +919,16 @@ const handleVideoFile = async (e: Event) => {
   const file = input?.files?.[0]
   if (!file) return
 
-  if (file.size > 25 * 1024 * 1024) {
-    feedbackType.value = 'error'
-    feedbackMessage.value = 'Video file exceeds 25 MB. For larger videos, please enter a direct CDN or streaming URL.'
-    return
-  }
-
   try {
-    const reader = new FileReader()
-    reader.onload = () => {
-      formState.videoUrl = typeof reader.result === 'string' ? reader.result : ''
+    const uploadedUrl = await uploadVideoToStorage(file, 'banners')
+    if (uploadedUrl) {
+      formState.videoUrl = uploadedUrl
       feedbackType.value = 'success'
-      feedbackMessage.value = `Video "${file.name}" loaded successfully.`
+      feedbackMessage.value = `Video "${file.name}" uploaded successfully.`
     }
-    reader.readAsDataURL(file)
   } catch (err: any) {
     feedbackType.value = 'error'
-    feedbackMessage.value = `Video load error: ${err?.message || 'Unsupported format'}`
+    feedbackMessage.value = `Video upload error: ${err?.message || 'Unsupported format'}`
   } finally {
     if (input) input.value = ''
   }
@@ -963,7 +957,7 @@ const submitBannerForm = async () => {
   try {
     await saveBanner(JSON.parse(JSON.stringify(formState)))
     feedbackType.value = 'success'
-    feedbackMessage.value = `Hero banner "${formState.headline}" saved successfully.`
+    feedbackMessage.value = `Hero banner "${formState.headline}" saved and published to live site!`
     closeModal()
   } catch (err: any) {
     feedbackType.value = 'error'
@@ -976,7 +970,7 @@ const submitBannerForm = async () => {
 const handleToggleActive = async (id: string) => {
   await toggleBannerActive(id)
   feedbackType.value = 'success'
-  feedbackMessage.value = 'Banner visibility toggled.'
+  feedbackMessage.value = 'Banner visibility updated on live site.'
 }
 
 const handleDuplicate = async (id: string) => {
@@ -991,7 +985,7 @@ const handleDelete = async (id: string) => {
   if (confirm('Are you sure you want to delete this hero banner? This action cannot be undone.')) {
     await deleteBanner(id)
     feedbackType.value = 'success'
-    feedbackMessage.value = 'Banner deleted.'
+    feedbackMessage.value = 'Banner deleted from live site.'
   }
 }
 
@@ -1009,9 +1003,11 @@ const moveBanner = async (index: number, direction: -1 | 1) => {
 }
 
 const handleSaveAll = async () => {
-  await syncFromFirestore()
+  const ok = await saveBannersToCloud()
   feedbackType.value = 'success'
-  feedbackMessage.value = 'Banners synchronized with cloud Firestore.'
+  feedbackMessage.value = ok
+    ? 'Hero banners pushed and synchronized to the live server!'
+    : 'Hero banners saved locally.'
 }
 
 onMounted(async () => {

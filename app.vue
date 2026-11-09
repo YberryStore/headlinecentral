@@ -38,13 +38,25 @@ import {
   sanitizeAdsenseId
 } from '~/composables/useSiteSeo'
 import { useCookieConsent } from '~/composables/useCookieConsent'
+import { useSiteContent } from '~/composables/useSiteContent'
+import { useArticles } from '~/composables/useArticles'
+import { useBanners } from '~/composables/useBanners'
 
 const route = useRoute()
-const { trackingConfig } = useSiteSeo()
+const { trackingConfig, syncSeoFromCloud } = useSiteSeo()
 const { allowsAnalytics, allowsAdvertising, initConsent } = useCookieConsent()
+const { syncSiteContentFromCloud } = useSiteContent()
+const { syncFromFirestore: syncArticlesAndCategories } = useArticles()
+const { syncFromFirestore: syncHeroBanners } = useBanners()
 
-onMounted(() => {
+onMounted(async () => {
   initConsent()
+  await Promise.allSettled([
+    syncSeoFromCloud(),
+    syncSiteContentFromCloud(),
+    syncArticlesAndCategories(),
+    syncHeroBanners()
+  ])
 })
 
 const isCmsRoute = computed(() =>
@@ -55,6 +67,39 @@ const validGtmId = computed(() => sanitizeGtmId(trackingConfig.gtmId))
 const validGa4Id = computed(() => sanitizeGa4Id(trackingConfig.ga4Id))
 const validMetaPixelId = computed(() => sanitizeMetaPixelId(trackingConfig.metaPixelId))
 const validAdsenseId = computed(() => sanitizeAdsenseId(trackingConfig.adsensePublisherId))
+
+// Ensure runtime updates to the GTM ID from CMS/Firestore dynamically inject/update the script in document.head
+watch(
+  [validGtmId, () => trackingConfig.enableGtm, allowsAnalytics, isCmsRoute],
+  ([gtmId, enabled, consentOk, inCms]) => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return
+    if (inCms || !gtmId || !enabled || !consentOk) return
+
+    const expectedSrc = `https://www.googletagmanager.com/gtm.js?id=${gtmId}`
+    const existingScripts = Array.from(document.head.querySelectorAll('script'))
+    const alreadyLoaded = existingScripts.some(s => s.src === expectedSrc)
+
+    if (!alreadyLoaded) {
+      // Remove any outdated gtm.js script tags so the updated container ID takes over cleanly
+      existingScripts.forEach((s) => {
+        if (s.src && s.src.includes('googletagmanager.com/gtm.js?id=')) {
+          s.parentNode?.removeChild(s)
+        }
+      })
+
+      const w = window as any
+      w.dataLayer = w.dataLayer || []
+      w.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
+
+      const scriptEl = document.createElement('script')
+      scriptEl.async = true
+      scriptEl.src = expectedSrc
+      scriptEl.setAttribute('data-gtm-id', gtmId)
+      document.head.insertBefore(scriptEl, document.head.firstChild)
+    }
+  },
+  { immediate: true }
+)
 
 useHead(() => {
   if (isCmsRoute.value) {

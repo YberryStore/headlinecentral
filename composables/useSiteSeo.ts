@@ -1,4 +1,6 @@
-import { reactive } from 'vue'
+import { reactive, ref, computed } from 'vue'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { useFirebase } from '~/composables/useFirebase'
 
 export interface PageSeoEntry {
   key: string
@@ -121,29 +123,59 @@ const sharedTracking = reactive<SiteTrackingConfig>({
 })
 
 let isSeoInitialized = false
+let isClientSeoInitialized = false
+const isSavingSeo = ref(false)
 
-// Strict validators to prevent script injection via tracking IDs
+// Smart validators that extract clean tracking IDs whether the user types the ID or pastes a full <script> tag
 export const sanitizeGtmId = (val: string): string => {
-  const clean = (val || '').trim().toUpperCase()
-  return /^GTM-[A-Z0-9]{4,12}$/.test(clean) ? clean : ''
+  const raw = (val || '').trim().toUpperCase()
+  if (!raw) return ''
+  const match = raw.match(/GTM-[A-Z0-9]{4,16}/)
+  return match ? match[0] : ''
 }
 
 export const sanitizeGa4Id = (val: string): string => {
-  const clean = (val || '').trim().toUpperCase()
-  return /^G-[A-Z0-9]{6,16}$/.test(clean) ? clean : ''
+  const raw = (val || '').trim().toUpperCase()
+  if (!raw) return ''
+  const match = raw.match(/G-[A-Z0-9]{6,16}/)
+  return match ? match[0] : ''
 }
 
 export const sanitizeMetaPixelId = (val: string): string => {
-  const clean = (val || '').trim()
-  return /^\d{8,20}$/.test(clean) ? clean : ''
+  const raw = (val || '').trim()
+  if (!raw) return ''
+  const match = raw.match(/\b(\d{8,20})\b/)
+  return match ? match[1] : ''
 }
 
 export const sanitizeAdsenseId = (val: string): string => {
-  const clean = (val || '').trim()
-  if (!clean) return ''
-  // Accept pub-1234567890123456 or ca-pub-1234567890123456
-  const matched = clean.match(/^(?:ca-)?(pub-\d{10,20})$/i)
+  const raw = (val || '').trim()
+  if (!raw) return ''
+  // Accept pub-1234567890123456, ca-pub-1234567890123456, or full <script>/<meta> snippet
+  const matched = raw.match(/(?:ca-)?(pub-\d{10,20})/i)
   return matched ? `ca-${matched[1].toLowerCase()}` : ''
+}
+
+const applyTrackingObject = (parsedTracking: any) => {
+  if (!parsedTracking || typeof parsedTracking !== 'object') return
+  if (typeof parsedTracking.gtmId === 'string') {
+    const cleanGtm = sanitizeGtmId(parsedTracking.gtmId) || parsedTracking.gtmId.trim()
+    sharedTracking.gtmId = cleanGtm
+  }
+  if (typeof parsedTracking.ga4Id === 'string') {
+    const cleanGa4 = sanitizeGa4Id(parsedTracking.ga4Id) || parsedTracking.ga4Id.trim()
+    sharedTracking.ga4Id = cleanGa4
+  }
+  if (typeof parsedTracking.metaPixelId === 'string') {
+    sharedTracking.metaPixelId = sanitizeMetaPixelId(parsedTracking.metaPixelId) || parsedTracking.metaPixelId.trim()
+  }
+  if (typeof parsedTracking.enableGtm === 'boolean') sharedTracking.enableGtm = parsedTracking.enableGtm
+  if (typeof parsedTracking.enableGa4 === 'boolean') sharedTracking.enableGa4 = parsedTracking.enableGa4
+  if (typeof parsedTracking.enableMetaPixel === 'boolean') sharedTracking.enableMetaPixel = parsedTracking.enableMetaPixel
+  if (typeof parsedTracking.adsensePublisherId === 'string') {
+    sharedTracking.adsensePublisherId = sanitizeAdsenseId(parsedTracking.adsensePublisherId) || parsedTracking.adsensePublisherId.trim()
+  }
+  if (typeof parsedTracking.enableAdsense === 'boolean') sharedTracking.enableAdsense = parsedTracking.enableAdsense
 }
 
 export const useSiteSeo = () => {
@@ -155,57 +187,50 @@ export const useSiteSeo = () => {
     })
 
     const pubAnalytics = (runtimeConfig.public as any)?.analytics || {}
-    sharedTracking.gtmId = pubAnalytics.gtmId || ''
-    sharedTracking.ga4Id = pubAnalytics.ga4Id || ''
+    sharedTracking.gtmId = pubAnalytics.gtmId || 'GTM-PNT79WT8'
+    sharedTracking.ga4Id = pubAnalytics.ga4Id || 'G-TD8S7EFPLV'
     sharedTracking.metaPixelId = pubAnalytics.metaPixelId || ''
     sharedTracking.enableGtm = true
     sharedTracking.enableGa4 = true
     sharedTracking.enableMetaPixel = true
 
-    if (typeof window !== 'undefined') {
-      try {
-        const savedSeo = localStorage.getItem(SEO_STORAGE_KEY)
-        if (savedSeo) {
-          const parsedSeo = JSON.parse(savedSeo)
-          if (parsedSeo && typeof parsedSeo === 'object') {
-            Object.keys(defaultPagesSeo).forEach((k) => {
-              if (parsedSeo[k]) {
-                sharedPagesSeo[k] = {
-                  ...defaultPagesSeo[k],
-                  ...parsedSeo[k]
-                }
-              }
-            })
-          }
-        }
-      } catch {
-        // Ignore storage parse error
-      }
-
-      try {
-        const savedTracking = localStorage.getItem(TRACKING_STORAGE_KEY)
-        if (savedTracking) {
-          const parsedTracking = JSON.parse(savedTracking)
-          if (parsedTracking && typeof parsedTracking === 'object') {
-            if (typeof parsedTracking.gtmId === 'string') sharedTracking.gtmId = parsedTracking.gtmId.trim()
-            if (typeof parsedTracking.ga4Id === 'string') sharedTracking.ga4Id = parsedTracking.ga4Id.trim()
-            if (typeof parsedTracking.metaPixelId === 'string') sharedTracking.metaPixelId = parsedTracking.metaPixelId.trim()
-            if (typeof parsedTracking.enableGtm === 'boolean') sharedTracking.enableGtm = parsedTracking.enableGtm
-            if (typeof parsedTracking.enableGa4 === 'boolean') sharedTracking.enableGa4 = parsedTracking.enableGa4
-            if (typeof parsedTracking.enableMetaPixel === 'boolean') sharedTracking.enableMetaPixel = parsedTracking.enableMetaPixel
-            if (typeof parsedTracking.adsensePublisherId === 'string') sharedTracking.adsensePublisherId = parsedTracking.adsensePublisherId.trim()
-            if (typeof parsedTracking.enableAdsense === 'boolean') sharedTracking.enableAdsense = parsedTracking.enableAdsense
-          }
-        }
-      } catch {
-        // Ignore storage parse error
-      }
-    }
-
     isSeoInitialized = true
   }
 
-  const persistSeoAndTracking = () => {
+  if (typeof window !== 'undefined' && !isClientSeoInitialized) {
+    try {
+      const savedSeo = localStorage.getItem(SEO_STORAGE_KEY)
+      if (savedSeo) {
+        const parsedSeo = JSON.parse(savedSeo)
+        if (parsedSeo && typeof parsedSeo === 'object') {
+          Object.keys(defaultPagesSeo).forEach((k) => {
+            if (parsedSeo[k]) {
+              sharedPagesSeo[k] = {
+                ...defaultPagesSeo[k],
+                ...parsedSeo[k]
+              }
+            }
+          })
+        }
+      }
+    } catch {
+      // Ignore storage parse error
+    }
+
+    try {
+      const savedTracking = localStorage.getItem(TRACKING_STORAGE_KEY)
+      if (savedTracking) {
+        const parsedTracking = JSON.parse(savedTracking)
+        applyTrackingObject(parsedTracking)
+      }
+    } catch {
+      // Ignore storage parse error
+    }
+
+    isClientSeoInitialized = true
+  }
+
+  const persistSeoAndTrackingLocal = () => {
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem(SEO_STORAGE_KEY, JSON.stringify(sharedPagesSeo))
@@ -216,18 +241,76 @@ export const useSiteSeo = () => {
     }
   }
 
-  const updatePageSeo = (key: string, updates: Partial<PageSeoEntry>) => {
-    if (!sharedPagesSeo[key]) return
+  const saveSeoAndTrackingToCloud = async (): Promise<boolean> => {
+    if (typeof window === 'undefined') return false
+    isSavingSeo.value = true
+    try {
+      const { saveLiveConfig } = useFirebase()
+      return await saveLiveConfig('seo_tracking', {
+        tracking: JSON.parse(JSON.stringify(sharedTracking)),
+        pagesSeo: JSON.parse(JSON.stringify(sharedPagesSeo))
+      })
+    } catch (err) {
+      console.warn('[SEO & Tracking] Error saving to cloud:', err)
+      return false
+    } finally {
+      isSavingSeo.value = false
+    }
+  }
+
+  const syncSeoFromCloud = async (): Promise<void> => {
+    if (typeof window === 'undefined') return
+    try {
+      const { fetchLiveConfig } = useFirebase()
+      const data = await fetchLiveConfig<{ tracking?: any; pagesSeo?: any }>('seo_tracking')
+      if (data) {
+        if (data.tracking && typeof data.tracking === 'object') {
+          applyTrackingObject(data.tracking)
+        }
+        if (data.pagesSeo && typeof data.pagesSeo === 'object') {
+          Object.keys(defaultPagesSeo).forEach((k) => {
+            if (data.pagesSeo[k]) {
+              sharedPagesSeo[k] = {
+                ...defaultPagesSeo[k],
+                ...data.pagesSeo[k]
+              }
+            }
+          })
+        }
+        persistSeoAndTrackingLocal()
+      }
+    } catch (err) {
+      console.warn('[SEO & Tracking] Cloud sync notice:', err)
+    }
+  }
+
+  const updatePageSeo = async (key: string, updates: Partial<PageSeoEntry>): Promise<boolean> => {
+    if (!sharedPagesSeo[key]) return false
     sharedPagesSeo[key] = {
       ...sharedPagesSeo[key],
       ...updates
     }
-    persistSeoAndTracking()
+    persistSeoAndTrackingLocal()
+    return await saveSeoAndTrackingToCloud()
   }
 
-  const updateTrackingConfig = (updates: Partial<SiteTrackingConfig>) => {
-    Object.assign(sharedTracking, updates)
-    persistSeoAndTracking()
+  const updateTrackingConfig = async (updates: Partial<SiteTrackingConfig>): Promise<boolean> => {
+    const normalized: Partial<SiteTrackingConfig> = { ...updates }
+    if (typeof normalized.gtmId === 'string') {
+      normalized.gtmId = sanitizeGtmId(normalized.gtmId) || normalized.gtmId.trim()
+    }
+    if (typeof normalized.ga4Id === 'string') {
+      normalized.ga4Id = sanitizeGa4Id(normalized.ga4Id) || normalized.ga4Id.trim()
+    }
+    if (typeof normalized.metaPixelId === 'string') {
+      normalized.metaPixelId = sanitizeMetaPixelId(normalized.metaPixelId) || normalized.metaPixelId.trim()
+    }
+    if (typeof normalized.adsensePublisherId === 'string') {
+      normalized.adsensePublisherId = sanitizeAdsenseId(normalized.adsensePublisherId) || normalized.adsensePublisherId.trim()
+    }
+    Object.assign(sharedTracking, normalized)
+    persistSeoAndTrackingLocal()
+    return await saveSeoAndTrackingToCloud()
   }
 
   const applyPageSeo = (key: keyof typeof defaultPagesSeo) => {
@@ -253,8 +336,10 @@ export const useSiteSeo = () => {
   return {
     pagesSeo: sharedPagesSeo,
     trackingConfig: sharedTracking,
+    isSavingSeo,
     updatePageSeo,
     updateTrackingConfig,
+    syncSeoFromCloud,
     applyPageSeo,
     sanitizeGtmId,
     sanitizeGa4Id,

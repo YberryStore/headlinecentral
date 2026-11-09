@@ -12,7 +12,7 @@
             />
           </NuxtLink>
           <p class="text-sm text-gray-500 max-w-sm leading-relaxed">
-            {{ footer.brandDescription || 'Essential long-form journalism, rigorous analysis, and practical craft guides across News, Tech, Fashion, Food, Home & DIY, and Mindful Parenting.' }}
+            {{ footer.brandDescription || 'Essential long-form journalism, rigorous analysis, and investigative digital storytelling.' }}
           </p>
 
           <!-- Direct Contact details if configured -->
@@ -71,13 +71,16 @@
           <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-900 mb-4">
             Categories
           </h4>
-          <ul class="space-y-2.5 text-sm text-gray-600">
+          <ul v-if="visibleCategories.length > 0" class="space-y-2.5 text-sm text-gray-600">
             <li v-for="cat in visibleCategories" :key="cat.slug">
-              <NuxtLink :to="cat.slug === 'news' ? '/blog' : `/categories/${cat.slug}`" class="hover:text-[#EE5102] transition-colors">
+              <NuxtLink :to="`/categories/${cat.slug}`" class="hover:text-[#EE5102] transition-colors">
                 {{ cat.name }}
               </NuxtLink>
             </li>
           </ul>
+          <p v-else class="text-xs text-gray-400">
+            <NuxtLink to="/blog" class="hover:text-[#EE5102] transition-colors">All Stories &amp; Blogs</NuxtLink>
+          </p>
         </div>
 
         <!-- Company / Editorial column -->
