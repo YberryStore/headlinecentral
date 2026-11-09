@@ -371,17 +371,27 @@
                   <h5 class="text-xs font-bold text-gray-900">1. Desktop Image (Required)</h5>
                   <p class="text-[11px] text-gray-500">Recommended 16:9 or 900x500px high-resolution banner image.</p>
                 </div>
-                <!-- File Upload Trigger -->
-                <label class="px-3.5 py-1.5 rounded-xl bg-white border border-gray-300 hover:bg-gray-100 text-xs font-semibold text-gray-700 cursor-pointer shadow-xs transition-colors flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                  <span>Upload File</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    class="hidden"
-                    @change="e => handleImageFile(e, 'desktop')"
-                  />
-                </label>
+                <div class="flex items-center gap-2">
+                  <button
+                    @click="openMediaPicker('Select Desktop Banner Image', item => { formState.desktopImageUrl = item.path; if (!formState.desktopAlt) formState.desktopAlt = item.name })"
+                    type="button"
+                    class="px-3.5 py-1.5 rounded-xl bg-white border border-gray-300 hover:bg-gray-100 text-xs font-semibold text-gray-700 cursor-pointer shadow-xs transition-colors flex items-center gap-1.5"
+                  >
+                    <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Media File</span>
+                  </button>
+                  <!-- File Upload Trigger -->
+                  <label class="px-3.5 py-1.5 rounded-xl bg-white border border-gray-300 hover:bg-gray-100 text-xs font-semibold text-gray-700 cursor-pointer shadow-xs transition-colors flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span>Upload File</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      @change="e => handleImageFile(e, 'desktop')"
+                    />
+                  </label>
+                </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -427,17 +437,27 @@
                   <h5 class="text-xs font-bold text-gray-900">2. Mobile Image (Optional Override)</h5>
                   <p class="text-[11px] text-gray-500">Optimized for mobile displays (under 768px). Falls back to desktop image if omitted.</p>
                 </div>
-                <!-- File Upload Trigger -->
-                <label class="px-3.5 py-1.5 rounded-xl bg-white border border-gray-300 hover:bg-gray-100 text-xs font-semibold text-gray-700 cursor-pointer shadow-xs transition-colors flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                  <span>Upload Mobile File</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    class="hidden"
-                    @change="e => handleImageFile(e, 'mobile')"
-                  />
-                </label>
+                <div class="flex items-center gap-2">
+                  <button
+                    @click="openMediaPicker('Select Mobile Banner Image', item => { formState.mobileImageUrl = item.path; if (!formState.mobileAlt) formState.mobileAlt = item.name })"
+                    type="button"
+                    class="px-3.5 py-1.5 rounded-xl bg-white border border-gray-300 hover:bg-gray-100 text-xs font-semibold text-gray-700 cursor-pointer shadow-xs transition-colors flex items-center gap-1.5"
+                  >
+                    <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Media File</span>
+                  </button>
+                  <!-- File Upload Trigger -->
+                  <label class="px-3.5 py-1.5 rounded-xl bg-white border border-gray-300 hover:bg-gray-100 text-xs font-semibold text-gray-700 cursor-pointer shadow-xs transition-colors flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span>Upload Mobile File</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      @change="e => handleImageFile(e, 'mobile')"
+                    />
+                  </label>
+                </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -695,11 +715,21 @@
         </form>
       </div>
     </div>
+
+    <!-- Media Picker Modal -->
+    <MediaPickerModal
+      :is-open="isMediaPickerOpen"
+      :title="mediaPickerTitle"
+      :media-items="mediaAssetsList"
+      @close="isMediaPickerOpen = false"
+      @select="handleMediaPickerChosen"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import MediaPickerModal from '~/components/cms/MediaPickerModal.vue'
 import {
   useBanners,
   isBannerExpired,
@@ -729,6 +759,44 @@ const isModalOpen = ref(false)
 const isSubmitting = ref(false)
 const feedbackMessage = ref('')
 const feedbackType = ref<'success' | 'error'>('success')
+
+// Media Library Integration
+const isMediaPickerOpen = ref(false)
+const mediaPickerTitle = ref('Select Banner Image from Media')
+const onMediaPickerSelect = ref<((item: { name: string; path: string }) => void) | null>(null)
+
+const mediaAssetsList = [
+  { name: 'GeForce 8800 GTX Desktop Banner', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-desktop-banner.webp' },
+  { name: 'GeForce 8800 GTX 20-Year Steam Tech Demo', path: '/images/geforce-8800-gtx-gpu-celebration-20-year-steam-tech-demo.webp' },
+  { name: 'GeForce 8800 GTX Gallery 1', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-1.webp' },
+  { name: 'GeForce 8800 GTX Gallery 2', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-2.webp' },
+  { name: 'GeForce 8800 GTX Gallery 3', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-3.webp' },
+  { name: 'GeForce 8800 GTX Gallery 4', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-4.webp' },
+  { name: 'GeForce 8800 GTX Gallery 5', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-5.webp' },
+  { name: 'GeForce 8800 GTX Gallery 6', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-6.webp' },
+  { name: 'GeForce 8800 GTX Gallery 7', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-7.webp' },
+  { name: 'GeForce 8800 GTX Gallery 8', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-8.webp' },
+  { name: 'GeForce 8800 GTX Gallery 9', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-9.webp' },
+  { name: 'GeForce 8800 GTX Gallery 10', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-10.webp' },
+  { name: 'GeForce 8800 GTX Gallery 11', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-11.webp' },
+  { name: 'GeForce 8800 GTX Gallery 12', path: '/images/geforce-8800-gtx-gpu-celebration-20-years-of-gaming-and-cuda-gallery-12.webp' },
+  { name: 'Tech Hero Banner', path: '/images/tech-hero.jpg' },
+  { name: 'Food Hero Banner', path: '/images/food-hero.jpg' },
+  { name: 'DIY Hero Banner', path: '/images/diy-hero.jpg' }
+]
+
+const openMediaPicker = (title: string, onSelect: (item: { name: string; path: string }) => void) => {
+  mediaPickerTitle.value = title
+  onMediaPickerSelect.value = onSelect
+  isMediaPickerOpen.value = true
+}
+
+const handleMediaPickerChosen = (item: { name: string; path: string }) => {
+  if (onMediaPickerSelect.value) {
+    onMediaPickerSelect.value(item)
+  }
+  isMediaPickerOpen.value = false
+}
 
 const defaultFormState = (): Partial<HeroBanner> => ({
   id: '',

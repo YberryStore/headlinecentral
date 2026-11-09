@@ -336,9 +336,17 @@
         <div class="flex flex-wrap items-center gap-4 sm:gap-6">
           <!-- Current Live Visitors Indicator -->
           <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-[#8CE563] inline-block"></span>
+            <span class="relative flex h-2.5 w-2.5">
+              <span
+                :class="isPulsing ? 'animate-ping opacity-75' : 'opacity-0'"
+                class="absolute inline-flex h-full w-full rounded-full bg-[#8CE563] transition-opacity duration-500"
+              ></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#8CE563]"></span>
+            </span>
             <span class="text-xs sm:text-[13px] font-medium text-gray-700">Current Live Visitors:</span>
-            <span class="text-xs sm:text-[13px] font-normal text-gray-400">{{ liveVisitors }}</span>
+            <span class="text-xs sm:text-[13px] font-semibold text-gray-900 transition-all duration-300">
+              {{ liveVisitors }}
+            </span>
           </div>
 
           <div class="flex items-center gap-2.5">
@@ -704,10 +712,20 @@
                 <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
                   <div class="flex items-center justify-between">
                     <label class="text-xs font-semibold text-gray-800">Desktop Hero Banner *</label>
-                    <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
-                      Upload File
-                      <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => editorForm.bannerImage = url)" />
-                    </label>
+                    <div class="flex items-center gap-3">
+                      <button
+                        @click="openMediaPicker('Select Desktop Hero Banner', item => { editorForm.bannerImage = item.path; if (!editorForm.bannerAlt) editorForm.bannerAlt = item.name })"
+                        type="button"
+                        class="text-[11px] font-medium text-gray-600 hover:text-[#EE5102] flex items-center gap-1 hover:underline"
+                      >
+                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span>Select Media</span>
+                      </button>
+                      <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
+                        Upload File
+                        <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => editorForm.bannerImage = url)" />
+                      </label>
+                    </div>
                   </div>
                   <input
                     v-model="editorForm.bannerImage"
@@ -725,10 +743,20 @@
                 <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
                   <div class="flex items-center justify-between">
                     <label class="text-xs font-semibold text-gray-800">Mobile Hero Banner *</label>
-                    <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
-                      Upload File
-                      <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => editorForm.bannerImageMobile = url)" />
-                    </label>
+                    <div class="flex items-center gap-3">
+                      <button
+                        @click="openMediaPicker('Select Mobile Hero Banner', item => { editorForm.bannerImageMobile = item.path; if (!editorForm.bannerAlt) editorForm.bannerAlt = item.name })"
+                        type="button"
+                        class="text-[11px] font-medium text-gray-600 hover:text-[#EE5102] flex items-center gap-1 hover:underline"
+                      >
+                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span>Select Media</span>
+                      </button>
+                      <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
+                        Upload File
+                        <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => editorForm.bannerImageMobile = url)" />
+                      </label>
+                    </div>
                   </div>
                   <input
                     v-model="editorForm.bannerImageMobile"
@@ -886,10 +914,20 @@
                         <div class="bg-white p-3.5 rounded-xl border border-gray-200 space-y-2.5">
                           <div class="flex items-center justify-between">
                             <label class="text-xs font-medium text-gray-700">Desktop Image *</label>
-                            <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
-                              Upload File
-                              <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => sec.imageSrc = url)" />
-                            </label>
+                            <div class="flex items-center gap-3">
+                              <button
+                                @click="openMediaPicker(`Select Section ${secIdx + 1} Desktop Image`, item => { sec.imageSrc = item.path; if (!sec.imageAlt) sec.imageAlt = item.name })"
+                                type="button"
+                                class="text-[11px] font-medium text-gray-600 hover:text-[#EE5102] flex items-center gap-1 hover:underline"
+                              >
+                                <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span>Select Media</span>
+                              </button>
+                              <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
+                                Upload File
+                                <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => sec.imageSrc = url)" />
+                              </label>
+                            </div>
                           </div>
                           <input
                             v-model="sec.imageSrc"
@@ -906,10 +944,20 @@
                         <div class="bg-white p-3.5 rounded-xl border border-gray-200 space-y-2.5">
                           <div class="flex items-center justify-between">
                             <label class="text-xs font-medium text-gray-700">Mobile Image</label>
-                            <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
-                              Upload File
-                              <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => sec.imageMobileSrc = url)" />
-                            </label>
+                            <div class="flex items-center gap-3">
+                              <button
+                                @click="openMediaPicker(`Select Section ${secIdx + 1} Mobile Image`, item => { sec.imageMobileSrc = item.path })"
+                                type="button"
+                                class="text-[11px] font-medium text-gray-600 hover:text-[#EE5102] flex items-center gap-1 hover:underline"
+                              >
+                                <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span>Select Media</span>
+                              </button>
+                              <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
+                                Upload File
+                                <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => sec.imageMobileSrc = url)" />
+                              </label>
+                            </div>
                           </div>
                           <input
                             v-model="sec.imageMobileSrc"
@@ -1094,10 +1142,19 @@
                         #{{ gIdx + 1 }}
                       </span>
                     </div>
-                    <label class="block text-center cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
-                      Upload
-                      <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => gItem.src = url)" />
-                    </label>
+                    <div class="flex flex-col items-center gap-1">
+                      <button
+                        @click="openMediaPicker(`Select Gallery Image ${gIdx + 1}`, item => { gItem.src = item.path; if (!gItem.alt) gItem.alt = item.name })"
+                        type="button"
+                        class="text-[10px] font-medium text-gray-600 hover:text-[#EE5102] hover:underline"
+                      >
+                        Media File
+                      </button>
+                      <label class="block text-center cursor-pointer text-[10px] font-medium text-[#EE5102] hover:underline">
+                        Upload
+                        <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => gItem.src = url)" />
+                      </label>
+                    </div>
                   </div>
 
                   <!-- Image Path & Alt Tag Inputs -->
@@ -1331,10 +1388,20 @@
               <div>
                 <div class="flex items-center justify-between mb-1.5">
                   <label class="block text-xs font-medium text-gray-700">Hero Banner Image Path</label>
-                  <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
-                    Upload Image
-                    <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => categoryForm.image = url)" />
-                  </label>
+                  <div class="flex items-center gap-3">
+                    <button
+                      @click="openMediaPicker('Select Category Hero Image', item => { categoryForm.image = item.path })"
+                      type="button"
+                      class="text-[11px] font-medium text-gray-600 hover:text-[#EE5102] flex items-center gap-1 hover:underline"
+                    >
+                      <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                      <span>Select Media</span>
+                    </button>
+                    <label class="cursor-pointer text-[11px] font-medium text-[#EE5102] hover:underline">
+                      Upload Image
+                      <input type="file" accept="image/*" class="hidden" @change="e => handleFileUpload(e, url => categoryForm.image = url)" />
+                    </label>
+                  </div>
                 </div>
                 <input
                   v-model="categoryForm.image"
@@ -3407,10 +3474,19 @@
       </div>
     </div>
   </div>
+
+  <!-- Reusable Media Picker Modal -->
+  <MediaPickerModal
+    :is-open="isMediaPickerOpen"
+    :title="mediaPickerTitle"
+    :media-items="allMediaAssets"
+    @close="isMediaPickerOpen = false"
+    @select="handleMediaPickerChosen"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useArticles, type Article, type ArticleSection, type GalleryItem, type CategoryMeta } from '~/composables/useArticles'
 import { useSiteSeo } from '~/composables/useSiteSeo'
@@ -3427,6 +3503,7 @@ import {
 import { sanitizeHtml } from '~/composables/useMarkdown'
 import { useCmsGateway, type SecurityBlockedRecord } from '~/composables/useCmsGateway'
 import BannersManagement from '~/components/cms/BannersManagement.vue'
+import MediaPickerModal from '~/components/cms/MediaPickerModal.vue'
 
 definePageMeta({
   layout: false
@@ -3729,11 +3806,47 @@ const handleSavePageSeo = (key: string) => {
 const isSidebarCollapsed = ref(false)
 const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'banners' | 'seo' | 'trending' | 'header-footer' | 'contact-page' | 'users' | 'settings'>('dashboard')
 const cmsSearch = ref('')
-const liveVisitors = ref(12)
+const liveVisitors = ref(14)
+const isPulsing = ref(false)
 const isPreviewMode = ref(false)
 const editingArticleId = ref<string | null>(null)
 const copiedMedia = ref('')
 const cloudMediaAssets = ref<{ name: string; path: string }[]>([])
+
+// Realtime Live Visitors Simulator with 1-Minute Pulse Cycle
+let liveVisitorsInterval: any = null
+let pulseTimeout: any = null
+
+const triggerLiveVisitorsPulse = () => {
+  isPulsing.value = true
+  // Realistic natural fluctuation between 8 and 38 visitors
+  const delta = Math.floor(Math.random() * 5) - 2 // -2, -1, 0, +1, +2
+  const nextVal = Math.max(6, Math.min(42, liveVisitors.value + delta))
+  liveVisitors.value = nextVal
+
+  if (pulseTimeout) clearTimeout(pulseTimeout)
+  pulseTimeout = setTimeout(() => {
+    isPulsing.value = false
+  }, 4000)
+}
+
+// Media Picker Modal State
+const isMediaPickerOpen = ref(false)
+const mediaPickerTitle = ref('Select Image from Media')
+const onMediaPickerSelect = ref<((item: { name: string; path: string }) => void) | null>(null)
+
+const openMediaPicker = (title: string, onSelect: (item: { name: string; path: string }) => void) => {
+  mediaPickerTitle.value = title
+  onMediaPickerSelect.value = onSelect
+  isMediaPickerOpen.value = true
+}
+
+const handleMediaPickerChosen = (item: { name: string; path: string }) => {
+  if (onMediaPickerSelect.value) {
+    onMediaPickerSelect.value(item)
+  }
+  isMediaPickerOpen.value = false
+}
 
 const userProfile = reactive({
   welcomeName: 'Master Admin',
@@ -4009,6 +4122,19 @@ onMounted(async () => {
   if (remoteMedia.length > 0) {
     cloudMediaAssets.value = remoteMedia
   }
+
+  // Initialize Realtime Live Visitors with an immediate gentle pulse and recurring 1-minute cycle
+  triggerLiveVisitorsPulse()
+  if (typeof window !== 'undefined') {
+    liveVisitorsInterval = setInterval(() => {
+      triggerLiveVisitorsPulse()
+    }, 60000)
+  }
+})
+
+onUnmounted(() => {
+  if (liveVisitorsInterval) clearInterval(liveVisitorsInterval)
+  if (pulseTimeout) clearTimeout(pulseTimeout)
 })
 
 const handleConnectGoogleAccount = async () => {

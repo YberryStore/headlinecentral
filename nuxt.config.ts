@@ -40,7 +40,7 @@ export default defineNuxtConfig({
     }
   },
   app: {
-    baseURL: process.env.NUXT_APP_BASE_URL || (isProduction ? '/headlinecentral/' : '/'),
+    baseURL: process.env.NUXT_APP_BASE_URL || '/',
     head: {
       title: 'Headline Central — Essential Stories & Investigative Digital Journalism',
       meta: [
@@ -58,6 +58,29 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
+    prerender: {
+      crawlLinks: false,
+      failOnError: false,
+      concurrency: 1,
+      routes: [
+        '/',
+        '/blog',
+        '/categories',
+        '/categories/news',
+        '/categories/technology',
+        '/categories/fashion',
+        '/categories/food',
+        '/categories/home-and-diy',
+        '/categories/parenting',
+        '/contact',
+        '/cookies',
+        '/privacy',
+        '/terms',
+        '/editorial-policy',
+        '/cms',
+        '/cms/login'
+      ]
+    },
     routeRules: {
       '/**': {
         headers: {
