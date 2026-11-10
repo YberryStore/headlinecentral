@@ -156,6 +156,7 @@ useHead(() => {
       crossorigin: 'anonymous'
     })
     metaTags.push({
+      key: 'google-adsense-account',
       name: 'google-adsense-account',
       content: validAdsenseId.value
     })

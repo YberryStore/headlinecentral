@@ -31,7 +31,8 @@ export default defineNuxtConfig({
       analytics: {
         gtmId: process.env.NUXT_PUBLIC_GTM_ID || 'GTM-PNT79WT8',
         ga4Id: process.env.NUXT_PUBLIC_GA4_ID || 'G-TD8S7EFPLV',
-        metaPixelId: process.env.NUXT_PUBLIC_META_PIXEL_ID || ''
+        metaPixelId: process.env.NUXT_PUBLIC_META_PIXEL_ID || '',
+        adsenseId: process.env.NUXT_PUBLIC_ADSENSE_ID || 'ca-pub-2117003220546001'
       },
       gateway: {
         username: process.env.NUXT_PUBLIC_CMS_GATEWAY_USERNAME || '@Dm1n902@6!',
@@ -47,7 +48,17 @@ export default defineNuxtConfig({
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Headline Central is your premier digital publication covering technology breakthroughs, hardware retrospectives, and in-depth cultural analysis.' },
-        { name: 'theme-color', content: '#ee5102' }
+        { name: 'theme-color', content: '#ee5102' },
+        { key: 'google-adsense-account', name: 'google-adsense-account', content: 'ca-pub-2117003220546001' },
+        { key: 'google-site-verification', name: 'google-site-verification', content: 'googled22d70f48c27082a' }
+      ],
+      script: [
+        {
+          key: 'adsense-script',
+          src: 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2117003220546001',
+          async: true,
+          crossorigin: 'anonymous'
+        }
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
