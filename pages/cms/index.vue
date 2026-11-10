@@ -304,9 +304,9 @@
         >
           <div class="flex items-center gap-3 min-w-0">
             <img
-              :src="currentUser?.photoURL || useAsset('/images/author-marcus.jpg')"
+              :src="currentUser?.photoURL || useAsset('/favicon.svg')"
               alt="User Avatar"
-              class="w-9 h-9 rounded-full object-cover flex-shrink-0"
+              class="w-9 h-9 rounded-full object-cover flex-shrink-0 bg-gray-100 p-0.5"
             />
             <div v-if="!isSidebarCollapsed" class="min-w-0">
               <p class="text-[13px] font-normal text-gray-800 leading-tight truncate">
@@ -415,9 +415,160 @@
           <button @click="userFeedbackMessage = ''" type="button" class="text-current font-bold ml-4 hover:opacity-75">&times;</button>
         </div>
 
-        <!-- TAB 1: DASHBOARD (Matches reference clean white canvas) -->
-        <div v-if="activeTab === 'dashboard'" class="flex-1 p-6 sm:p-8">
-          <!-- Clean canvas matching reference design -->
+        <!-- TAB 1: DASHBOARD - Realtime Analytics & Telemetry -->
+        <div v-if="activeTab === 'dashboard'" class="flex-1 p-6 sm:p-8 overflow-y-auto">
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-100">
+            <div>
+              <div class="flex items-center gap-2.5">
+                <h2 class="text-xl font-semibold text-gray-900">Realtime Performance &amp; Telemetry</h2>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" :class="isPulsing ? 'animate-ping' : ''"></span>
+                  Live Feed Active
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">
+                Real-time tracking of unique visitors and cumulative article engagement across Headline Central.
+              </p>
+            </div>
+            <button
+              @click="fetchLiveAnalytics"
+              type="button"
+              class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-medium bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 transition-colors shadow-xs"
+            >
+              <svg class="w-3.5 h-3.5 text-gray-500" :class="isPulsing ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Refresh Stats</span>
+            </button>
+          </div>
+
+          <!-- Quick Metrics Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <!-- Metric 1: Live Visitors -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-emerald-50/60 to-white border border-emerald-100/80 shadow-xs">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-medium text-emerald-800">Current Live Readers</span>
+                <span class="relative flex h-2.5 w-2.5">
+                  <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+              </div>
+              <div class="text-3xl font-bold text-gray-950 tracking-tight">{{ liveVisitors }}</div>
+              <div class="text-[11px] text-gray-500 mt-1.5 flex items-center gap-1">
+                <span>Active in past 2 minutes</span>
+              </div>
+            </div>
+
+            <!-- Metric 2: Total Unique Page Visits -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-orange-50/60 to-white border border-orange-100/80 shadow-xs">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-medium text-[#EE5102]">Unique Page Visits</span>
+                <div class="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center text-[#EE5102]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold text-gray-950 tracking-tight">{{ totalUniqueVisitors }}</div>
+              <div class="text-[11px] text-gray-500 mt-1.5">Deduplicated per-day unique visits</div>
+            </div>
+
+            <!-- Metric 3: Total Page Views -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-blue-50/60 to-white border border-blue-100/80 shadow-xs">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-medium text-blue-700">Total Page Views</span>
+                <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold text-gray-950 tracking-tight">{{ totalViews }}</div>
+              <div class="text-[11px] text-gray-500 mt-1.5">All page &amp; blog impressions</div>
+            </div>
+
+            <!-- Metric 4: Published Articles -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-purple-50/60 to-white border border-purple-100/80 shadow-xs">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-medium text-purple-700">Published Stories</span>
+                <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold text-gray-950 tracking-tight">{{ publishedBlogsCount }} <span class="text-xs font-normal text-gray-400">/ {{ articles.length }} total</span></div>
+              <div class="text-[11px] text-gray-500 mt-1.5">{{ draftBlogsCount }} draft stories pending</div>
+            </div>
+          </div>
+
+          <!-- Top Stories Table with Real-time Page Views -->
+          <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-semibold text-gray-900">Articles Engagement &amp; Telemetry</h3>
+                <p class="text-[11px] text-gray-400">Live breakdown of readers and total impressions per article</p>
+              </div>
+              <button
+                @click="activeTab = 'blogs'"
+                type="button"
+                class="text-xs text-[#EE5102] hover:text-[#d84802] font-medium"
+              >
+                Manage all blogs &rarr;
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-100">
+                  <tr>
+                    <th class="px-6 py-3">Article Title</th>
+                    <th class="px-4 py-3">Category</th>
+                    <th class="px-4 py-3 text-center">Status</th>
+                    <th class="px-4 py-3 text-right">Unique Visitors</th>
+                    <th class="px-4 py-3 text-right">Total Views</th>
+                    <th class="px-6 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <tr v-for="art in articles.slice(0, 10)" :key="art.id" class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-3.5 font-medium text-gray-900 max-w-xs truncate">
+                      {{ art.title }}
+                    </td>
+                    <td class="px-4 py-3.5 text-gray-500">
+                      <span class="px-2 py-0.5 rounded-full bg-orange-50 text-[#EE5102] text-[11px] font-medium">
+                        {{ art.category }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3.5 text-center">
+                      <span
+                        :class="art.status === 'draft' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'"
+                        class="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
+                      >
+                        {{ art.status === 'draft' ? 'Draft' : 'Live' }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3.5 text-right font-bold text-gray-950">
+                      {{ getArticleUniqueViews(art.slug || art.id) }}
+                    </td>
+                    <td class="px-4 py-3.5 text-right text-gray-600">
+                      {{ getArticleTotalViews(art.slug || art.id) }}
+                    </td>
+                    <td class="px-6 py-3.5 text-right">
+                      <NuxtLink
+                        :to="`/blog/${art.slug}`"
+                        target="_blank"
+                        class="text-[#EE5102] hover:text-[#d84802] font-medium"
+                      >
+                        View &rarr;
+                      </NuxtLink>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- TAB 2: BLOGS LIST & MANAGEMENT -->
@@ -496,6 +647,14 @@
                     <span>{{ item.sections?.length || 0 }} Sections</span>
                     <span>•</span>
                     <span>{{ item.galleryItems?.length || 0 }}/12 Gallery Images</span>
+                    <span>•</span>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium inline-flex items-center gap-1">
+                      <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      {{ getArticleUniqueViews(item.slug || item.id) }} Unique / {{ getArticleTotalViews(item.slug || item.id) }} Views
+                    </span>
                   </div>
                   <h3 class="text-sm font-semibold text-gray-900 truncate">
                     {{ item.title }}
@@ -2011,9 +2170,9 @@
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div class="flex items-center gap-3.5">
                     <img
-                      :src="pu.photoURL || useAsset('/images/author-marcus.jpg')"
+                      :src="pu.photoURL || useAsset('/favicon.svg')"
                       :alt="pu.displayName"
-                      class="w-11 h-11 rounded-full object-cover border-2 border-amber-200 flex-shrink-0"
+                      class="w-11 h-11 rounded-full object-cover border-2 border-amber-200 flex-shrink-0 bg-gray-100 p-0.5"
                     />
                     <div>
                       <div class="flex flex-wrap items-center gap-2">
@@ -2378,9 +2537,9 @@
               <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5">
                   <img
-                    :src="u.photoURL || useAsset('/images/author-marcus.jpg')"
+                    :src="u.photoURL || useAsset('/favicon.svg')"
                     :alt="u.displayName"
-                    class="w-11 h-11 rounded-full object-cover border border-gray-100"
+                    class="w-11 h-11 rounded-full object-cover border border-gray-100 bg-gray-100 p-0.5"
                   />
                   <div>
                     <div class="flex flex-wrap items-center gap-2">
@@ -2727,6 +2886,29 @@
                 />
                 <p class="text-[11px] text-gray-400">
                   Injects verification script &amp; <code class="text-gray-600">&lt;meta name="google-adsense-account"&gt;</code> into <code class="text-gray-600">&lt;head&gt;</code> for approval.
+                </p>
+              </div>
+
+              <!-- Google AdSense Vertical Display Ad Unit -->
+              <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="text-xs font-semibold text-gray-900 block">Vertical Display Ad Unit</span>
+                    <span class="text-[11px] text-gray-400">Ad Slot ID (data-ad-slot)</span>
+                  </div>
+                  <label class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 cursor-pointer">
+                    <input v-model="trackingConfig.enableAdSlots" type="checkbox" class="accent-[#EE5102] w-4 h-4" />
+                    <span>Display Active</span>
+                  </label>
+                </div>
+                <input
+                  v-model="trackingConfig.adsenseVerticalSlot"
+                  type="text"
+                  placeholder="3663504600"
+                  class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#EE5102]"
+                />
+                <p class="text-[11px] text-gray-400">
+                  Renders the vertical skyscraper display unit in the blog article sidebar.
                 </p>
               </div>
             </div>
@@ -3763,6 +3945,7 @@ import {
 } from '~/composables/useFirebase'
 import { sanitizeHtml } from '~/composables/useMarkdown'
 import { useCmsGateway, type SecurityBlockedRecord } from '~/composables/useCmsGateway'
+import { useAnalytics } from '~/composables/useAnalytics'
 import BannersManagement from '~/components/cms/BannersManagement.vue'
 import MediaPickerModal from '~/components/cms/MediaPickerModal.vue'
 import CommentsManagement from '~/components/cms/CommentsManagement.vue'
@@ -3830,7 +4013,6 @@ const handleResetAllTerminalLocks = () => {
 const {
   articles,
   categories,
-  authors,
   syncFromFirestore,
   addArticle,
   updateArticle,
@@ -3842,6 +4024,18 @@ const {
   removeSubCategory,
   toggleArticleStatus
 } = useArticles()
+
+const {
+  liveVisitors,
+  totalViews,
+  totalUniqueVisitors,
+  isPulsing,
+  startCmsPolling,
+  stopCmsPolling,
+  getArticleUniqueViews,
+  getArticleTotalViews,
+  fetchLiveAnalytics
+} = useAnalytics()
 
 const {
   currentUser,
@@ -4051,7 +4245,9 @@ const handleSaveTrackingConfig = async () => {
     metaPixelId: trackingConfig.metaPixelId.trim(),
     enableMetaPixel: trackingConfig.enableMetaPixel,
     adsensePublisherId: (trackingConfig.adsensePublisherId || '').trim(),
-    enableAdsense: trackingConfig.enableAdsense !== false
+    enableAdsense: trackingConfig.enableAdsense !== false,
+    adsenseVerticalSlot: (trackingConfig.adsenseVerticalSlot || '').trim(),
+    enableAdSlots: trackingConfig.enableAdSlots !== false
   })
   seoSavedMessage.value = cloudOk
     ? `Live Cloud Synced! Active GTM: ${trackingConfig.gtmId || 'None'}`
@@ -4081,29 +4277,10 @@ const handleSavePageSeo = async (key: string) => {
 const isSidebarCollapsed = ref(false)
 const activeTab = ref<'dashboard' | 'media' | 'blogs' | 'editor' | 'categories' | 'banners' | 'seo' | 'trending' | 'header-footer' | 'contact-page' | 'users' | 'settings' | 'comments'>('dashboard')
 const cmsSearch = ref('')
-const liveVisitors = ref(14)
-const isPulsing = ref(false)
 const isPreviewMode = ref(false)
 const editingArticleId = ref<string | null>(null)
 const copiedMedia = ref('')
 const cloudMediaAssets = ref<{ name: string; path: string }[]>([])
-
-// Realtime Live Visitors Simulator with 1-Minute Pulse Cycle
-let liveVisitorsInterval: any = null
-let pulseTimeout: any = null
-
-const triggerLiveVisitorsPulse = () => {
-  isPulsing.value = true
-  // Realistic natural fluctuation between 8 and 38 visitors
-  const delta = Math.floor(Math.random() * 5) - 2 // -2, -1, 0, +1, +2
-  const nextVal = Math.max(6, Math.min(42, liveVisitors.value + delta))
-  liveVisitors.value = nextVal
-
-  if (pulseTimeout) clearTimeout(pulseTimeout)
-  pulseTimeout = setTimeout(() => {
-    isPulsing.value = false
-  }, 4000)
-}
 
 // Media Picker Modal State
 const isMediaPickerOpen = ref(false)
@@ -4399,18 +4576,12 @@ onMounted(async () => {
     cloudMediaAssets.value = remoteMedia
   }
 
-  // Initialize Realtime Live Visitors with an immediate gentle pulse and recurring 1-minute cycle
-  triggerLiveVisitorsPulse()
-  if (typeof window !== 'undefined') {
-    liveVisitorsInterval = setInterval(() => {
-      triggerLiveVisitorsPulse()
-    }, 60000)
-  }
+  // Initialize Realtime Live Visitors and CMS Telemetry polling
+  startCmsPolling()
 })
 
 onUnmounted(() => {
-  if (liveVisitorsInterval) clearInterval(liveVisitorsInterval)
-  if (pulseTimeout) clearTimeout(pulseTimeout)
+  stopCmsPolling()
 })
 
 const handleConnectGoogleAccount = async () => {
@@ -4786,7 +4957,6 @@ const previewArticleObject = computed<Article>(() => {
     isPublished: editorForm.status === 'published',
     isFeatured: true,
     isPopular: true,
-    author: authors.marcus,
     sections: builtSections,
     galleryItems: builtGallery,
     galleryCaption: (editorForm.galleryCaption || '').trim(),

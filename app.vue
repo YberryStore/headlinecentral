@@ -41,6 +41,7 @@ import { useCookieConsent } from '~/composables/useCookieConsent'
 import { useSiteContent } from '~/composables/useSiteContent'
 import { useArticles } from '~/composables/useArticles'
 import { useBanners } from '~/composables/useBanners'
+import { useAnalytics } from '~/composables/useAnalytics'
 
 const route = useRoute()
 const { trackingConfig, syncSeoFromCloud } = useSiteSeo()
@@ -48,14 +49,20 @@ const { allowsAnalytics, allowsAdvertising, initConsent } = useCookieConsent()
 const { syncSiteContentFromCloud } = useSiteContent()
 const { syncFromFirestore: syncArticlesAndCategories } = useArticles()
 const { syncFromFirestore: syncHeroBanners } = useBanners()
+const { startHeartbeat, recordPageView, fetchLiveAnalytics } = useAnalytics()
 
 onMounted(async () => {
   initConsent()
+  startHeartbeat()
+  if (!isCmsRoute.value) {
+    recordPageView(route.fullPath, (route.params.slug as string) || '', typeof document !== 'undefined' ? document.title : '')
+  }
   await Promise.allSettled([
     syncSeoFromCloud(),
     syncSiteContentFromCloud(),
     syncArticlesAndCategories(),
-    syncHeroBanners()
+    syncHeroBanners(),
+    fetchLiveAnalytics()
   ])
 })
 
@@ -168,12 +175,15 @@ useHead(() => {
   }
 })
 
-// SPA Route Change Tracking for GTM, GA4, and Meta Pixel (Strictly respect cookie consent)
+// SPA Route Change Tracking for GTM, GA4, Meta Pixel & Realtime Page Views
 watch(
   () => route.fullPath,
   (newPath) => {
     if (typeof window === 'undefined' || isCmsRoute.value) return
     const w = window as any
+
+    // Record realtime unique page view telemetry on our server
+    recordPageView(newPath, (route.params.slug as string) || '', typeof document !== 'undefined' ? document.title : '')
 
     // Push GTM virtual page_view event (if authorized)
     if (validGtmId.value && trackingConfig.enableGtm && allowsAnalytics.value && Array.isArray(w.dataLayer)) {

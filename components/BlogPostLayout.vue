@@ -194,13 +194,17 @@
     <!-- Main Content Layout (Table of Contents LHS + Article Body RHS) -->
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
-        <!-- Sticky Table of Contents LHS (desktop) -->
-        <aside v-if="tocItems.length > 0" class="hidden lg:block lg:col-span-3">
-          <TableOfContents :items="tocItems" />
+        <!-- Sticky Sidebar LHS (desktop Table of Contents & Vertical Skyscraper Ad) -->
+        <aside class="hidden lg:block lg:col-span-3">
+          <div class="sticky top-28 space-y-6">
+            <TableOfContents v-if="tocItems.length > 0" :items="tocItems" />
+            <!-- Vertical AdSense Skyscraper Ad Unit -->
+            <AdsenseVerticalAd />
+          </div>
         </aside>
 
         <!-- Main Article Content RHS -->
-        <main :class="tocItems.length > 0 ? 'lg:col-span-9 max-w-4xl' : 'lg:col-span-12 max-w-4xl mx-auto'" class="space-y-12">
+        <main class="lg:col-span-9 max-w-4xl space-y-12">
           <!-- Mobile Table of Contents (collapsible) -->
           <div v-if="tocItems.length > 0" class="block lg:hidden">
             <TableOfContents :items="tocItems" />
@@ -462,6 +466,11 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
               <span>{{ totalCommentsCount }} {{ totalCommentsCount === 1 ? 'Comment' : 'Comments' }}</span>
             </a>
+          </div>
+
+          <!-- In-Article / Mobile Responsive Ad Unit -->
+          <div class="block lg:hidden my-8">
+            <AdsenseVerticalAd />
           </div>
 
           <!-- Reader Discussion & Comments Section -->

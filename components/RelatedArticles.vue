@@ -44,9 +44,12 @@
           </div>
         </div>
 
-        <div class="px-5 pb-5 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
-          <span>{{ item.readTime }}</span>
-          <span class="font-medium text-gray-600">{{ item.author?.name || 'Editorial Staff' }}</span>
+        <div class="px-5 pb-5 pt-3 border-t border-gray-50 flex items-center justify-between text-xs">
+          <span class="text-gray-400">{{ item.readTime }}</span>
+          <NuxtLink :to="`/blog/${item.slug}`" class="font-medium text-[#EE5102] hover:text-[#d84802] transition-colors inline-flex items-center gap-1">
+            <span>Read Story</span>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </NuxtLink>
         </div>
       </article>
     </div>

@@ -73,7 +73,7 @@ useHead(() => {
     meta: [
       { name: 'description', content: resolvedDescription },
       { name: 'keywords', content: resolvedKeywords },
-      { name: 'author', content: article.value.author?.name || 'Headline Central' },
+      { name: 'author', content: 'Headline Central' },
       { property: 'og:type', content: 'article' },
       { property: 'og:site_name', content: 'Headline Central' },
       { property: 'og:title', content: resolvedTitle },

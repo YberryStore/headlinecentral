@@ -21,6 +21,8 @@ export interface SiteTrackingConfig {
   enableMetaPixel: boolean
   adsensePublisherId: string
   enableAdsense: boolean
+  adsenseVerticalSlot?: string
+  enableAdSlots?: boolean
 }
 
 const SEO_STORAGE_KEY = 'hc_cms_page_seo_v1'
@@ -60,7 +62,7 @@ const defaultPagesSeo: Record<string, PageSeoEntry> = {
     path: '/about',
     title: 'About Us — Headline Central Editorial & Journalistic Standards',
     description: 'Learn about Headline Central’s journalistic standards, editorial independence, and senior contributor team.',
-    keywords: 'about Headline Central, editorial team, journalism standards, Dr. Marcus Vance',
+    keywords: 'about Headline Central, editorial team, journalism standards',
     ogImage: '/images/tech-hero.jpg'
   },
   contact: {
@@ -119,7 +121,9 @@ const sharedTracking = reactive<SiteTrackingConfig>({
   metaPixelId: '',
   enableMetaPixel: true,
   adsensePublisherId: 'ca-pub-2117003220546001',
-  enableAdsense: true
+  enableAdsense: true,
+  adsenseVerticalSlot: '3663504600',
+  enableAdSlots: true
 })
 
 let isSeoInitialized = false
@@ -176,6 +180,10 @@ const applyTrackingObject = (parsedTracking: any) => {
     sharedTracking.adsensePublisherId = sanitizeAdsenseId(parsedTracking.adsensePublisherId) || parsedTracking.adsensePublisherId.trim()
   }
   if (typeof parsedTracking.enableAdsense === 'boolean') sharedTracking.enableAdsense = parsedTracking.enableAdsense
+  if (typeof parsedTracking.adsenseVerticalSlot === 'string' && parsedTracking.adsenseVerticalSlot.trim()) {
+    sharedTracking.adsenseVerticalSlot = parsedTracking.adsenseVerticalSlot.trim()
+  }
+  if (typeof parsedTracking.enableAdSlots === 'boolean') sharedTracking.enableAdSlots = parsedTracking.enableAdSlots
 }
 
 export const useSiteSeo = () => {
@@ -187,8 +195,8 @@ export const useSiteSeo = () => {
     })
 
     const pubAnalytics = (runtimeConfig.public as any)?.analytics || {}
-    sharedTracking.gtmId = pubAnalytics.gtmId || 'GTM-PNT79WT8'
-    sharedTracking.ga4Id = pubAnalytics.ga4Id || 'G-TD8S7EFPLV'
+    sharedTracking.gtmId = pubAnalytics.gtmId || 'GTM-FVT33MDM'
+    sharedTracking.ga4Id = pubAnalytics.ga4Id || 'G-80VJ28DL6M'
     sharedTracking.metaPixelId = pubAnalytics.metaPixelId || ''
     sharedTracking.enableGtm = true
     sharedTracking.enableGa4 = true

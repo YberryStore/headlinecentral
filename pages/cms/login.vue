@@ -375,9 +375,9 @@
       >
         <div class="flex items-center gap-3.5">
           <img
-            :src="pendingApprovalInfo.photoURL || useAsset('/images/author-marcus.jpg')"
+            :src="pendingApprovalInfo.photoURL || useAsset('/favicon.svg')"
             :alt="pendingApprovalInfo.displayName"
-            class="w-12 h-12 rounded-full object-cover border-2 border-amber-300 flex-shrink-0"
+            class="w-12 h-12 rounded-full object-cover border-2 border-amber-300 flex-shrink-0 bg-gray-100 p-0.5"
           />
           <div class="min-w-0">
             <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 mb-1">

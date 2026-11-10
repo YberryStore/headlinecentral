@@ -29,10 +29,11 @@ export default defineNuxtConfig({
         appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID || '1:523616926810:web:257d509d40ed4b39606c63'
       },
       analytics: {
-        gtmId: process.env.NUXT_PUBLIC_GTM_ID || 'GTM-PNT79WT8',
-        ga4Id: process.env.NUXT_PUBLIC_GA4_ID || 'G-TD8S7EFPLV',
+        gtmId: process.env.NUXT_PUBLIC_GTM_ID || 'GTM-FVT33MDM',
+        ga4Id: process.env.NUXT_PUBLIC_GA4_ID || 'G-80VJ28DL6M',
         metaPixelId: process.env.NUXT_PUBLIC_META_PIXEL_ID || '',
-        adsenseId: process.env.NUXT_PUBLIC_ADSENSE_ID || 'ca-pub-2117003220546001'
+        adsenseId: process.env.NUXT_PUBLIC_ADSENSE_ID || 'ca-pub-2117003220546001',
+        adsenseVerticalSlot: process.env.NUXT_PUBLIC_ADSENSE_VERTICAL_SLOT || '3663504600'
       },
       gateway: {
         username: process.env.NUXT_PUBLIC_CMS_GATEWAY_USERNAME || '@Dm1n902@6!',

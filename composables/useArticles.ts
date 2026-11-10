@@ -196,7 +196,12 @@ export const useArticles = () => {
       if (saved) {
         const parsed: Article[] = JSON.parse(saved)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const cleanArticles = parsed.filter(a => a.id !== 'art-1' && a.slug !== 'unboxing-2006-full-path-tracing-geforce-8800-gtx')
+          const cleanArticles = parsed
+            .filter(a => a.id !== 'art-1' && a.slug !== 'unboxing-2006-full-path-tracing-geforce-8800-gtx')
+            .map(a => ({
+              ...a,
+              views: typeof a.views === 'number' && a.views >= 5000 ? 1 : (a.views || 1)
+            }))
           sharedArticles.splice(0, sharedArticles.length, ...cleanArticles)
         }
       }
@@ -254,6 +259,9 @@ export const useArticles = () => {
       if (remote && remote.length > 0) {
         // Intelligently merge remote articles with local articles without overwriting newer local edits
         for (const rArt of remote) {
+          if (typeof rArt.views === 'number' && rArt.views >= 5000) {
+            rArt.views = 1
+          }
           const localIdx = sharedArticles.findIndex(a => a.id === rArt.id || a.slug === rArt.slug)
           if (localIdx !== -1) {
             const localArt = sharedArticles[localIdx]

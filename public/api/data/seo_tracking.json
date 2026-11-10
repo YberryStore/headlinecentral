@@ -1,14 +1,15 @@
 {
   "tracking": {
-    "gtmId": "GTM-PNT79WT8",
+    "gtmId": "GTM-FVT33MDM",
     "enableGtm": true,
-    "ga4Id": "G-TD8S7EFPLV",
+    "ga4Id": "G-80VJ28DL6M",
     "enableGa4": true,
     "metaPixelId": "",
     "enableMetaPixel": true,
     "adsensePublisherId": "ca-pub-2117003220546001",
-    "enableAdsense": true
+    "enableAdsense": true,
+    "adsenseVerticalSlot": "3663504600",
+    "enableAdSlots": true
   },
-  "updatedAt": "2026-11-10T00:53:00.000Z"
+  "updatedAt": "2026-11-10T16:30:00.000Z"
 }
-

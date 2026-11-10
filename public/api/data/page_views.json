@@ -1,0 +1,19 @@
+{
+  "totalViews": 24,
+  "totalUniqueVisitors": 18,
+  "pages": {
+    "/": {
+      "views": 15,
+      "uniqueVisitors": 12,
+      "lastVisited": "2026-11-10T16:30:00Z"
+    },
+    "/blog": {
+      "views": 9,
+      "uniqueVisitors": 6,
+      "lastVisited": "2026-11-10T16:35:00Z"
+    }
+  },
+  "articles": {},
+  "updatedAt": "2026-11-10T16:30:00Z"
+}
+
