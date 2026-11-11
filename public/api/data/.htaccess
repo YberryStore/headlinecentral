@@ -1,6 +1,7 @@
 # Prevent direct HTTP access to data storage
-<Files "comments.json">
+<FilesMatch "\.(json|log)$">
     Order allow,deny
     Deny from all
-</Files>
+</FilesMatch>
+
 

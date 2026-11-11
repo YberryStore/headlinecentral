@@ -104,13 +104,9 @@
       </button>
     </div>
 
-    <!-- Optional Caption & Image Credit Below Gallery -->
-    <div v-if="caption || normalizedImages[currentIndex]?.credit" class="mt-3 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 text-xs text-center">
-      <p v-if="caption" class="text-gray-500 italic">
-        {{ caption }}
-      </p>
-      <span v-if="caption && normalizedImages[currentIndex]?.credit" class="hidden sm:inline text-gray-300">•</span>
-      <p v-if="normalizedImages[currentIndex]?.credit" class="text-gray-400 font-medium">
+    <!-- Optional Image Credit Below Gallery -->
+    <div v-if="normalizedImages[currentIndex]?.credit" class="mt-3 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 text-xs text-center">
+      <p class="text-gray-400 font-medium">
         Source / Credit:
         <a
           v-if="normalizedImages[currentIndex]?.linkUrl"

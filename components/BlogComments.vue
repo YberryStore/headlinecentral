@@ -36,10 +36,22 @@
         class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-medium flex items-center justify-between"
       >
         <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
           <span>Your comment has been posted successfully! Thank you for participating.</span>
         </div>
         <button @click="submitSuccess = false" type="button" class="text-emerald-600 hover:text-emerald-900 font-bold">&times;</button>
+      </div>
+
+      <!-- Pending Moderation Notification -->
+      <div
+        v-if="submitPending"
+        class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm font-medium flex items-center justify-between"
+      >
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Your comment has been received and is queued for editorial review before appearing publicly.</span>
+        </div>
+        <button @click="submitPending = false" type="button" class="text-amber-600 hover:text-amber-900 font-bold">&times;</button>
       </div>
 
       <!-- Error Notification -->
@@ -48,13 +60,29 @@
         class="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs sm:text-sm font-medium flex items-center justify-between"
       >
         <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span>{{ submitError }}</span>
         </div>
         <button @click="submitError = ''" type="button" class="text-red-600 hover:text-red-900 font-bold">&times;</button>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="space-y-4">
+      <form @submit.prevent="handleSubmit" class="space-y-4 relative">
+        <!-- Invisible Honeypot Anti-Bot Field (Humans never see or tab into this) -->
+        <div
+          aria-hidden="true"
+          class="opacity-0 absolute -left-[9999px] -top-[9999px] w-0 h-0 overflow-hidden pointer-events-none"
+        >
+          <label for="hc_reader_website_url">Website URL (Leave blank)</label>
+          <input
+            id="hc_reader_website_url"
+            v-model="websiteUrl"
+            type="text"
+            name="website_url"
+            tabindex="-1"
+            autocomplete="off"
+          />
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
@@ -64,6 +92,7 @@
               v-model="authorName"
               type="text"
               required
+              maxlength="60"
               placeholder="e.g. Alex Henderson"
               class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm focus:border-[#EE5102] focus:outline-none focus:ring-1 focus:ring-[#EE5102]"
             />
@@ -104,8 +133,11 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <p class="text-[11px] text-gray-400">
-            By submitting, you agree to our editorial guidelines for respectful discussion.
+          <p class="text-[11px] text-gray-400 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span>Protected by Smart Anti-Spam Shield. Comments with links are held for review.</span>
           </p>
           <button
             type="submit"
@@ -215,32 +247,41 @@ const {
   hasLiked,
   isSubmitting,
   submitError,
-  submitSuccess
+  submitSuccess,
+  submitPending
 } = useComments()
 
 const authorName = ref('')
 const authorEmail = ref('')
 const commentText = ref('')
+const websiteUrl = ref('')
+const formLoadedAt = ref(Date.now())
 
 const articleComments = computed<BlogComment[]>(() => {
   return getArticleComments(props.articleId, props.articleSlug)
 })
 
 onMounted(async () => {
+  formLoadedAt.value = Date.now()
   await fetchCommentsForArticle(props.articleId, props.articleSlug)
 })
 
 const handleSubmit = async () => {
+  const elapsedMs = Date.now() - formLoadedAt.value
   const result = await addComment({
     articleId: props.articleId,
     articleSlug: props.articleSlug,
     authorName: authorName.value,
     authorEmail: authorEmail.value,
-    content: commentText.value
+    content: commentText.value,
+    websiteUrl: websiteUrl.value,
+    elapsedMs
   })
 
   if (result.ok) {
     commentText.value = ''
+    websiteUrl.value = ''
+    formLoadedAt.value = Date.now()
   }
 }
 
@@ -288,4 +329,3 @@ const formatCommentDate = (dateStr: string): string => {
   }
 }
 </script>
-

@@ -65,7 +65,9 @@ useHead(() => {
   }
   const resolvedTitle = article.value.seoTitle || `${article.value.title} — Headline Central`
   const resolvedDescription = article.value.metaDescription || article.value.excerpt
-  const resolvedKeywords = article.value.seoKeywords || (Array.isArray(article.value.tags) ? article.value.tags.join(', ') : '')
+  const resolvedKeywords = (Array.isArray(article.value.keywords) && article.value.keywords.length > 0)
+    ? article.value.keywords.join(', ')
+    : (article.value.seoKeywords || (Array.isArray(article.value.tags) ? article.value.tags.join(', ') : ''))
   const resolvedOgImage = article.value.bannerImage || article.value.featuredImage
 
   return {

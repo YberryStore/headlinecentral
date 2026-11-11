@@ -1603,14 +1603,79 @@
                 </div>
 
                 <div>
-                  <label class="block text-xs font-medium text-gray-700 mb-1.5">Article Tags &amp; SEO Keywords</label>
-                  <input
-                    v-model="editorForm.tagsInput"
-                    type="text"
-                    placeholder="NVIDIA, GeForce 8800, Retro Tech, Hardware, PC Gaming History"
-                    class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#EE5102]"
-                  />
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-xs font-medium text-gray-700">Article Tags</label>
+                    <span class="text-[11px] text-gray-400">{{ editorForm.tags.length }} tags added</span>
+                  </div>
+                  <div class="rounded-xl border border-gray-200 bg-white p-2.5 focus-within:border-[#EE5102] transition-colors min-h-[46px] flex flex-wrap items-center gap-1.5">
+                    <span
+                      v-for="(tag, idx) in editorForm.tags"
+                      :key="tag + idx"
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-[#EE5102] border border-orange-200/80"
+                    >
+                      #{{ tag }}
+                      <button
+                        @click="removeTag(idx)"
+                        type="button"
+                        class="hover:text-red-700 transition-colors p-0.5"
+                        title="Remove tag"
+                      >&times;</button>
+                    </span>
+                    <input
+                      v-model="newTagInput"
+                      @keydown.enter.prevent="commitTag"
+                      @keydown.188.prevent="commitTag"
+                      @blur="commitTag"
+                      type="text"
+                      placeholder="Type tag &amp; hit Enter or click out..."
+                      class="flex-1 min-w-[140px] text-sm bg-transparent outline-none px-1 py-0.5 text-gray-800 placeholder-gray-400"
+                    />
+                  </div>
+                  <p class="text-[11px] text-gray-400 mt-1">Press Enter, comma, or click out to add tag.</p>
                 </div>
+              </div>
+
+              <!-- SEO Keywords Field (Up to 10 max) -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <div class="flex items-center gap-2">
+                    <label class="text-xs font-medium text-gray-700">SEO Keywords (Search Engine Meta Tags)</label>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600">Up to 10 max</span>
+                  </div>
+                  <span
+                    class="text-[11px] font-semibold"
+                    :class="editorForm.keywords.length >= 10 ? 'text-amber-600' : 'text-gray-400'"
+                  >
+                    {{ editorForm.keywords.length }} / 10 max
+                  </span>
+                </div>
+                <div class="rounded-xl border border-gray-200 bg-white p-2.5 focus-within:border-[#EE5102] transition-colors min-h-[46px] flex flex-wrap items-center gap-1.5">
+                  <span
+                    v-for="(kw, idx) in editorForm.keywords"
+                    :key="kw + idx"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80"
+                  >
+                    {{ kw }}
+                    <button
+                      @click="removeKeyword(idx)"
+                      type="button"
+                      class="hover:text-red-700 transition-colors p-0.5"
+                      title="Remove keyword"
+                    >&times;</button>
+                  </span>
+                  <input
+                    v-if="editorForm.keywords.length < 10"
+                    v-model="newKeywordInput"
+                    @keydown.enter.prevent="commitKeyword"
+                    @keydown.188.prevent="commitKeyword"
+                    @blur="commitKeyword"
+                    type="text"
+                    placeholder="Type keyword &amp; hit Enter or click out..."
+                    class="flex-1 min-w-[160px] text-sm bg-transparent outline-none px-1 py-0.5 text-gray-800 placeholder-gray-400"
+                  />
+                  <span v-else class="text-xs text-amber-600 italic px-1 py-0.5">Maximum 10 keywords reached</span>
+                </div>
+                <p class="text-[11px] text-gray-400 mt-1">Press Enter, comma, or click out of the field to add. Maximum 10 keywords are saved directly to page meta tags.</p>
               </div>
 
               <div>
@@ -4625,8 +4690,45 @@ const editorForm = reactive({
   sections: [] as EditableSectionForm[],
   galleryItems: [] as GalleryItem[],
   galleryCaption: '',
-  tagsInput: ''
+  tags: [] as string[],
+  keywords: [] as string[]
 })
+
+const newTagInput = ref('')
+const newKeywordInput = ref('')
+
+const commitTag = () => {
+  const raw = newTagInput.value.trim()
+  if (!raw) return
+  const parts = raw.split(',').map(t => t.trim().replace(/^#+/, '')).filter(Boolean)
+  for (const part of parts) {
+    if (!editorForm.tags.some(t => t.toLowerCase() === part.toLowerCase())) {
+      editorForm.tags.push(part)
+    }
+  }
+  newTagInput.value = ''
+}
+
+const removeTag = (index: number) => {
+  editorForm.tags.splice(index, 1)
+}
+
+const commitKeyword = () => {
+  const raw = newKeywordInput.value.trim()
+  if (!raw) return
+  const parts = raw.split(',').map(k => k.trim()).filter(Boolean)
+  for (const part of parts) {
+    if (editorForm.keywords.length >= 10) break
+    if (!editorForm.keywords.some(k => k.toLowerCase() === part.toLowerCase())) {
+      editorForm.keywords.push(part)
+    }
+  }
+  newKeywordInput.value = ''
+}
+
+const removeKeyword = (index: number) => {
+  editorForm.keywords.splice(index, 1)
+}
 
 const blogStatusFilter = ref<'all' | 'published' | 'draft'>('all')
 const publishedBlogsCount = computed(() => articles.filter(a => a.status !== 'draft').length)
@@ -4960,10 +5062,8 @@ const previewArticleObject = computed<Article>(() => {
     sections: builtSections,
     galleryItems: builtGallery,
     galleryCaption: (editorForm.galleryCaption || '').trim(),
-    tags: editorForm.tagsInput
-      .split(',')
-      .map(t => t.trim())
-      .filter(Boolean)
+    tags: [...editorForm.tags],
+    keywords: [...editorForm.keywords]
   }
 })
 
@@ -5012,7 +5112,10 @@ const startNewBlog = () => {
   ]
   editorForm.galleryItems = []
   editorForm.galleryCaption = ''
-  editorForm.tagsInput = ''
+  editorForm.tags = []
+  editorForm.keywords = []
+  newTagInput.value = ''
+  newKeywordInput.value = ''
   activeTab.value = 'editor'
 }
 
@@ -5039,7 +5142,12 @@ const editBlog = (article: Article) => {
   editorForm.videoUrl = article.videoUrl || ''
   editorForm.videoCaption = article.videoCaption || ''
   editorForm.videoCredit = article.videoCredit || ''
-  editorForm.tagsInput = article.tags.join(', ')
+  editorForm.tags = Array.isArray(article.tags) ? [...article.tags] : []
+  editorForm.keywords = Array.isArray(article.keywords)
+    ? [...article.keywords].slice(0, 10)
+    : (article.seoKeywords ? article.seoKeywords.split(',').map(k => k.trim()).filter(Boolean).slice(0, 10) : [])
+  newTagInput.value = ''
+  newKeywordInput.value = ''
 
   if (article.sections && article.sections.length > 0) {
     editorForm.sections = article.sections.map(s => ({
@@ -5117,6 +5225,8 @@ const editBlog = (article: Article) => {
 }
 
 const saveBlogPost = async () => {
+  commitTag()
+  commitKeyword()
   const built = previewArticleObject.value
   const cleanTitle = (built.title || 'Untitled Blog Post').trim()
   const cleanSlug = (built.slug || slugify(cleanTitle) || `story-${Date.now()}`).trim()
@@ -5151,7 +5261,8 @@ const saveBlogPost = async () => {
         sections: built.sections,
         galleryItems: built.galleryItems,
         galleryCaption: built.galleryCaption,
-        tags: built.tags
+        tags: built.tags,
+        keywords: built.keywords
       })
       userFeedbackType.value = 'success'
       userFeedbackMessage.value = `Blog article "${cleanTitle}" saved successfully as ${editorForm.status === 'draft' ? 'Draft' : 'Published'}!`

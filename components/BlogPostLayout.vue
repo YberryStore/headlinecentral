@@ -139,11 +139,7 @@
         </picture>
       </div>
 
-      <div v-if="article.imageCaption || article.bannerCredit || article.videoUrl" class="mt-3 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 text-xs text-center">
-        <p v-if="article.imageCaption" class="text-gray-500 italic">
-          {{ article.imageCaption }}
-        </p>
-        <span v-if="article.imageCaption && (article.bannerCredit || article.videoUrl)" class="hidden sm:inline text-gray-300">•</span>
+      <div v-if="article.bannerCredit || article.videoUrl" class="mt-3 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 text-xs text-center">
         <p v-if="article.bannerCredit" class="text-gray-400 font-medium">
           Source / Credit:
           <a
@@ -268,14 +264,10 @@
                   />
                 </picture>
                 <figcaption
-                  v-if="section.image.caption || section.image.credit"
+                  v-if="section.image.credit"
                   class="p-3 text-xs bg-white border-t border-gray-100 text-center flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3"
                 >
-                  <span v-if="section.image.caption" class="text-gray-500 italic">
-                    {{ section.image.caption }}
-                  </span>
-                  <span v-if="section.image.caption && section.image.credit" class="hidden sm:inline text-gray-300">•</span>
-                  <span v-if="section.image.credit" class="text-gray-400 font-medium">
+                  <span class="text-gray-400 font-medium">
                     Source / Credit:
                     <a
                       v-if="section.image.linkUrl"
@@ -414,7 +406,7 @@
           <!-- Article Topics & Tags -->
           <div v-if="article.tags && article.tags.length > 0" class="pt-8 border-t border-gray-200">
             <span class="text-xs font-semibold text-gray-400 block mb-3 uppercase tracking-wider">
-              Explore the full hardware archive:
+              Related Topics:
             </span>
             <div class="flex flex-wrap gap-2">
               <span

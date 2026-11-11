@@ -77,7 +77,7 @@ const getViewsCount = (item: Article): number => {
   const realUnique = getArticleUniqueViews(item.slug || item.id)
   if (realTotal > 0) return realTotal
   if (realUnique > 0) return realUnique
-  return typeof item.views === 'number' && item.views < 5000 ? Math.max(1, item.views) : 1
+  return 1
 }
 
 const formatDisplayViews = (item: Article): string => {
